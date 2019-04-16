@@ -1,0 +1,28 @@
+{
+  "extends": "eslint-config-airbnb-base",
+  "rules": {
+    "global-require": "off",
+    "func-names": "off",
+    "class-methods-use-this": "off",
+    "import/no-unresolved": [
+      "error",
+      {
+        "ignore": [ "app", "test" ]
+      }
+    ],
+    "valid-jsdoc": "error",
+    "require-jsdoc": ["error", {
+      "require": {
+          "FunctionDeclaration": true,
+          "MethodDefinition": true,
+          "ClassDeclaration": true,
+          "ArrowFunctionExpression": false
+      }
+    }],
+    "no-underscore-dangle": "off"
+  },
+  "env": {
+    "node": true,
+    "mocha": true
+  }
+}

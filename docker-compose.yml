@@ -1,0 +1,33 @@
+version: "2.0"
+
+services: 
+    web:
+        build:
+            context: .
+            dockerfile: Dockerfile.server
+        restart: always
+        ports: 
+            - "${server_port}:7001"
+        volumes:
+            - ./volumes/logs:/root/logs/shubang
+            - ./volumes/files:/app/files
+            - ./config:/app/config
+        links: 
+            - redis
+            - postgres
+        environment:
+            - EGG_SERVER_ENV=${env}
+        depends_on:
+            - redis
+            - postgres
+
+    redis: 
+        image: redis:3.2
+        restart: always
+
+    postgres:
+        image: postgres:9.6.5
+        restart: always
+        environment:
+            POSTGRES_PASSWORD: root
+            POSTGRES_DB: shubang 
