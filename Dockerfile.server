@@ -1,3 +1,0 @@
-FROM harbor.ioteams.com/saas/shubangv2-base
-COPY . /app
-ENTRYPOINT npm start
