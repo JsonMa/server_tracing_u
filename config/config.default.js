@@ -51,6 +51,13 @@ module.exports = () => {
     }
   };
 
+  exports.mongoose = {
+    client: {
+      url: 'mongodb://127.0.0.1/tracing_u',
+      options: {}
+    }
+  };
+
   exports.security = {
     csrf: {
       enable: false,
