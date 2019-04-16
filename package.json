@@ -1,5 +1,5 @@
 {
-  "name": "shubang",
+  "name": "tracing_u",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -62,8 +62,8 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "start": "egg-scripts start --daemon --title=egg-server-huayan",
-    "stop": "egg-scripts stop --title=egg-server-huayan",
+    "start": "egg-scripts start --daemon --title=tracing_u",
+    "stop": "egg-scripts stop --title=tracing_u",
     "dev": "egg-bin dev",
     "debug": "egg-bin debug",
     "report": "egg-bin cov",
@@ -83,8 +83,8 @@
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/JsonMa/server_tracing_u"
   },
-  "author": "ioteam",
+  "author": "jsonma",
   "license": "MIT"
 }
