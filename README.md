@@ -1,12 +1,8 @@
-# shubang
-
-
+# tracing
 
 ## QuickStart
 
-<!-- add docs here for user -->
-
-see [egg docs][egg] for more detail.
+Tracing U project
 
 ### Development
 
@@ -29,10 +25,10 @@ $ npm stop
 - Use `npm test` to run unit test.
 - Use `npm run autod` to auto detect dependencies upgrade, see [autod](https://www.npmjs.com/package/autod) for more detail.
 
-
 ### Debug
 
 vscode launch.json 配置
+
 ```
 {
   "version": "0.2.0",
@@ -73,6 +69,5 @@ vscode launch.json 配置
   ]
 }
 ```
-
 
 [egg]: https://eggjs.org
