@@ -28,6 +28,7 @@ module.exports = (app) => {
    * @property {uuid}    category_id    - 分类ID
    * @property {array}   picture_ids    - 商品图片ID
    * @property {int}     quata          - 二维码额度
+   * @property {Array}   brand          - 标签
    */
   const Commodity = app.model.define('commodity', {
     id: {
