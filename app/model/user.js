@@ -17,7 +17,8 @@ module.exports = ({
    * @namespace Model
    *
    * @param {uuid}     id
-   * @param {Integer}  role                            - 用户角色[1-10平台用户][11厂家][12-20各级经销商用户][21-30销售账户][31快递员][32普通用户]
+   * @param {Enum}     role_type                       - 角色类型[business,salesman,courier,factroy,]
+   * @param {Integer}  role_id                         - 用户角色[1-10平台用户][11厂家][12-20各级经销商用户][21-30销售账户][31快递员][32普通用户]
    * @param {Object}   platform                        - 平台用户
    * @param {string}   platform.name                   - 平台用户【名称】
    * @param {string}   platform.email                  - 平台用户【邮箱】
@@ -48,7 +49,11 @@ module.exports = ({
 
   const schema = new Schema({
     id: String,
-    role: {
+    role_type: {
+      type: String,
+      enum: ['platform', 'factory', 'business', 'courier', 'salesman'],
+    },
+    role_id: {
       type: Number,
       default: 32,
     },
@@ -56,15 +61,12 @@ module.exports = ({
     platform: {
       name: {
         type: String,
-        required: true,
       },
       email: {
         type: String,
-        required: true,
       },
       password: {
         type: String,
-        required: true,
       },
       avatar: {
         type: Schema.Types.ObjectId,
@@ -75,82 +77,64 @@ module.exports = ({
     factory: {
       name: {
         type: String,
-        required: true,
       },
       public_account: {
         type: String,
-        required: true,
       },
       email: {
         type: String,
-        required: true,
       },
       contact: {
         type: String,
-        required: true,
       },
       phone: {
         type: String,
-        required: true,
       },
       license: {
         type: Schema.Types.ObjectId,
         ref: 'file',
-        required: true,
-
       },
       receiving_info: {
         name: {
           type: String,
-          required: true,
         },
         phone: {
           type: String,
-          required: true,
         },
         address: {
           type: String,
-          required: true,
         },
+      },
+    },
+    // 商家
+    business: {
+      name: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      contact: {
+        type: String,
       },
       banner: [{
         type: Schema.Types.ObjectId,
         ref: 'file',
       }],
     },
-    // 商家
-    business: {
-      name: {
-        type: String,
-        required: true,
-      },
-      address: {
-        type: String,
-        required: true,
-      },
-      phone: {
-        type: String,
-        required: true,
-      },
-      contact: {
-        type: String,
-        required: true,
-      },
-    },
     // 快递员
     courier: {
       company: {
         type: String,
-        required: true,
-
       },
       name: {
         type: String,
-        required: true,
       },
       phone: {
         type: String,
-        required: true,
       },
       employee_card: {
         type: Schema.Types.ObjectId,
@@ -162,20 +146,16 @@ module.exports = ({
     salesman: {
       name: {
         type: String,
-        required: true,
       },
       phone: {
         type: String,
-        required: true,
       },
       address: {
         type: String,
-        required: true,
       },
       id_card: {
         type: Schema.Types.ObjectId,
         ref: 'file',
-        required: true,
       },
     },
     unionId: {
@@ -184,7 +164,6 @@ module.exports = ({
     enable: {
       type: Boolean,
       default: true,
-      required: true,
     },
     inviter: {
       type: Schema.Types.ObjectId,

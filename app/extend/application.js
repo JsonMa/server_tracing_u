@@ -1,7 +1,9 @@
+'use strict';
+
 const fs = require('fs');
 const path = require('path');
-
 const ERROR_TEMPLATE = Symbol.for('Application#errorTemplate');
+
 module.exports = {
   get isProd() {
     return this.config.env === 'prod';

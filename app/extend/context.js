@@ -56,17 +56,14 @@ module.exports = {
   },
 
   async verify(rule, params) {
-    const {
-      errors,
-    } = this.app;
     const ret = await this.validate(rule, params).catch(function(e) {
       throw new VError({
-        name: errors.EBADREQUEST,
+        name: 'AJV_ERROR',
         cause: e,
         info: e.errors.reduce((map, e) => {
           map[e.keyword] = e.message;
           return map;
-        }, {}),
+        }),
       }, '错误的请求参数');
     });
     return ret;
@@ -181,5 +178,11 @@ module.exports = {
       role,
     } = this.state.auth;
     return role === '1';
+  },
+
+  get errors() {
+    return {
+      EMONGODB: 'MONGO_ERROR',
+    };
   },
 };

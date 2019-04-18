@@ -1,5 +1,8 @@
-const { ValidationError } = require('ajv');
-const { VError } = require('verror');
+'use strict';
+
+const {
+  VError,
+} = require('verror');
 
 module.exports = () => function* (next) {
   try {
@@ -8,11 +11,11 @@ module.exports = () => function* (next) {
     /* istanbul ignore next */
     if ((this.app.isProd || this.app.isTest) && !this.is('json')) throw e;
     /* istanbul ignore next */
-    if (e instanceof ValidationError) {
+    if (e.name === 'AJV_ERROR') {
       this.body = {
         code: 400,
-        msg: '请求参数错误',
-        errors: this.app.isProd ? undefined : e.errors,
+        msg: e.message,
+        errors: this.app.isProd ? undefined : e.jse_info,
       };
       this.status = 400;
     } else if (e instanceof VError) {

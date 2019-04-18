@@ -66,8 +66,20 @@ module.exports = app => {
             $ref: 'schema.user#',
           },
           with: {
+            properties: {
+              role_type: {
+                type: 'string',
+                enum: [
+                  'platform',
+                  'factory',
+                  'business',
+                  'courier',
+                  'salesman',
+                ],
+              },
+            },
+            required: ['role_type'],
             additionalProperties: false,
-            required: ['unionId'],
           },
         },
       };
@@ -184,25 +196,30 @@ module.exports = app => {
         service,
         createRule,
       } = this;
-      await ctx.validate(createRule);
+      await ctx.verify(createRule, ctx.request.body);
 
       const {
-        name,
-        phone,
-        password,
+        role_type,
+        business,
+        salesman,
+        courier,
+        factroy,
       } = ctx.request.body;
 
       // 验证用户是否存在
-      await service.user.isExisted(phone);
+      // await service.user.findOne({name: });
+      let targetData = {};
+      targetData[role_type] = ctx.request.body[role_type];
+      targetData = Object.assign(targetData, {
+        role_type,
+      });
 
       // 创建用户
-      const user = await service.user.create(
-        name,
-        phone,
-        password
-      );
+      const user = await service.user.create(ctx.request.body);
 
-      ctx.jsonBody = user;
+      ctx.jsonBody = {
+        data: user,
+      };
     }
 
     /**
