@@ -42,8 +42,6 @@
     "xml-js": "^1.5.2"
   },
   "devDependencies": {
-    "validate-commit-msg": "2.14.0",
-    "mocha": "3.5.3",
     "autod": "^2.9.0",
     "autod-egg": "^1.0.0",
     "bluebird": "^3.5.1",
@@ -51,11 +49,12 @@
     "egg-ci": "^1.8.0",
     "egg-mock": "^3.12.0",
     "eslint": "^4.7.0",
-    "eslint-config-airbnb": "16.1.0",
-    "eslint-config-airbnb-base": "12.0.0",
+    "eslint-config-egg": "^7.3.1",
     "eslint-plugin-import": "^2.8.0",
     "husky": "0.14.3",
+    "mocha": "3.5.3",
     "nyc": "11.2.1",
+    "validate-commit-msg": "2.14.0",
     "webstorm-disable-index": "^1.2.0"
   },
   "engines": {
