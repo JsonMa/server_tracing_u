@@ -1,6 +1,8 @@
+'use strict';
+
 const crypto = require('crypto');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * User 相关路由
    *
@@ -9,11 +11,11 @@ module.exports = (app) => {
    */
   class UserController extends app.Controller {
     /**
-   * 获取 user orders 的参数规则
-   *
-   * @readonly
-   * @memberof UserController
-   */
+     * 获取 user orders 的参数规则
+     *
+     * @readonly
+     * @memberof UserController
+     */
     get indexRule() {
       return {
         properties: {
@@ -157,13 +159,24 @@ module.exports = (app) => {
      * 获取用户列表
      *
      * @memberof UserController
-     * @returns {promise} 用户列表
+     * @return {promise} 用户列表
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { user } = ctx.service;
       const {
-        name, phone, status, cooperation, sort, start, count,
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        user,
+      } = ctx.service;
+      const {
+        name,
+        phone,
+        status,
+        cooperation,
+        sort,
+        start,
+        count,
       } = await ctx.validate(indexRule, ctx.helper.preprocessor.pagination);
 
       // 获取用户
@@ -180,10 +193,14 @@ module.exports = (app) => {
      * 创建用户
      *
      * @memberof UserController
-     * @returns {promise} 新建的用户
+     * @return {promise} 新建的用户
      */
     async create() {
-      const { ctx, service, createRule } = this;
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
       await ctx.validate(createRule);
 
       const {
@@ -199,7 +216,7 @@ module.exports = (app) => {
       const user = await service.user.create(
         name,
         phone,
-        password,
+        password
       );
 
       ctx.jsonBody = user;
@@ -209,12 +226,18 @@ module.exports = (app) => {
      * 获取用户详情
      *
      * @memberof UserController
-     * @returns {promise} 用户详情
+     * @return {promise} 用户详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
       const user = await service.user.getByIdOrThrow(id);
       delete user.dataValues.password;
 
@@ -225,7 +248,7 @@ module.exports = (app) => {
       });
       user.dataValues.cards = cards.count;
       let totalClick = 0;
-      cards.rows.forEach((card) => {
+      cards.rows.forEach(card => {
         totalClick += card.click;
       });
       user.dataValues.click_total = totalClick;
@@ -237,10 +260,14 @@ module.exports = (app) => {
      * 修改用户
      *
      * @memberof CommodityController
-     * @returns {promise} 被修改用户信息
+     * @return {promise} 被修改用户信息
      */
     async update() {
-      const { ctx, service, updateRule } = this;
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
       await ctx.validate(updateRule);
       const {
         phone,
@@ -248,7 +275,9 @@ module.exports = (app) => {
         avatar_id: avatarId,
         picture_ids: pictureIds,
       } = ctx.request.body;
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
 
       // 当前用户只能修改自己信息
       ctx.userPermission(id);
@@ -288,12 +317,18 @@ module.exports = (app) => {
      * 修改二维码下载量
      *
      * @memberof UserController
-     * @returns {promise} 被修改的用户
+     * @return {promise} 被修改的用户
      */
     async updateQr() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
       const user = await service.user.getByIdOrThrow(id);
 
       user.jump_num += 1;

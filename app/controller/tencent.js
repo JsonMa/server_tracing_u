@@ -1,11 +1,12 @@
-// @ts-nocheck
+'use strict';
+
 const util = require('utility');
 const querystring = require('querystring');
 const COS = require('cos-nodejs-sdk-v5');
 const path = require('path');
 const crypto = require('crypto');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * tencent相关Controller
    *
@@ -17,12 +18,18 @@ module.exports = (app) => {
      * 服务器上传
      *
      * @memberof fileController
-     * @returns {promise} 上传的文件
+     * @return {promise} 上传的文件
      */
     async appUpload() {
       const config = app.config.tencent;
-      const { ctx } = this;
-      const { action, videoType, coverType } = ctx.request.body;
+      const {
+        ctx,
+      } = this;
+      const {
+        action,
+        videoType,
+        coverType,
+      } = ctx.request.body;
       ctx.authPermission();
 
       // VOD发起上传
@@ -35,14 +42,24 @@ module.exports = (app) => {
         videoType,
       };
 
-      if (coverType) Object.assign(params, { coverType });
+      if (coverType) {
+        Object.assign(params, {
+          coverType,
+        });
+      }
 
       const originalStr = `GETvod.api.qcloud.com/v2/index.php?${this.stringify(params)}`;
       const Signature = this.sign(config.SecretKey, originalStr);
-      const COMMON_PARAMS = querystring.stringify(Object.assign(params, { Signature }));
+      const COMMON_PARAMS = querystring.stringify(Object.assign(params, {
+        Signature,
+      }));
 
-      const resp = await app.curl(`https://vod.api.qcloud.com/v2/index.php?${COMMON_PARAMS}`, { dataType: 'json' });
-      const { data } = resp;
+      const resp = await app.curl(`https://vod.api.qcloud.com/v2/index.php?${COMMON_PARAMS}`, {
+        dataType: 'json',
+      });
+      const {
+        data,
+      } = resp;
       ctx.error(resp.data.code === 0, '腾讯API认证失败', 22001);
 
       // COS上传文件
@@ -76,9 +93,13 @@ module.exports = (app) => {
       };
       const vodStr = `GETvod.api.qcloud.com/v2/index.php?${this.stringify(vodParams)}`;
       const vodSignature = this.sign(config.SecretKey, vodStr);
-      const VOD_COMMON_PARAMS = querystring.stringify(Object.assign(vodParams, { Signature: vodSignature })); // eslint-disable-line
+      const VOD_COMMON_PARAMS = querystring.stringify(Object.assign(vodParams, {
+        Signature: vodSignature,
+      })); // eslint-disable-line
 
-      const vodResp = await app.curl(`https://vod.api.qcloud.com/v2/index.php?${VOD_COMMON_PARAMS}`, { dataType: 'json' });
+      const vodResp = await app.curl(`https://vod.api.qcloud.com/v2/index.php?${VOD_COMMON_PARAMS}`, {
+        dataType: 'json',
+      });
 
       ctx.error(vodResp.data.code === 0, '腾讯API视频上传失败', 22003);
       ctx.jsonBody = vodResp.data;
@@ -87,12 +108,14 @@ module.exports = (app) => {
     /**
      * 客户端上传
      *
-     * @returns {promise} 客户端上传结果
+     * @return {promise} 客户端上传结果
      * @memberof fileController
      */
     async clientUpload() {
       const config = app.config.tencent;
-      const { ctx } = this;
+      const {
+        ctx,
+      } = this;
       ctx.authPermission();
 
       const currentTimeStamp = parseInt(Date.now() / 1000, 10);
@@ -119,12 +142,14 @@ module.exports = (app) => {
     /**
      * sdk上传
      *
-     * @returns {promise} sdk返回结果
+     * @return {promise} sdk返回结果
      * @memberof fileController
      */
     async skdUpload() {
       const config = app.config.tencent;
-      const { ctx } = this;
+      const {
+        ctx,
+      } = this;
       const {
         fileName,
         fileType,
@@ -157,11 +182,12 @@ module.exports = (app) => {
      * 字符串化
      *
      * @param {object} param 请求参数
-     * @returns {string} 签名
+     * @return {string} 签名
      * @memberof Wechat
      */
     stringify(param) {
-      return `${Object.keys(param).sort().map(key => `${key}=${param[key]}`).join('&')}`;
+      return `${Object.keys(param).sort().map(key => `${key}=${param[key]}`)
+        .join('&')}`;
     }
 
     /**
@@ -169,7 +195,7 @@ module.exports = (app) => {
      *
      * @param {string} key api key
      * @param {string} str 签名字符串
-     * @returns {string} 签名
+     * @return {string} 签名
      * @memberof fileController
      */
     sign(key, str) {
@@ -178,4 +204,3 @@ module.exports = (app) => {
   }
   return fileController;
 };
-

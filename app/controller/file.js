@@ -1,9 +1,10 @@
-// @ts-nocheck
+'use strict';
+
 const fs = require('fs');
 const gm = require('gm');
 const path = require('path');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * file相关Controller
    *
@@ -51,10 +52,13 @@ module.exports = (app) => {
      * 上传文件
      *
      * @memberof fileController
-     * @returns {promise} 上传的文件
+     * @return {promise} 上传的文件
      */
     async upload() {
-      const { ctx, uploadRule } = this;
+      const {
+        ctx,
+        uploadRule,
+      } = this;
       const [files] = ctx.request.files;
       await ctx.validate(uploadRule);
 
@@ -111,20 +115,31 @@ module.exports = (app) => {
      * 获取文件
      *
      * @memberof fileController
-     * @returns {promise} 文件详情
+     * @return {promise} 文件详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
       const file = await service.file.getByIdOrThrow(ctx.params.id);
-      const { range: requestRange } = ctx.headers;
-      const { size } = fs.statSync(file.path);
+      const {
+        range: requestRange,
+      } = ctx.headers;
+      const {
+        size,
+      } = fs.statSync(file.path);
       const fileSize = !!~file.type.indexOf('image') ? size : file.size; // eslint-disable-line
 
       if (requestRange && ~file.type.indexOf('video')) { // eslint-disable-line
         const range = ctx.helper.video.range(ctx.headers.range, fileSize);
         if (range) {
-          const { start, end } = range;
+          const {
+            start,
+            end,
+          } = range;
           ctx.set({
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Content-Type': file.type,
@@ -151,10 +166,14 @@ module.exports = (app) => {
      * 获取图片缩略图
      *
      * @memberof fileController
-     * @returns {promise} 缩略图
+     * @return {promise} 缩略图
      */
     async thumbnail() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
       const file = await service.file.getByIdOrThrow(ctx.params.id);
 
@@ -177,12 +196,18 @@ module.exports = (app) => {
     /**
      * 删除文件
      *
-     * @returns {promise} 被删除的文件
+     * @return {promise} 被删除的文件
      * @memberof fileController
      */
     async delete() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.validate(showRule);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.validate(showRule);
       await service.file.getByIdOrThrow(id);
 
       const file = await ctx.service.file.delete(id);
@@ -191,4 +216,3 @@ module.exports = (app) => {
   }
   return fileController;
 };
-

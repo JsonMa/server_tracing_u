@@ -1,8 +1,10 @@
+'use strict';
+
 const fs = require('fs');
 const QRCode = require('qr-image');
 const compressing = require('compressing');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * 贺卡相关路由
    *
@@ -138,11 +140,16 @@ module.exports = (app) => {
      * 获取贺卡列表
      *
      * @memberof CardController
-     * @returns {promise} 贺卡列表
+     * @return {promise} 贺卡列表
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { card } = ctx.service;
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        card,
+      } = ctx.service;
       ctx.authPermission();
       const {
         user_id: userId,
@@ -167,15 +174,23 @@ module.exports = (app) => {
      * 获取贺卡详情
      *
      * @memberof CardController
-     * @returns {promise} 贺卡详情
+     * @return {promise} 贺卡详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
 
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
       const card = await service.card.getByIdOrThrow(id);
-      const { category_id: categoryId } = card;
+      const {
+        category_id: categoryId,
+      } = card;
       const category = categoryId ? await service.cardCategory.getByIdOrThrow(categoryId) : null;
       if (card) card.click += 1;
       await card.save();
@@ -190,11 +205,17 @@ module.exports = (app) => {
      * 增加贺卡
      *
      * @memberof CardController
-     * @returns {promise} 批量新建的贺卡
+     * @return {promise} 批量新建的贺卡
      */
     async create() {
-      const { ctx, service, createRule } = this;
-      const { order_id: orderId } = await ctx.validate(createRule);
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
+      const {
+        order_id: orderId,
+      } = await ctx.validate(createRule);
       let card;
       if (orderId) {
         // ctx.adminPermission();
@@ -204,9 +225,16 @@ module.exports = (app) => {
         ctx.error(order, '订单不存在', 20001);
         ctx.error(order.status === 'PAYED', '未完成支付，无法批量生成贺卡', 17013);
 
-        const { count, commodity_id: commodityId, user_id: userId } = order;
+        const {
+          count,
+          commodity_id: commodityId,
+          user_id: userId,
+        } = order;
         const commodity = await service.commodity.getByIdOrThrow(commodityId);
-        const { quata, category_id: categoryId } = commodity;
+        const {
+          quata,
+          category_id: categoryId,
+        } = commodity;
         const commodityCategory = await service.commodityCategory.getByIdOrThrow(categoryId); // eslint-disable-line
         ctx.error(commodityCategory.auto_charge === false, '该商品类型无法批量生成贺卡', 17014);
         ctx.error(quata, '该商品无二维码额度', 17015);
@@ -214,7 +242,9 @@ module.exports = (app) => {
         const cardsArray = [];
         // eslint-disable-next-line
         for (let i = 0; i < count * quata; i++) {
-          cardsArray.push({ user_id: userId });
+          cardsArray.push({
+            user_id: userId,
+          });
         }
         const cards = await app.model.Card.bulkCreate(cardsArray);
         const filePath = `${app.baseDir}/files/${orderId}`;
@@ -223,11 +253,12 @@ module.exports = (app) => {
         ctx.assert(!isExists, '该压缩文件已存在', 24000);
         fs.mkdirSync(filePath);
 
-        cards.forEach((item) => {
+        cards.forEach(item => {
           if (item.id) {
             const generateQR = QRCode.image(
-              `https://buildupstep.cn/public/two_dimension_code?id=${item.id}`,
-              { type: 'png' },
+              `https://buildupstep.cn/public/two_dimension_code?id=${item.id}`, {
+                type: 'png',
+              }
             );
             generateQR.pipe(fs.createWriteStream(`${filePath}/${item.id}.png`));
           }
@@ -237,7 +268,9 @@ module.exports = (app) => {
         await compressing.tar
           .compressDir(filePath, gzipFilePath)
           .then(async () => {
-            const { size } = fs.statSync(gzipFilePath);
+            const {
+              size,
+            } = fs.statSync(gzipFilePath);
             const gzipFile = await app.model.File.create({
               name: orderId,
               size,
@@ -256,12 +289,14 @@ module.exports = (app) => {
               cards,
             };
           })
-          .catch((err) => {
+          .catch(err => {
             throw err;
           });
       } else {
         // ctx.authPermission();
-        const { id } = ctx.state.auth.user;
+        const {
+          id,
+        } = ctx.state.auth.user;
 
         // 创建贺卡
         const user = await service.user.getByIdOrThrow(id);
@@ -279,10 +314,14 @@ module.exports = (app) => {
      * 修改贺卡
      *
      * @memberof CardController
-     * @returns {promise} 被修改的贺卡
+     * @return {promise} 被修改的贺卡
      */
     async update() {
-      const { ctx, service, updateRule } = this;
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
       await ctx.validate(updateRule);
 
       const {
@@ -301,7 +340,7 @@ module.exports = (app) => {
       ctx.error(
         card.status === 'BLANK' || openidResult.data.openid === card.union_id,
         '贺卡已经被编辑过，不能再次编辑',
-        17002,
+        17002
       );
 
       // 验证贺卡分类是否存在
@@ -348,19 +387,29 @@ module.exports = (app) => {
      * 删除贺卡
      *
      * @memberof CardController
-     * @returns {promise} 删除的贺卡
+     * @return {promise} 删除的贺卡
      */
     async destroy() {
-      const { ctx, service, destroyRule } = this;
+      const {
+        ctx,
+        service,
+        destroyRule,
+      } = this;
       ctx.adminPermission();
 
       // query参数验证
-      const { id } = await ctx.validate(destroyRule);
+      const {
+        id,
+      } = await ctx.validate(destroyRule);
 
       // 查询并删除指定的贺卡
       await service.card.getByIdOrThrow(id);
       const deletedCard = await service.card.delete(id);
-      const { voice_id: voiceId, cover_id: coverId, picture_id: pictureId } = deletedCard;
+      const {
+        voice_id: voiceId,
+        cover_id: coverId,
+        picture_id: pictureId,
+      } = deletedCard;
 
       /* istanbul ignore next */
       if (voiceId) await service.file.delete(voiceId);

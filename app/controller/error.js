@@ -1,4 +1,6 @@
-module.exports = (app) => {
+'use strict';
+
+module.exports = app => {
   /**
    * error相关Controller
    *
@@ -10,14 +12,18 @@ module.exports = (app) => {
      * render error
      *
      * @memberof errorController
-     * @returns {promise} 无返回
+     * @return {promise} 无返回
      */
     async index() {
-      const { ctx } = this;
-      ctx.body = ctx.renderError({ status: 404, message: '找不到相关资源' });
+      const {
+        ctx,
+      } = this;
+      ctx.body = ctx.renderError({
+        status: 404,
+        message: '找不到相关资源',
+      });
       ctx.type = 'text/html';
     }
   }
   return errorController;
 };
-

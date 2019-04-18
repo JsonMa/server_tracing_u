@@ -1,5 +1,6 @@
+'use strict';
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * 贺卡分类路由
    *
@@ -136,13 +137,19 @@ module.exports = (app) => {
      * 获取贺卡分类列表
      *
      * @memberof CardCategoryController
-     * @returns {array} 贺卡分类列表
+     * @return {array} 贺卡分类列表
      */
     async index() {
-      const { ctx, service, indexRule } = this;
+      const {
+        ctx,
+        service,
+        indexRule,
+      } = this;
 
       const {
-        sort, start, count,
+        sort,
+        start,
+        count,
       } = await ctx.validate(indexRule, ctx.helper.preprocessor.pagination);
       const cardCategories = await service.cardCategory.fetch(start, count, sort);
 
@@ -156,13 +163,19 @@ module.exports = (app) => {
      * 获取贺卡分类详情
      *
      * @memberof CardCategoryController
-     * @returns {promise} 贺卡详情
+     * @return {promise} 贺卡详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
 
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
       const category = await service.cardCategory.getByIdOrThrow(id);
 
       ctx.jsonBody = category;
@@ -172,13 +185,22 @@ module.exports = (app) => {
      * 创建贺卡分类
      *
      * @memberof CardCategoryController
-     * @returns {object} 创建的贺卡分类
+     * @return {object} 创建的贺卡分类
      */
     async create() {
-      const { ctx, service, createRule } = this;
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(createRule);
-      const { background_ids: backgroundIds, name, music_ids: musicIds, blessings } = ctx.request.body; // eslint-disable-line
+      const {
+        background_ids: backgroundIds,
+        name,
+        music_ids: musicIds,
+        blessings,
+      } = ctx.request.body; // eslint-disable-line
 
       // 验证背景图片是否存在
       /* istanbul ignore else */
@@ -204,13 +226,22 @@ module.exports = (app) => {
      * 修改贺卡分类
      *
      * @memberof CardCategoryController
-     * @returns {object} 修改的贺卡分类
+     * @return {object} 修改的贺卡分类
      */
     async update() {
-      const { ctx, service, updateRule } = this;
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(updateRule);
-      const { background_ids: backgroundIds, name, music_ids: musicIds, blessings } = ctx.request.body; // eslint-disable-line
+      const {
+        background_ids: backgroundIds,
+        name,
+        music_ids: musicIds,
+        blessings,
+      } = ctx.request.body; // eslint-disable-line
 
       // 验证背景图片是否存在
       /* istanbul ignore else */
@@ -239,15 +270,21 @@ module.exports = (app) => {
      * 删除贺卡分类
      *
      * @memberof CardCategoryController
-     * @returns {array} 删除的贺卡分类
+     * @return {array} 删除的贺卡分类
      */
     async destroy() {
-      const { ctx, service, destroyRule } = this;
+      const {
+        ctx,
+        service,
+        destroyRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(destroyRule);
 
       // 查询并删除贺卡分类
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
       await service.cardCategory.getByIdOrThrow(id);
 
       // 验证分类是否存在关联贺卡
@@ -259,4 +296,3 @@ module.exports = (app) => {
   }
   return CardCategoryController;
 };
-

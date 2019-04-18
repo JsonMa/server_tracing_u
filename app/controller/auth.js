@@ -1,8 +1,9 @@
-// @ts-nocheck
+'use strict';
+
 const uuid = require('uuid/v4');
 const crypto = require('crypto');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * Auth 相关路由
    *
@@ -40,15 +41,19 @@ module.exports = (app) => {
      */
     async login() {
       const {
-        ctx, loginRule,
+        ctx,
+        loginRule,
       } = this;
 
       let ecptPassword = '';
       const {
-        phone, password,
+        phone,
+        password,
       } = await ctx.validate(loginRule);
       const user = await this.app.model.User.findOne({
-        where: { phone },
+        where: {
+          phone,
+        },
       });
 
       /* 数据库验证 */
@@ -56,7 +61,10 @@ module.exports = (app) => {
       ecptPassword = md5.update(password).digest('hex');
       ctx.error(user && ecptPassword === user.password, '账号或密码错误', 10002, 400);
       const token = uuid();
-      app.redis.set(`${app.config.auth.prefix}:${token}`, JSON.stringify({ role: user.role, id: user.id }));
+      app.redis.set(`${app.config.auth.prefix}:${token}`, JSON.stringify({
+        role: user.role,
+        id: user.id,
+      }));
       ctx.cookies.set('access_token', token);
       ctx.jsonBody = {
         user,
@@ -68,13 +76,15 @@ module.exports = (app) => {
      * logout
      *
      * @memberof AuthController
-     * @returns {object} 返回登出结果
+     * @return {object} 返回登出结果
      */
     async logout() {
       const {
         ctx,
       } = this;
-      const { access_token: token } = ctx.header;
+      const {
+        access_token: token,
+      } = ctx.header;
 
       const ret = await app.redis.del(`${app.config.auth.prefix}:${token}`);
       ctx.error(ret !== 1, '退出登登录失败', 10999);

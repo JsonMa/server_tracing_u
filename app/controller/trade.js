@@ -1,9 +1,11 @@
+'use strict';
+
 const assert = require('assert');
 
 const SUCCESS = 'SUCCESS';
 const FAILURE = 'FAIL';
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * Trade 相关路由
    *
@@ -43,8 +45,16 @@ module.exports = (app) => {
      * @return {promise} Trade
      */
     async create() {
-      const { ctx, service, createRule } = this;
-      const { code, commodity_id: commodityId, count } = await ctx.validate(createRule);
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
+      const {
+        code,
+        commodity_id: commodityId,
+        count,
+      } = await ctx.validate(createRule);
       ctx.authPermission();
 
       // 获取openid
@@ -94,7 +104,7 @@ module.exports = (app) => {
      * fetch trade
      *
      * @memberof TradeController
-     * @returns {promise} trade
+     * @return {promise} trade
      */
     async fetch() {
       const param = await this.ctx.validate(this.fetchRule);
@@ -111,30 +121,42 @@ module.exports = (app) => {
 
     /**
      * 微信回调接口
-     * @returns {promise} 处理是否成功
+     * @return {promise} 处理是否成功
      * @memberof TradeController
      */
     async wechatNotify() {
-      const { ctx, service } = this;
-      const { body } = this.ctx.request;
-      const { Trade } = this.app.model;
+      const {
+        ctx,
+        service,
+      } = this;
+      const {
+        body,
+      } = this.ctx.request;
+      const {
+        Trade,
+      } = this.app.model;
 
       const {
-        object2Xml, tn2uuid,
+        object2Xml,
+        tn2uuid,
       } = service.wechat;
 
       /* istanbul ignore if */
       if (!this.service.wechat.verify(body)) {
-        ctx.body = object2Xml({ return_code: FAILURE });
+        ctx.body = object2Xml({
+          return_code: FAILURE,
+        });
         return;
       }
 
       await this.service.trade.finishTrade(
         tn2uuid(body.out_trade_no),
         /* istanbul ignore next */
-        body.result_code.toUpperCase() === SUCCESS ? Trade.STATUS.SUCCESS : Trade.STATUS.CLOSED,
+        body.result_code.toUpperCase() === SUCCESS ? Trade.STATUS.SUCCESS : Trade.STATUS.CLOSED
       );
-      ctx.body = object2Xml({ return_code: SUCCESS });
+      ctx.body = object2Xml({
+        return_code: SUCCESS,
+      });
     }
   }
   return TradeController;

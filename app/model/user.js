@@ -1,13 +1,14 @@
+'use strict';
 const {
-  timestamps
-} = require('../lib/model_common')
+  timestamps,
+} = require('../lib/model_common');
 
 module.exports = ({
-  mongoose
+  mongoose,
 }) => {
   const {
-    Schema
-  } = mongoose
+    Schema,
+  } = mongoose;
 
   /**
    * 用户Model
@@ -41,33 +42,35 @@ module.exports = ({
    * @param {String}   unionId                         - 微信用户唯一识别号
    * @param {Boolean}  enable                          - 是否启用该账户
    * @param {Date}     last_login                      - 上次登录时间
+   * @param {Object}   inviter                         - 邀请者
+   *
    */
 
   const schema = new Schema({
     id: String,
     role: {
-      type: Number
+      type: Number,
     },
     // 平台用户
     platform: {
       name: {
-        type: String
+        type: String,
       },
       email: {
-        type: String
+        type: String,
       },
       password: {
-        type: String
+        type: String,
       },
       avatar: {
         type: Schema.Types.ObjectId,
-        ref: 'file'
+        ref: 'file',
       },
     },
     // 商家
     business: {
       name: {
-        type: String
+        type: String,
       },
       public_account: {
         type: String,
@@ -83,18 +86,18 @@ module.exports = ({
       },
       license: {
         type: Schema.Types.ObjectId,
-        ref: 'file'
+        ref: 'file',
       },
       receiving_info: {
         name: {
-          type: String
+          type: String,
         },
         phone: {
-          type: String
+          type: String,
         },
         address: {
-          type: String
-        }
+          type: String,
+        },
       },
     },
     // 快递员
@@ -110,8 +113,8 @@ module.exports = ({
       },
       employee_card: {
         type: Schema.Types.ObjectId,
-        ref: 'file'
-      }
+        ref: 'file',
+      },
     },
 
     // 销售
@@ -127,19 +130,25 @@ module.exports = ({
       },
       id_card: {
         type: Schema.Types.ObjectId,
-        ref: 'file'
-      }
+        ref: 'file',
+      },
     },
     unionId: {
-      type: String
+      type: String,
     },
     enable: {
-      type: Boolean
+      type: Boolean,
     },
-    last_login: Date
-  }, Object.assign({}, {
-    timestamps
-  }))
+    inviter: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    last_login: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
+  );
 
-  return mongoose.model('user', schema)
-}
+  return mongoose.model('user', schema);
+};

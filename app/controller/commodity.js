@@ -1,6 +1,8 @@
+'use strict';
+
 const _ = require('lodash');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * 商品相关路由
    *
@@ -152,9 +154,12 @@ module.exports = (app) => {
             type: 'number',
           },
           act_price: {
-            oneOf: [
-              { type: 'null' },
-              { type: 'number' },
+            oneOf: [{
+              type: 'null',
+            },
+            {
+              type: 'number',
+            },
             ],
           },
           description: {
@@ -325,13 +330,25 @@ module.exports = (app) => {
      * 获取商品列表
      *
      * @memberof CommodityController
-     * @returns {array} 商品列表
+     * @return {array} 商品列表
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { commodity } = ctx.service;
       const {
-        name, sort, start, count, category_id: categoryId, status, recommended, embed,
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        commodity,
+      } = ctx.service;
+      const {
+        name,
+        sort,
+        start,
+        count,
+        category_id: categoryId,
+        status,
+        recommended,
+        embed,
       } = await ctx.validate(indexRule, ctx.helper.preprocessor.pagination);
 
       // 获取商品及商品分类
@@ -340,10 +357,18 @@ module.exports = (app) => {
       /* istanbul ignore next */
       if (embed === 'category' && !!commodities) {
         const uniqIds = _.union(commodities.rows.map(row => row.category_id));
-        categories = await app.model.CommodityCategory.findAll({ where: { id: { $in: uniqIds } } });
+        categories = await app.model.CommodityCategory.findAll({
+          where: {
+            id: {
+              $in: uniqIds,
+            },
+          },
+        });
       }
       /* istanbul ignore next */
-      categories = embed !== 'category' ? { } : { categories };
+      categories = embed !== 'category' ? {} : {
+        categories,
+      };
 
       ctx.jsonBody = Object.assign({
         start,
@@ -357,13 +382,19 @@ module.exports = (app) => {
      * 获取商品详情
      *
      * @memberof CommodityController
-     * @returns {object} 商品详情
+     * @return {object} 商品详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
       await ctx.validate(showRule);
 
-      const { id } = ctx.params;
+      const {
+        id,
+      } = ctx.params;
       const commodity = await service.commodity.getByIdOrThrow(id);
 
       ctx.jsonBody = commodity;
@@ -373,10 +404,14 @@ module.exports = (app) => {
      * 创建商品
      *
      * @memberof CommodityController
-     * @returns {object} 新建的商品
+     * @return {object} 新建的商品
      */
     async create() {
-      const { ctx, service, createRule } = this;
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(createRule);
 
@@ -418,14 +453,17 @@ module.exports = (app) => {
         recommended,
         categoryId,
         pictureIds,
-        quata,
+        quata
       );
 
       // 为指定商品添加属性
       /* istanbul ignore else */
       if (attr && commodity) {
-        const records = attr.map((attribute) => {
-          const { attr_name: attrName, attr_value: attrValues } = attribute;
+        const records = attr.map(attribute => {
+          const {
+            attr_name: attrName,
+            attr_value: attrValues,
+          } = attribute;
           return {
             name: attrName,
             values: attrValues,
@@ -442,10 +480,14 @@ module.exports = (app) => {
      * 修改商品
      *
      * @memberof CommodityController
-     * @returns {promise} 被修改商品
+     * @return {promise} 被修改商品
      */
     async update() {
-      const { ctx, service, updateRule } = this;
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(updateRule);
 
@@ -489,21 +531,29 @@ module.exports = (app) => {
      * 批量修改商品
      *
      * @memberof CommodityController
-     * @returns {array} 被修改商品列表
+     * @return {array} 被修改商品列表
      */
     async batchUpdate() {
-      const { ctx, service, batchUpdateRule } = this;
+      const {
+        ctx,
+        service,
+        batchUpdateRule,
+      } = this;
       ctx.adminPermission();
 
       // query参数验证
-      const { ids: queryIds } = ctx.query;
+      const {
+        ids: queryIds,
+      } = ctx.query;
       ctx.assert(queryIds && typeof queryIds === 'string', 'query中缺少必要的ids参数', 400);
-      await ctx.validate(batchUpdateRule, (reqData) => {
+      await ctx.validate(batchUpdateRule, reqData => {
         ctx.assert(typeof reqData === 'object', '参数需为对象');
 
         // ids预处理为数组
         const data = Object.assign({}, reqData);
-        const { ids } = data;
+        const {
+          ids,
+        } = data;
         /* istanbul ignore next */
         data.ids = ids && typeof ids === 'string' ? ids.split(',') : ids;
         return data;
@@ -525,21 +575,29 @@ module.exports = (app) => {
      * 批量删除商品
      *
      * @memberof CommodityController
-     * @returns {array} 删除的商品列表
+     * @return {array} 删除的商品列表
      */
     async batchDestroy() {
-      const { ctx, service, batchDestroyRule } = this;
+      const {
+        ctx,
+        service,
+        batchDestroyRule,
+      } = this;
       ctx.adminPermission();
 
       // query参数验证
-      const { ids: queryIds } = ctx.query;
+      const {
+        ids: queryIds,
+      } = ctx.query;
       ctx.assert(queryIds && typeof queryIds === 'string', 'query中缺少必要的ids参数', 400);
-      await ctx.validate(batchDestroyRule, (reqData) => {
+      await ctx.validate(batchDestroyRule, reqData => {
         ctx.assert(typeof reqData === 'object', '参数需为对象');
 
         // ids预处理为数组
         const data = Object.assign({}, reqData);
-        const { ids } = data;
+        const {
+          ids,
+        } = data;
         /* istanbul ignore next */
         data.ids = ids && typeof ids === 'string' ? ids.split(',') : ids;
       });
@@ -557,15 +615,22 @@ module.exports = (app) => {
      * 创建属性
      *
      * @memberof CommodityController
-     * @returns {object} 创建的属性
+     * @return {object} 创建的属性
      */
     async createAttribute() {
-      const { ctx, service, attributeCreateRule } = this;
+      const {
+        ctx,
+        service,
+        attributeCreateRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(attributeCreateRule);
 
       // 获取参数并创建属性
-      const { attr_name: attrName, attr_value: attrValue } = ctx.request.body;
+      const {
+        attr_name: attrName,
+        attr_value: attrValue,
+      } = ctx.request.body;
       await service.commodityAttr.isExisted(attrName, ctx.params.id);
       const attribute = await service.commodityAttr.create(ctx.params.id, attrName, attrValue);
 
@@ -576,10 +641,14 @@ module.exports = (app) => {
      * 返回指定商品的属性列表
      *
      * @memberof CommodityController
-     * @returns {array} 返回属性列表
+     * @return {array} 返回属性列表
      */
     async attributeIndex() {
-      const { ctx, service, attributeIndexRule } = this;
+      const {
+        ctx,
+        service,
+        attributeIndexRule,
+      } = this;
       await ctx.validate(attributeIndexRule);
 
       // 验证是否存在
@@ -595,14 +664,21 @@ module.exports = (app) => {
      * 返回商品的指定属性
      *
      * @memberof CommodityController
-     * @returns {array} 返回指定属性
+     * @return {array} 返回指定属性
      */
     async attributeShow() {
-      const { ctx, service, attributeShowRule } = this;
+      const {
+        ctx,
+        service,
+        attributeShowRule,
+      } = this;
       await ctx.validate(attributeShowRule);
 
       // 获取参数及查询指定商品属性
-      const { attr_id: attrId, id } = ctx.params;
+      const {
+        attr_id: attrId,
+        id,
+      } = ctx.params;
       const attribute = await service.commodityAttr.getByIdOrThrow(attrId, id);
 
       ctx.jsonBody = attribute;
@@ -612,15 +688,22 @@ module.exports = (app) => {
      * 修改商品指定属性
      *
      * @memberof CommodityController
-     * @returns {object} 返回修改后的属性
+     * @return {object} 返回修改后的属性
      */
     async attributeUpdate() {
-      const { ctx, service, attributeUpdateRule } = this;
+      const {
+        ctx,
+        service,
+        attributeUpdateRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(attributeUpdateRule);
 
       // 获取参数并修改指定属性
-      const { attr_id: attrId, id } = ctx.params;
+      const {
+        attr_id: attrId,
+        id,
+      } = ctx.params;
       const attribute = await service.commodityAttr.getByIdOrThrow(attrId, id);
       Object.assign(attribute, {
         name: ctx.request.body.attr_name,
@@ -635,16 +718,25 @@ module.exports = (app) => {
      * 删除商品指定属性
      *
      * @memberof CommodityController
-     * @returns {object} 返回被删除的属性值
+     * @return {object} 返回被删除的属性值
      */
     async destoryAttribute() {
-      const { ctx, service, attributeShowRule } = this;
+      const {
+        ctx,
+        service,
+        attributeShowRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(attributeShowRule);
 
-      const { attr_id: attrId, id } = ctx.params;
+      const {
+        attr_id: attrId,
+        id,
+      } = ctx.params;
       const attribute = await service.commodityAttr.getByIdOrThrow(attrId, id);
-      await attribute.destroy({ force: true });
+      await attribute.destroy({
+        force: true,
+      });
 
       ctx.jsonBody = attribute;
     }
@@ -652,4 +744,3 @@ module.exports = (app) => {
 
   return CommodityController;
 };
-

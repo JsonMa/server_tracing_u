@@ -1,9 +1,6 @@
-// @ts-nocheck
-const fs = require('fs');
-const gm = require('gm');
-const path = require('path');
+'use strict';
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * 小程序相关Controller
    *
@@ -31,40 +28,52 @@ module.exports = (app) => {
     /**
      * 获取小程序码
      *
-     * @returns {promise} 生成的小程序码
+     * @return {promise} 生成的小程序码
      * @memberof miniProgramController
      */
     async code() {
-      const { ctx, indexRule } = this;
-      const { grantType, tokenUrl, codeUrl } = app.config.miniProgram;
-      const { appid, secret } = app.config.wechat;
-      const { uuid2tn } = ctx.service.wechat;
-      const { id } = await ctx.validate(indexRule);
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        grantType,
+        tokenUrl,
+        codeUrl,
+      } = app.config.miniProgram;
+      const {
+        appid,
+        secret,
+      } = app.config.wechat;
+      const {
+        uuid2tn,
+      } = ctx.service.wechat;
+      const {
+        id,
+      } = await ctx.validate(indexRule);
 
       const token = await app.curl(
-        tokenUrl,
-        {
+        tokenUrl, {
           dataType: 'json',
           data: {
             grant_type: grantType,
             appid,
             secret,
           },
-        },
+        }
       );
       ctx.error(token.data.access_token, '小程序token获取失败', 23001);
 
       const url = `${codeUrl}?access_token=${token.data.access_token}`;
       const code = await app.curl(
-        url,
-        {
+        url, {
           method: 'POST',
           contentType: 'json',
           data: {
             page: 'pages/greetingcard/greetingcard',
             scene: uuid2tn(id),
           },
-        },
+        }
       );
       ctx.error(token.data.access_token, '小程序码获取失败', 23002);
 
@@ -77,4 +86,3 @@ module.exports = (app) => {
   }
   return miniProgramController;
 };
-

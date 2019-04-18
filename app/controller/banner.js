@@ -1,5 +1,6 @@
-// @ts-nocheck
-module.exports = (app) => {
+'use strict';
+
+module.exports = app => {
   /**
    * banner相关Controller
    *
@@ -77,10 +78,12 @@ module.exports = (app) => {
      * 获取所有banner
      *
      * @memberof bannerController
-     * @returns {array} 所有的banner
+     * @return {array} 所有的banner
      */
     async index() {
-      const { ctx } = this;
+      const {
+        ctx,
+      } = this;
       const banners = await app.model.Banner.findAndCountAll();
 
       ctx.jsonBody = {
@@ -93,13 +96,20 @@ module.exports = (app) => {
      * 新增banner
      *
      * @memberof bannerController
-     * @returns {object} 新增的banner
+     * @return {object} 新增的banner
      */
     async create() {
-      const { ctx, service, createRule } = this;
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(createRule);
-      const { cover_id: coverId, video_url: videoUrl } = ctx.request.body;
+      const {
+        cover_id: coverId,
+        video_url: videoUrl,
+      } = ctx.request.body;
 
       const total = await app.model.Banner.count();
       ctx.error(total <= 5, 'banner数量不能大于5', 26002, 400);
@@ -109,7 +119,10 @@ module.exports = (app) => {
       ctx.error(!!~image.type.indexOf('image/'), '视频封面非图片类型文件', 11001, 400); // eslint-disable-line
       ctx.error(!!~videoUrl.indexOf('.mp4'), '非视频类型文件', 11002, 400); // eslint-disable-line
 
-      const createdBanner = await app.model.Banner.create({ cover_id: coverId, video_url: videoUrl }); // eslint-disable-line
+      const createdBanner = await app.model.Banner.create({
+        cover_id: coverId,
+        video_url: videoUrl,
+      }); // eslint-disable-line
 
       ctx.jsonBody = createdBanner;
     }
@@ -118,10 +131,13 @@ module.exports = (app) => {
      * 删除banner
      *
      * @memberof bannerController
-     * @returns {object} 被删除的banner
+     * @return {object} 被删除的banner
      */
     async destroy() {
-      const { ctx, destroyRule } = this;
+      const {
+        ctx,
+        destroyRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(destroyRule);
 
@@ -136,18 +152,25 @@ module.exports = (app) => {
      * 修改banner
      *
      * @memberof bannerController
-     * @returns {object} 修改后的banner
+     * @return {object} 修改后的banner
      */
     async update() {
-      const { ctx, service, updateRule } = this;
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
       ctx.adminPermission();
       await ctx.validate(updateRule);
-      const { cover_id: coverId, video_url: videoUrl } = ctx.request.body;
+      const {
+        cover_id: coverId,
+        video_url: videoUrl,
+      } = ctx.request.body;
 
       // 验证cover_id是否存在，且为图片类型;
       if (coverId) {
         const image = await service.file.getByIdOrThrow(coverId);
-        ctx.error(!!~image.type.indexOf('image/'), '视频封面非图片类型文件', 11001, 400); // eslint-disable-line      
+        ctx.error(!!~image.type.indexOf('image/'), '视频封面非图片类型文件', 11001, 400); // eslint-disable-line
       }
       if (videoUrl) ctx.error(!!~videoUrl.indexOf('.mp4'), '非视频类型文件', 11002, 400); // eslint-disable-line
 
@@ -162,4 +185,3 @@ module.exports = (app) => {
   }
   return bannerController;
 };
-

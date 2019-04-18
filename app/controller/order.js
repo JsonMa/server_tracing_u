@@ -1,6 +1,8 @@
+'use strict';
+
 const _ = require('lodash');
 
-module.exports = (app) => {
+module.exports = app => {
   /**
    * Order 相关路由
    *
@@ -38,23 +40,24 @@ module.exports = (app) => {
       this.ctx.userPermission();
       const params = await this.ctx.validate(this.createRule);
 
-      const { ctx } = this.ctx.request;
+      const {
+        ctx,
+      } = this.ctx.request;
 
       const commodity = await this.app.model.Commodity.findById(params.commodity_id);
       this.ctx.error(commodity, '商品不存在', 18001);
       this.ctx.error(
         commodity.status === this.app.model.Commodity.STATUS.ON,
         '商品已下架',
-        18006,
+        18006
       );
 
       /* istanbul ignore next */
-      const order = await this.app.model.Order.create(Object.assign(
-        {
-          user_id: ctx.state.auth.user.id,
-          commodity_price: commodity.realPrice,
-        },
-        params,
+      const order = await this.app.model.Order.create(Object.assign({
+        user_id: ctx.state.auth.user.id,
+        commodity_price: commodity.realPrice,
+      },
+      params
       ));
       this.ctx.jsonBody = order;
     }
@@ -74,7 +77,9 @@ module.exports = (app) => {
             type: 'string',
             enum: ['CREATED', 'PAYED', 'SHIPMENT', 'FINISHED'],
           },
-          order_no: { type: 'string' },
+          order_no: {
+            type: 'string',
+          },
           ...this.ctx.helper.rule.pagination,
         },
         required: ['start', 'count', 'sort'],
@@ -93,9 +98,13 @@ module.exports = (app) => {
       // this.ctx.adminPermission();
       const query = await this.ctx.validate(
         this.listRule,
-        this.ctx.helper.preprocessor.pagination,
+        this.ctx.helper.preprocessor.pagination
       );
-      const { count, start, sort } = query;
+      const {
+        count,
+        start,
+        sort,
+      } = query;
       /* istanbul ignore next */
       const {
         count: total,
@@ -104,25 +113,31 @@ module.exports = (app) => {
         where: _.pickBy({
           status: query.status,
           no: parseInt(query.order_no, 10),
-          created_at:
-            query.from || query.to
-              ? _.pickBy({
-                $gt: query.from ? new Date(query.from) : undefined,
-                $lt: query.to ? new Date(query.to) : undefined,
-              })
-              : null,
+          created_at: query.from || query.to ?
+            _.pickBy({
+              $gt: query.from ? new Date(query.from) : undefined,
+              $lt: query.to ? new Date(query.to) : undefined,
+            }) : null,
         }),
         limit: count,
         offset: start,
-        order: [['created_at', sort === 'false' ? 'DESC' : 'ASC']],
+        order: [
+          ['created_at', sort === 'false' ? 'DESC' : 'ASC'],
+        ],
       });
 
       const rows = [];
       // eslint-disable-next-line
       for (let i = 0; i < items.length; i++) {
         const item = items[i].toJSON();
-        const { name, phone, address } = await this.service.user.getByIdOrThrow(item.user_id); // eslint-disable-line
-        const { quata } = await this.service.commodity.getByIdOrThrow(item.commodity_id); // eslint-disable-line
+        const {
+          name,
+          phone,
+          address,
+        } = await this.service.user.getByIdOrThrow(item.user_id); // eslint-disable-line
+        const {
+          quata,
+        } = await this.service.commodity.getByIdOrThrow(item.commodity_id); // eslint-disable-line
 
         Object.assign(item, {
           name,
@@ -133,13 +148,12 @@ module.exports = (app) => {
         });
         rows.push(item);
       }
-      this.ctx.jsonBody = _.pickBy(
-        {
-          count: total,
-          start,
-          rows,
-        },
-        x => !_.isNil(x),
+      this.ctx.jsonBody = _.pickBy({
+        count: total,
+        start,
+        rows,
+      },
+      x => !_.isNil(x)
       );
     }
 
@@ -167,14 +181,18 @@ module.exports = (app) => {
      * @return {promise} Order
      */
     async fetch() {
-      const { ctx } = this;
+      const {
+        ctx,
+      } = this;
       await ctx.validate(this.fetchRule);
 
       const order = await this.app.model.Order.findById(ctx.params.id);
       ctx.assert(order, 404);
       ctx.checkPermission(order.user_id);
 
-      const result = { order };
+      const result = {
+        order,
+      };
       ctx.jsonBody = result;
     }
 
@@ -188,7 +206,10 @@ module.exports = (app) => {
       return {
         properties: {
           id: this.ctx.helper.rule.uuid,
-          price: { type: 'number', minimum: 0.01 },
+          price: {
+            type: 'number',
+            minimum: 0.01,
+          },
           status: {
             type: 'string',
             enum: ['finished'],
@@ -207,7 +228,9 @@ module.exports = (app) => {
      * @return {promise} Order
      */
     async patch() {
-      const { ctx } = this;
+      const {
+        ctx,
+      } = this;
       const params = await ctx.validate(this.patchRule);
 
       const order = await app.model.Order.findById(params.id);
@@ -218,7 +241,9 @@ module.exports = (app) => {
       if (params.price) {
         ctx.adminPermission();
         const trades = await app.model.Trade.count({
-          where: { order_id: params.id },
+          where: {
+            order_id: params.id,
+          },
         });
         ctx.error(trades === 0, '当前订单已发起支付，无法修改价格', 18007);
       }
@@ -229,7 +254,7 @@ module.exports = (app) => {
         ctx.error(
           order.status === 'SHIPMENT',
           '订单当前状态不能修改为已完成',
-          18003,
+          18003
         );
         params.status = params.status.toUpperCase();
       }
