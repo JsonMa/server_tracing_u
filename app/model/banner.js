@@ -1,46 +1,46 @@
-module.exports = (app) => {
+'use strict';
+
+const {
+  timestamps,
+} = require('../lib/model_common');
+
+module.exports = ({
+  mongoose,
+}) => {
   const {
-    UUID,
-    UUIDV1,
-    ENUM,
-    STRING,
-  } = app.Sequelize;
+    Schema,
+  } = mongoose;
 
-    /**
-     * banner
-     *
-     * @model Banner
-     * @namespace Model
-     * @property {uuid}   id
-     * @property {uuid}   cover_id  - 视频封面图
-     * @property {uuid}   video_url - 视频内容
-     * @property {uuid}   status    - 商家状态['ON', 'OFF']，分别表示开启和关闭
-     */
-  const Banner = app.model.define('banner', {
-    id: {
-      type: UUID,
-      defaultValue: UUIDV1,
-      primaryKey: true,
+  /**
+   * banner
+   *
+   * @model Banner
+   * @namespace Model
+   * @property {Object}    cover     - 视频封面图
+   * @property {String}    video_url - 视频内容
+   * @property {String}    title     - 标题
+   * @property {String}    content   - 内容
+   * @property {Boolean}   enable    - 是否启用
+   */
+
+  const schema = new Schema({
+    cover: {
+      type: Schema.Types.ObjectId,
+      ref: 'file',
     },
-    cover_id: {
-      type: UUID,
-      allowNull: false,
-    },
+    title: String,
+    content: String,
     video_url: {
-      type: STRING(128),
-      allowNull: false,
+      type: String,
     },
-    status: {
-      type: ENUM,
-      values: [
-        'ON',
-        'OFF',
-      ],
-      defaultValue: 'OFF',
-      allowNull: false,
+    enable: {
+      type: Boolean,
+      defalut: true,
     },
-  });
+  },
+  Object.assign({}, {
+    timestamps,
+  }));
 
-  return Banner;
+  return mongoose.model('banner', schema);
 };
-

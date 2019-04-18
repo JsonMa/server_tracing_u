@@ -1,44 +1,46 @@
-module.exports = (app) => {
-  const {
-    UUID,
-    UUIDV1,
-    STRING,
-    INTEGER,
-  } = app.Sequelize;
+'use strict';
 
+const {
+  timestamps,
+} = require('../lib/model_common');
+
+module.exports = ({
+  mongoose,
+}) => {
+  const {
+    Schema,
+  } = mongoose;
   /**
    * 文件
    *
    * @model File
    * @namespace Model
-   * @property {uuid}   id
-   * @property {string} name - 文件名称
-   * @property {string} path - 文件路径
-   * @property {string} type - 文件类型
-   * @property {string} size - 文件大小
+   * @property {String} name - 文件名称
+   * @property {String} path - 文件路径
+   * @property {String} type - 文件类型
+   * @property {Number} size - 文件大小
    */
-  const File = app.model.define('file', {
-    id: {
-      type: UUID,
-      defaultValue: UUIDV1,
-      primaryKey: true,
-    },
+  const schema = new Schema({
     name: {
-      type: STRING(128),
-      allowNull: false,
+      type: String,
+      required: true,
     },
     path: {
-      type: STRING(128),
-      allowNull: false,
+      type: String,
+      required: true,
     },
     type: {
-      type: STRING(128),
-      allowNull: false,
+      type: String,
+      required: true,
     },
     size: {
-      type: INTEGER,
+      type: Number,
+      required: true,
     },
-  });
+  },
+  Object.assign({}, {
+    timestamps,
+  }));
 
-  return File;
+  return mongoose.model('file', schema);
 };

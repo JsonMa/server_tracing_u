@@ -11,7 +11,7 @@ module.exports = app => {
    */
   class UserController extends app.Controller {
     /**
-     * 获取 user orders 的参数规则
+     * 获取用户列表
      *
      * @readonly
      * @memberof UserController
@@ -25,19 +25,8 @@ module.exports = app => {
             minLength: 1,
           },
           phone: this.ctx.helper.rule.phone,
-          status: {
-            type: 'string',
-            enum: [
-              'ON',
-              'OFF',
-            ],
-          },
-          cooperation: {
-            type: 'string',
-            enum: [
-              'TRUE',
-              'FALSE',
-            ],
+          enable: {
+            type: 'boolean',
           },
           ...this.ctx.helper.rule.pagination,
         },
@@ -71,22 +60,16 @@ module.exports = app => {
      */
     get createRule() {
       return {
-        properties: {
-          name: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 1,
+        $async: true,
+        $merge: {
+          source: {
+            $ref: 'schema.user#',
           },
-          phone: this.ctx.helper.rule.phone,
-          password: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 6,
+          with: {
+            additionalProperties: false,
+            required: ['unionId'],
           },
         },
-        required: ['phone', 'password'],
-        $async: true,
-        additionalProperties: false,
       };
     }
 

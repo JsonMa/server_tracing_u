@@ -54,8 +54,10 @@ module.exports = () => {
   exports.mongoose = {
     client: {
       url: 'mongodb://127.0.0.1/tracing_u',
-      options: {}
-    }
+      options: {
+        useNewUrlParser: true,
+      },
+    },
   };
 
   exports.security = {

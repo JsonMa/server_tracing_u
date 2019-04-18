@@ -1,218 +1,273 @@
-const { Service } = require('egg')
-const VError = require('verror')
-const DataLoader = require('dataloader')
+'use strict';
 
+const VError = require('verror');
+const {
+  Service,
+} = require('egg');
+
+/**
+ * db base service
+ *
+ * @class DBService
+ * @extends {Service}
+ */
 class DBService extends Service {
-  constructor (ctx, type) {
-    super(ctx)
-    const { EAPPLICATION } = this.app.errors
+  /**
+   *Creates an instance of DBService.
+   * @param {Object} ctx   - context
+   * @param {String} type  - 类型
+   * @memberof DBService
+   */
+  constructor(ctx, type) {
+    super(ctx);
+    this.type = type;
+  }
 
-    ctx.assert(
-      ctx.model[type],
-      new VError(
-        {
-          name: EAPPLICATION,
-          info: { type }
+  /**
+   * find one
+   *
+   * @param {Object} conditions - 条件
+   * @return {Object} 查询结果
+   * @memberof DBService
+   */
+  async findOne(conditions) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({
+      deleted_at: null,
+    }, conditions);
+    const date = await this.ctx.model[this.type].findOne(query).catch(error => {
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: {
+          query,
         },
-        ctx.__('instantiation_service_failed', type)
-      )
-    )
-    this.type = type
+      },
+      '[%s] 查询失败 ',
+      this.type
+      );
+    });
+    return date;
   }
 
-  get loader () {
-    if (this._loader) return this._loader
-
-    this._loader = new DataLoader(keys => this.findMany({ _id: { $in: keys } }))
-    return this._loader
-  }
-
-  async findByIds (ids) {
-    let _ids = ids.filter(id => id) // 去掉undefined
-    _ids = Array.from(new Set(_ids.map(id => id.toString()))) // id去重
-
-    const { EAPPLICATION } = this.app.errors
-    try {
-      return await this.loader.loadMany(_ids)
-    } catch (e) {
-      throw new VError(
-        {
-          name: EAPPLICATION,
-          case: e,
-          info: { ids: _ids }
-        },
-        this.ctx.__('not_all_data')
-      )
-    }
-  }
-
-  async findById (id) {
-    const { EAPPLICATION } = this.app.errors
-    try {
-      return await this.loader.load(id)
-    } catch (e) {
-      throw new VError(
-        {
-          name: EAPPLICATION,
-          case: e,
-          info: { id }
-        },
-        this.ctx.__('not_exist_data')
-      )
-    }
-  }
-
-  async findOne (conditions, fields = null, options = { paranoid: true }) {
-    const { EMONGODB } = this.app.errors
-    if (Object.keys(options).indexOf('paranoid') === -1) options.paranoid = true
-    const query = options.paranoid
-      ? Object.assign({ deleted_at: null }, conditions)
-      : conditions
-    const date = await this.app.model[this.type].findOne(query, fields).catch(error => {
-      throw new VError(
-        {
-          name: EMONGODB,
-          cause: error,
-          info: { query }
-        },
-        this.ctx.__('the_query_fails', this.type)
-      )
-    })
-    return date
-  }
-
-  async findMany (conditions, fields = null, options = { paranoid: true }) {
-    const { EMONGODB } = this.app.errors
-    if (Object.keys(options).indexOf('paranoid') === -1) options.paranoid = true
-    const query = options.paranoid
-      ? Object.assign({ deleted_at: null }, conditions)
-      : conditions
-    const items = await this.app.model[this.type]
+  /**
+   * find many
+   *
+   * @param {Object} conditions      - 条件
+   * @param {Array} [fields=null]    - 字段
+   * @param {Object} [options=null]  - options
+   * @return {Array} results
+   * @memberof DBService
+   */
+  async findMany(conditions, fields = null, options = null) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({
+      deleted_at: null,
+    }, conditions);
+    const items = await this.ctx.model[this.type]
       .find(query, fields, options)
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: { query }
-          },
-          this.ctx.__('the_query_fails', this.type)
-        )
-      })
-    return items
-  }
-
-  async count (conditions, options = { paranoid: true }) {
-    const { EMONGODB } = this.app.errors
-    if (Object.keys(options).indexOf('paranoid') === -1) options.paranoid = true
-    const query = options.paranoid
-      ? Object.assign({ deleted_at: null }, conditions)
-      : conditions
-    const count = await this.app.model[this.type]
-      .find(query)
-      .count()
-      .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: { query }
-          },
-          this.ctx.__('the_query_fails', this.type)
-        )
-      })
-    return count
-  }
-
-  async create (data) {
-    const { EMONGODB } = this.app.errors
-    const item = await this.ctx.model[this.type].create(Object.assign({created_at: new Date()}, data)).catch(error => {
-      throw new VError(
-        {
+        throw new VError({
           name: EMONGODB,
           cause: error,
-          info: data
+          info: {
+            query,
+          },
         },
-        this.ctx.__('create_failed', this.type)
-      )
-    })
-    return item
+        '[%s] 查询失败 ',
+        this.type
+        );
+      });
+    return items;
   }
 
-  async insertMany (data) {
-    const { EMONGODB } = this.app.errors
+  /**
+   * find all
+   *
+   * @param {Object}  conditions - 条件
+   * @return {Array}  results
+   * @memberof DBService
+   */
+  async findAll(conditions) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({}, conditions);
+    const date = await this.ctx.model[this.type].findOne(query).catch(error => {
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: {
+          query,
+        },
+      },
+      '[%s] 查询失败 ',
+      this.type
+      );
+    });
+    return date;
+  }
+
+  /**
+   * count
+   *
+   * @param {Object} options  - 条件
+   * @return {Number} result
+   * @memberof DBService
+   */
+  async count(options) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const op = Object.assign({
+      deleted_at: null,
+    }, options);
+    const count = await this.ctx.model[this.type]
+      .find(op)
+      .count()
+      .catch(error => {
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: {
+            op,
+          },
+        },
+        '[%s] 查询失败 ',
+        this.type
+        );
+      });
+    return count;
+  }
+
+  /**
+   * create
+   *
+   * @param {Object} data - insert data
+   * @return {Object} result
+   * @memberof DBService
+   */
+  async create(data) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const item = await this.ctx.model[this.type].create(data).catch(error => {
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: data,
+      },
+      `[${this.type}] 创建失败`
+      );
+    });
+    return item;
+  }
+
+  /**
+   * insert many
+   *
+   * @param {Array} data - array data
+   * @return {Array} results
+   * @memberof DBService
+   */
+  async insertMany(data) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
     const item = await this.ctx.model[this.type]
       .insertMany(data)
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: data
-          },
-          this.ctx.__('create_failed', this.type)
-        )
-      })
-    return item
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: data,
+        },
+        `[${this.type}] 创建失败`
+        );
+      });
+    return item;
   }
 
-  async update (queries, values, options, multiple = false) {
-    const { EMONGODB } = this.app.errors
-    const vals = Object.assign({ updated_at: new Date() }, values)
-    const items = await this.ctx.model[this.type][multiple ? 'updateOne' : 'updateMany'](queries, { $set: vals }, options)
+  /**
+   * update
+   *
+   * @param {Object} options            - option
+   * @param {Object} values             - value
+   * @param {boolean} [multiple=false]  - 是否多个
+   * @param {boolean} [upsert=false]    - 是否更新插入
+   * @return {Object} result
+   * @memberof DBService
+   */
+  async update(options, values, multiple = false, upsert = false) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const items = await this.ctx.model[this.type][multiple ? 'updateOne' : 'updateMany'](options, {
+      $set: values,
+    }, {
+      upsert,
+    })
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: options
-          },
-          this.ctx.__('delete_failed', this.type)
-        )
-      })
-
-    return items
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: options,
+        },
+        `[${this.type}] 更新失败`
+        );
+      });
+    return items;
   }
 
-  async destroy (options, multiple = false, force = false) {
-    const { EMONGODB } = this.app.errors
-    let ret
+  /**
+   * destroy
+   *
+   * @param {Object} options              - options
+   * @param {boolean} [multiple=false]    - 是否多个
+   * @param {boolean} [force=false]       - 是否强制
+   * @return {Object} result
+   * @memberof DBService
+   */
+  async destroy(options, multiple = false, force = false) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    let ret;
     if (force) {
       ret = await this.ctx.model[this.type][multiple ? 'deleteOne' : 'deleteMany'](options)
         .catch(error => {
-          throw new VError(
-            {
-              name: EMONGODB,
-              cause: error,
-              info: options
-            },
-            this.ctx.__('delete_failed', this.type)
-          )
-        })
+          throw new VError({
+            name: EMONGODB,
+            cause: error,
+            info: options,
+          },
+          `[${this.type}] 删除失败`
+          );
+        });
     } else {
       ret = await this.ctx.model[this.type]
         .update(
-          options,
-          {
-            deleted_at: new Date()
-          },
-          {
-            multi: true
+          options, {
+            deleted_at: new Date(),
+          }, {
+            multiple: true,
           }
         )
         .catch(error => {
-          throw new VError(
-            {
-              name: EMONGODB,
-              cause: error,
-              info: options
-            },
-            this.ctx.__('delete_failed', this.type)
-          )
-        })
+          throw new VError({
+            name: EMONGODB,
+            cause: error,
+            info: options,
+          },
+          `[${this.type}] 删除失败`
+          );
+        });
     }
-    return ret
+    return ret;
   }
 }
-
-module.exports = DBService
+module.exports = DBService;

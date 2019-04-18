@@ -1,42 +1,40 @@
-// @ts-nocheck
+'use strict';
+
 const {
   VError,
 } = require('verror');
 const assert = require('assert');
-const _ = require('underscore');
 const fs = require('fs');
 const path = require('path');
 
 module.exports = {
 
+  get jsonBody() {
+    return this.body;
+  },
 
   /**
    * 设置通用返回格式的body
    *
-   * @param {object} data - 实际返回数据
+   * @param {object} obj - 实际返回数据
    *
    */
-  set jsonBody(data) {
-    this.assert(data && typeof data === 'object');
+  set jsonBody(obj) {
+    const {
+      data,
+      meta = {},
+      embed = {},
+    } = obj;
+    this.assert(data && typeof data === 'object', 'jsonBody 传入data应为Object');
+
     this.body = {
-      code: 200,
-      msg: 'success',
+      meta,
+      embed,
       data,
     };
   },
 
-  /**
-   * 判断表达式，为假抛出verror异常
-   *
-   * @param {any}    expression    - 判断表达式
-   * @param {string} message       - 异常信息
-   * @param {number} [code=500]    - error code
-   * @param {number} [status=200]  - http code
-   * @param {error}  originalError - 原始error
-   *
-   * @return {undefined}
-   */
-  error(expression, message, code, status = 200, originalError) {
+  error(expression = false, message, code, httpStatus = 500, stack) {
     /* istanbul ignore else */
     if (expression) {
       return;
@@ -47,37 +45,31 @@ module.exports = {
 
     this.type = 'json';
     const err = Object.assign(new VError({
-      name: 'HUAYAN_ERROR',
-      cause: originalError,
+      name: 'TRACING_ERROR',
+      cause: stack,
     }, message), {
       code,
-      status,
+      httpStatus,
     });
 
     this.throw(err);
   },
 
-  /**
-   * 验证输入参数是否合法，包括param, query, body
-   *
-   * @param {any} rule 参数校验规则
-   * @param {any} [preprocessor=a => a] 参数预处理方法，默认返回原值
-   * @returns {promise} 校验结果
-   */
-  validate(rule, ...preprocessors) {
-    this.assert(rule && typeof rule === 'object');
-    const preprocessor = preprocessors.length ? _.compose(...preprocessors) : a => a;
-
-    const { params, query } = this;
-    const { files: reqFiles, body } = this.request;
-
-    /* istanbul ignore next */
-    const files = reqFiles !== undefined ? { files: reqFiles } : {};
-    const value = preprocessor(Object.assign({}, params, query, body, files));
-
-    // ajv 会自己缓存已编译的rules
-    const validater = this.helper.ajv.compile(rule);
-    return validater(value).then(() => value);
+  async verify(rule, params) {
+    const {
+      errors,
+    } = this.app;
+    const ret = await this.validate(rule, params).catch(function(e) {
+      throw new VError({
+        name: errors.EBADREQUEST,
+        cause: e,
+        info: e.errors.reduce((map, e) => {
+          map[e.keyword] = e.message;
+          return map;
+        }, {}),
+      }, '错误的请求参数');
+    });
+    return ret;
   },
 
   /**
@@ -95,7 +87,9 @@ module.exports = {
       return;
     }
 
-    const { user } = this.state.auth;
+    const {
+      user,
+    } = this.state.auth;
     this.assert(user, 403);
     this.assert.equal(user.id, userId, 403);
   },
@@ -108,9 +102,11 @@ module.exports = {
   userPermission(userId) {
     this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
 
-    this.assert.equal(this.state.auth.role, '2', 403);
+    this.assert.equal(this.state.auth.role, '32', 403);
     if (userId) {
-      const { user } = this.state.auth;
+      const {
+        user,
+      } = this.state.auth;
       this.assert(user, 403);
       this.assert.equal(user.id, userId, 403);
     }
@@ -141,7 +137,9 @@ module.exports = {
   authPermission() {
     this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
 
-    const { user } = this.state.auth;
+    const {
+      user,
+    } = this.state.auth;
     this.assert(user, 403);
   },
 
@@ -149,7 +147,7 @@ module.exports = {
    * 渲染文件
    *
    * @param {string} file 文件路径
-   * @returns {steam} 文件流
+   * @return {steam} 文件流
    */
   render(file) {
     /* istanbul ignore next */
@@ -161,10 +159,12 @@ module.exports = {
    * 渲染error
    *
    * @param {object} err 错误信息
-   * @returns {Buffer} error buffer
+   * @return {Buffer} error buffer
    */
   renderError(err) {
-    const { message = '服务器内部错误', status = 500 } = err;
+    const {
+      message = '服务器内部错误', status = 500,
+    } = err;
     const errorView = this.app.errorTemplate.replace(/{{ error_status }}/gi, status).replace(/{{ error_message }}/gi, message);
     return Buffer.from(errorView);
   },
@@ -177,7 +177,9 @@ module.exports = {
   isAdmin() {
     this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
 
-    const { role } = this.state.auth;
+    const {
+      role,
+    } = this.state.auth;
     return role === '1';
   },
 };

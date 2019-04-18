@@ -1,14 +1,15 @@
-module.exports = (app) => {
+'use strict';
+
+const {
+  timestamps,
+} = require('../lib/model_common');
+
+module.exports = ({
+  mongoose,
+}) => {
   const {
-    UUID,
-    UUIDV1,
-    STRING,
-    BOOLEAN,
-    INTEGER,
-    FLOAT,
-    ENUM,
-    ARRAY,
-  } = app.Sequelize;
+    Schema,
+  } = mongoose;
 
   /**
    * 商品Model
@@ -17,7 +18,6 @@ module.exports = (app) => {
    * @namespace Model
    *
    * @property {uuid}    id
-   * @property {number}  no             - 商品序列号
    * @property {string}  name           - 商品名
    * @property {string}  description    - 商品描述
    * @property {number}  price          - 商品价格
@@ -28,76 +28,54 @@ module.exports = (app) => {
    * @property {uuid}    category_id    - 分类ID
    * @property {array}   picture_ids    - 商品图片ID
    * @property {int}     quata          - 二维码额度
-   * @property {Array}   brand          - 标签
+   * @property {Array}   brands         - 标签
    */
-  const Commodity = app.model.define('commodity', {
-    id: {
-      type: UUID,
-      defaultValue: UUIDV1,
-      primaryKey: true,
-    },
-    no: {
-      type: INTEGER,
-      autoIncrement: true,
-    },
+  const schema = new Schema({
     name: {
-      type: STRING(20),
-      allowNull: false,
+      type: String,
+      required: true,
     },
-    description: STRING(500),
+    description: String,
     price: {
-      type: FLOAT,
-      allowNull: false,
+      type: Number,
+      required: true,
     },
     act_price: {
-      type: FLOAT,
-      allowNull: true,
+      type: Number,
+      required: true,
     },
     sales: {
-      type: INTEGER,
-      defaultValue: 0,
-      allowNull: false,
+      type: Number,
+      default: 0,
+      required: true,
     },
     recommended: {
-      type: BOOLEAN,
-      defaultValue: false,
-      allowNull: false,
+      type: Boolean,
+      default: false,
     },
-    status: {
-      type: ENUM,
-      values: [
-        'ON',
-        'OFF',
-      ],
-      defaultValue: 'ON',
-      allowNull: false,
+    enable: {
+      type: Boolean,
+      default: true,
+      required: true,
     },
-    category_id: {
-      type: UUID,
-      allowNull: false,
+    category: {
+      type: Schema.Types.ObjectId,
+      ref: 'commodity_category',
     },
-    picture_ids: {
-      type: ARRAY(UUID),
-      allowNull: false,
-      defaultValue: [],
-    },
+    pictures: [{
+      type: Schema.Types.ObjectId,
+      ref: 'file',
+    }],
     quata: {
-      type: INTEGER,
-      allowNull: true,
+      type: Number,
+      default: 0,
+      required: true,
     },
-  }, {
-    getterMethods: {
-      realPrice() {
-        const price = this.getDataValue('price');
-        const actPrice = this.getDataValue('act_price');
+    brands: String,
+  },
+  Object.assign({}, {
+    timestamps,
+  }));
 
-        return actPrice || price;
-      },
-    },
-  });
-  Commodity.STATUS = {
-    ON: 'ON',
-    OFF: 'OFF',
-  };
-  return Commodity;
+  return mongoose.model('commodity', schema);
 };
