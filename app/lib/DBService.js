@@ -24,6 +24,34 @@ class DBService extends Service {
   }
 
   /**
+   * 通过ID查找
+   *
+   * @param {String} id - id
+   * @return {Object} result
+   * @memberof DBService
+   */
+  async findById(id) {
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+
+    const data = await this.ctx.model[this.type].findById(id).catch(error => {
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: {
+          id,
+        },
+      },
+      '[%s] 查询失败 ',
+      this.type
+      );
+    });
+
+    return data;
+  }
+
+  /**
    * find one
    *
    * @param {Object} conditions - 条件
@@ -37,7 +65,7 @@ class DBService extends Service {
     const query = Object.assign({
       deleted_at: null,
     }, conditions);
-    const date = await this.ctx.model[this.type].findOne(query).catch(error => {
+    const data = await this.ctx.model[this.type].findOne(query).catch(error => {
       throw new VError({
         name: EMONGODB,
         cause: error,
@@ -49,7 +77,7 @@ class DBService extends Service {
       this.type
       );
     });
-    return date;
+    return data;
   }
 
   /**

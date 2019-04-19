@@ -2,7 +2,7 @@
 module.exports = () => {
   const exports = {};
 
-  exports.keys = 'huayan-server';
+  exports.keys = 'tracingu-server';
 
   exports.middleware = ['error', 'auth'];
 

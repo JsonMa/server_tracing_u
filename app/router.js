@@ -1,10 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  // const {
-  //   formidable,
-  //   compress,
-  // } = app.middleware;
+  const {
+    formidable,
+    compress,
+  } = app.middleware;
   // const wechat = require('co-wechat-body');
 
   /* istanbul ignore next */
@@ -66,16 +66,16 @@ module.exports = app => {
   // );
   // app.put(`${prefix}/commodity_categories/:id`, 'commodityCategory.update');
 
-  // // file
-  // app.get(`${prefix}/files/:id`, 'file.show');
-  // app.get(`${prefix}/files/:id/thumbnail`, 'file.thumbnail');
-  // app.delete(`${prefix}/files/:id`, 'file.delete');
-  // app.post(
-  //   `${prefix}/files`,
-  //   formidable(app.config.formidable),
-  //   compress(),
-  //   'file.upload'
-  // );
+  // file
+  app.get(`${prefix}/files/:id`, 'file.show');
+  app.get(`${prefix}/files/:id/thumbnail`, 'file.thumbnail');
+  app.delete(`${prefix}/files/:id`, 'file.delete');
+  app.post(
+    `${prefix}/files`,
+    formidable(app.config.formidable),
+    compress(),
+    'file.upload'
+  );
 
   // // banner
   // app.get(`${prefix}/banners`, 'banner.index');

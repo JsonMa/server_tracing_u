@@ -22,8 +22,7 @@ module.exports = app => {
       return {
         properties: {
           files: {
-            type: 'array',
-            items: this.ctx.helper.rule.file,
+            $ref: 'schema.definition#/file',
           },
         },
         required: ['files'],
@@ -40,7 +39,9 @@ module.exports = app => {
     get showRule() {
       return {
         properties: {
-          id: this.ctx.helper.rule.uuid,
+          id: {
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
@@ -60,7 +61,7 @@ module.exports = app => {
         uploadRule,
       } = this;
       const [files] = ctx.request.files;
-      await ctx.validate(uploadRule);
+      await ctx.verify(uploadRule, ctx.request.files);
 
       let cosResult = null;
       if (~files.type.indexOf('mp4')) { // eslint-disable-line
@@ -96,7 +97,15 @@ module.exports = app => {
       }
 
       // 非视频文件
-      const file = await app.model.File.create({
+      const exitedFile = await ctx.service.file.findOne({
+        name: files.name,
+      });
+      if (exitedFile) {
+        fs.unlinkSync(files.path);
+        ctx.error('FILE_ERROR', '已存在该名称的文件', 400, 400);
+        return;
+      }
+      const file = await ctx.service.file.create({
         name: files.name,
         size: files.size,
         type: files.type,
@@ -104,10 +113,12 @@ module.exports = app => {
       });
 
       ctx.jsonBody = {
-        id: file.id,
-        name: file.name,
-        size: file.size,
-        type: file.type,
+        data: {
+          id: file.id,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        },
       };
     }
 
@@ -124,7 +135,7 @@ module.exports = app => {
         showRule,
       } = this;
       await ctx.validate(showRule);
-      const file = await service.file.getByIdOrThrow(ctx.params.id);
+      const file = await service.file.findById(ctx.params.id);
       const {
         range: requestRange,
       } = ctx.headers;

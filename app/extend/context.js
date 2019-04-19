@@ -34,18 +34,13 @@ module.exports = {
     };
   },
 
-  error(expression = false, message, code, httpStatus = 500, stack) {
-    /* istanbul ignore else */
-    if (expression) {
-      return;
-    }
-
+  error(name = 'TRACING_ERROR', message, code, httpStatus = 500, stack) {
     this.assert(message && typeof message === 'string');
     this.assert(code && typeof code === 'number');
 
     this.type = 'json';
     const err = Object.assign(new VError({
-      name: 'TRACING_ERROR',
+      name,
       cause: stack,
     }, message), {
       code,
