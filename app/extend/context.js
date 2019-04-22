@@ -1,14 +1,11 @@
 'use strict';
 
-const {
-  VError,
-} = require('verror');
+const { VError } = require('verror');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
 module.exports = {
-
   get jsonBody() {
     return this.body;
   },
@@ -20,12 +17,11 @@ module.exports = {
    *
    */
   set jsonBody(obj) {
-    const {
-      data,
-      meta = {},
-      embed = {},
-    } = obj;
-    this.assert(data && typeof data === 'object', 'jsonBody 传入data应为Object');
+    const { data, meta = {}, embed = {} } = obj;
+    this.assert(
+      data && typeof data === 'object',
+      'jsonBody 传入data应为Object'
+    );
 
     this.body = {
       meta,
@@ -39,27 +35,36 @@ module.exports = {
     this.assert(code && typeof code === 'number');
 
     this.type = 'json';
-    const err = Object.assign(new VError({
-      name,
-      cause: stack,
-    }, message), {
-      code,
-      httpStatus,
-    });
+    const err = Object.assign(
+      new VError(
+        {
+          name,
+          cause: stack,
+        },
+        message
+      ),
+      {
+        code,
+        httpStatus,
+      }
+    );
 
     this.throw(err);
   },
 
   async verify(rule, params) {
     const ret = await this.validate(rule, params).catch(function(e) {
-      throw new VError({
-        name: 'AJV_ERROR',
-        cause: e,
-        info: e.errors.reduce((map, e) => {
-          map[e.keyword] = e.message;
-          return map;
-        }),
-      }, '错误的请求参数');
+      throw new VError(
+        {
+          name: 'AJV_ERROR',
+          cause: e,
+          info: e.errors.reduce((map, e) => {
+            map[e.keyword] = e.message;
+            return map;
+          }),
+        },
+        '错误的请求参数'
+      );
     });
     return ret;
   },
@@ -79,9 +84,7 @@ module.exports = {
       return;
     }
 
-    const {
-      user,
-    } = this.state.auth;
+    const { user } = this.state.auth;
     this.assert(user, 403);
     this.assert.equal(user.id, userId, 403);
   },
@@ -96,9 +99,7 @@ module.exports = {
 
     this.assert.equal(this.state.auth.role, '32', 403);
     if (userId) {
-      const {
-        user,
-      } = this.state.auth;
+      const { user } = this.state.auth;
       this.assert(user, 403);
       this.assert.equal(user.id, userId, 403);
     }
@@ -129,9 +130,7 @@ module.exports = {
   authPermission() {
     this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
 
-    const {
-      user,
-    } = this.state.auth;
+    const { user } = this.state.auth;
     this.assert(user, 403);
   },
 
@@ -154,10 +153,10 @@ module.exports = {
    * @return {Buffer} error buffer
    */
   renderError(err) {
-    const {
-      message = '服务器内部错误', status = 500,
-    } = err;
-    const errorView = this.app.errorTemplate.replace(/{{ error_status }}/gi, status).replace(/{{ error_message }}/gi, message);
+    const { message = '服务器内部错误', status = 500 } = err;
+    const errorView = this.app.errorTemplate
+      .replace(/{{ error_status }}/gi, status)
+      .replace(/{{ error_message }}/gi, message);
     return Buffer.from(errorView);
   },
 
@@ -169,9 +168,7 @@ module.exports = {
   isAdmin() {
     this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
 
-    const {
-      role,
-    } = this.state.auth;
+    const { role } = this.state.auth;
     return role === '1';
   },
 

@@ -8,7 +8,6 @@ const Service = require('../lib/DBService');
  * @extends {Service}
  */
 class FileService extends Service {
-
   /**
    *Creates an instance of UserService.
    * @param {Object} ctx - context

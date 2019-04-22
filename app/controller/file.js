@@ -22,7 +22,11 @@ module.exports = app => {
       return {
         properties: {
           files: {
-            $ref: 'schema.definition#/file',
+            type: 'array',
+            items: {
+              type: 'object',
+              $ref: 'schema.file#',
+            },
           },
         },
         required: ['files'],
@@ -56,22 +60,14 @@ module.exports = app => {
      * @return {promise} 上传的文件
      */
     async upload() {
-      const {
-        ctx,
-        uploadRule,
-      } = this;
+      const { ctx, uploadRule } = this;
       const [files] = ctx.request.files;
       await ctx.verify(uploadRule, ctx.request.files);
 
       let cosResult = null;
-      if (~files.type.indexOf('mp4')) { // eslint-disable-line
+      if (files.type.includes('mp4')) {
         const config = app.config.tencent;
-        const {
-          fileType,
-          notifyUrl,
-          secretId,
-          secretKey,
-        } = config;
+        const { fileType, notifyUrl, secretId, secretKey } = config;
         const VodUploadApi = ctx.helper.vodUploadApi;
         const filePath = path.join(`${app.baseDir}`, files.path);
         const slicePage = 512 * 1024;
@@ -82,10 +78,17 @@ module.exports = app => {
         api.SetSecretKey(secretKey);
         api.SetRegion('cd');
         cosResult = await new Promise((resolve, reject) => {
-          api.UploadVideo(filePath, files.name, fileType, slicePage, notifyUrl, (err, data) => {
-            if (err) reject(err);
-            resolve(data);
-          });
+          api.UploadVideo(
+            filePath,
+            files.name,
+            fileType,
+            slicePage,
+            notifyUrl,
+            (err, data) => {
+              if (err) reject(err);
+              resolve(data);
+            }
+          );
         });
         fs.unlinkSync(filePath);
         ctx.error(cosResult.url, '视频上传失败', 16004);
@@ -97,14 +100,6 @@ module.exports = app => {
       }
 
       // 非视频文件
-      const exitedFile = await ctx.service.file.findOne({
-        name: files.name,
-      });
-      if (exitedFile) {
-        fs.unlinkSync(files.path);
-        ctx.error('FILE_ERROR', '已存在该名称的文件', 400, 400);
-        return;
-      }
       const file = await ctx.service.file.create({
         name: files.name,
         size: files.size,
@@ -129,28 +124,17 @@ module.exports = app => {
      * @return {promise} 文件详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      await ctx.validate(showRule);
+      const { ctx, service, showRule } = this;
+      await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(ctx.params.id);
-      const {
-        range: requestRange,
-      } = ctx.headers;
-      const {
-        size,
-      } = fs.statSync(file.path);
+      const { range: requestRange } = ctx.headers;
+      const { size } = fs.statSync(file.path);
       const fileSize = !!~file.type.indexOf('image') ? size : file.size; // eslint-disable-line
 
-      if (requestRange && ~file.type.indexOf('video')) { // eslint-disable-line
+      if (requestRange && file.type.includes('video')) {
         const range = ctx.helper.video.range(ctx.headers.range, fileSize);
         if (range) {
-          const {
-            start,
-            end,
-          } = range;
+          const { start, end } = range;
           ctx.set({
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Content-Type': file.type,
@@ -180,15 +164,15 @@ module.exports = app => {
      * @return {promise} 缩略图
      */
     async thumbnail() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
+      const { ctx, service, showRule } = this;
       await ctx.validate(showRule);
       const file = await service.file.getByIdOrThrow(ctx.params.id);
 
-      ctx.error(!!~file.type.indexOf('image'), '非图片类型文件，不存在缩略图', 16003); // eslint-disable-line
+      ctx.error(
+        !file.type.includes('image'),
+        '非图片类型文件，不存在缩略图',
+        16003
+      ); // eslint-disable-line
       gm(fs.createReadStream(file.path))
         .thumbnail(160, 160)
         .stream((err, data) => {
@@ -211,18 +195,14 @@ module.exports = app => {
      * @memberof fileController
      */
     async delete() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.validate(showRule);
-      await service.file.getByIdOrThrow(id);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      await service.file.findById(id);
 
-      const file = await ctx.service.file.delete(id);
-      ctx.jsonBody = file;
+      const file = await service.file.destroy({ _id: id });
+      ctx.jsonBody = {
+        data: file,
+      };
     }
   }
   return fileController;

@@ -1,10 +1,7 @@
 'use strict';
 
 module.exports = app => {
-  const {
-    formidable,
-    compress,
-  } = app.middleware;
+  const { formidable, compress } = app.middleware;
   // const wechat = require('co-wechat-body');
 
   /* istanbul ignore next */
