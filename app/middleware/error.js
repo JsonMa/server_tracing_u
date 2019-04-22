@@ -33,8 +33,15 @@ module.exports = () =>
           msg: e.message,
           errors: this.app.isProd ? undefined : [e],
         };
+        this.status = e.status;
       } else {
-        throw e;
+        // assert error or other errors
+        this.body = {
+          code: e.code,
+          msg: e.message,
+          errors: this.app.isProd ? undefined : e.stack,
+        };
+        this.status = 500;
       }
     }
   };

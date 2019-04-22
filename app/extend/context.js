@@ -4,6 +4,7 @@ const { VError } = require('verror');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const _ = require('lodash');
 
 module.exports = {
   get jsonBody() {
@@ -17,11 +18,15 @@ module.exports = {
    *
    */
   set jsonBody(obj) {
-    const { data, meta = {}, embed = {} } = obj;
-    this.assert(
-      data && typeof data === 'object',
-      'jsonBody 传入data应为Object'
-    );
+    let data = obj.data;
+    const { meta = {}, embed = {} } = obj;
+
+    if (
+      (_.isObject(obj) && !Reflect.has(obj, 'meta')) ||
+      !Reflect.has(obj, 'embed')
+    ) {
+      data = obj;
+    }
 
     this.body = {
       meta,

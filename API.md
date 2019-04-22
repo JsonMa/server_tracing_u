@@ -1,11 +1,11 @@
 ---
+
 swagger: "2.0"
 info:
-  version: "1.0"
-  description: |
-    ### session
-    花言一期API使用access_token作为登录凭证，小程序、PC、APP均有效。
-    PC还支持cookie，无需显示提供access_token
+version: "1.0"
+description: | ### session
+想鉴你一期 API 使用 access_token 作为登录凭证，小程序、PC、APP 均有效。
+PC 还支持 cookie，无需显示提供 access_token
 
     ### responses
     以下API仅仅定义data内部的内容，所有API返回格式如下:
@@ -69,7 +69,7 @@ info:
 
     ### error code
 
-    - 200-500: http错误
+    - 200-500: http状态码
     - 1000  - 9999 : 系统内部操作错误, 如DB, REDIS
     - 10000 - 10999: Auth 相关错误
     - 11000 - 11999: Banner 相关错误
@@ -143,219 +143,194 @@ info:
     | 22001 | tencent api error       | 腾讯API认证失败 |
     | 23001 | miniProgram api error       | 小程序token获取失败 |
 
-  title: "花言 API"
-  termsOfService: "http://111.231.76.244:7001/"
-  contact:
-    email: "mahao-0321@hotmail.com"
+title: "花言 API"
+termsOfService: "http://111.231.76.244:7001/"
+contact:
+email: "mahao-0321@hotmail.com"
 host: "111.231.76.244:7001"
 basePath: "/api/v1"
 schemes:
-  - http
-produces:
-  - application/json
-consumes:
-  - application/json
-tags:
-  - name: user
-  - name: pagination
-  - name: admin  
-  - name: file
-  - name: auth  
-  - name: commodity
-  - name: embed
-  - name: card
-  - name: blessing
-  - name: card_category
-  - name: guest
+
+- http
+  produces:
+- application/json
+  consumes:
+- application/json
+  tags:
+- name: user
+- name: pagination
+- name: admin
+- name: file
+- name: auth
+- name: commodity
+- name: embed
+- name: card
+- name: blessing
+- name: card_category
+- name: guest
 
 paths:
 
-  /auth/login:
-    post:
-      description: 用户登录
-      tags:
-        - auth 
-      parameters:
-        - in: body
-          name: user
-          schema:
-            type: object
-            required:
-              - password
-              - phone 
-            properties:
-              phone:
-                type: string
-              password:
-                type: string
-      responses:
-        200:
-          description: Success
-          schema:
-            type: object
-            properties:
-              user: 
-                $ref: "#/definitions/User"
-              token:
-                description: access_token
+/auth/login:
+post:
+description: 用户登录
+tags: - auth
+parameters: - in: body
+name: user
+schema:
+type: object
+required: - password - phone
+properties:
+phone:
+type: string
+password:
+type: string
+responses:
+200:
+description: Success
+schema:
+type: object
+properties:
+user:
+\$ref: "#/definitions/User"
+token:
+description: access_token
 
-  /auth/logout:
-    get:
-      description: 退出登录
-      tags:
-        - auth 
-      responses:
-        200:
-          description: Success
+/auth/logout:
+get:
+description: 退出登录
+tags: - auth
+responses:
+200:
+description: Success
 
-  /files:
-    post:
-      summary: 上传文件
-      tags:
-        - file
-      description: 文件上传
-      consumes:
-        - "multipart/form-data"
-      parameters:
-        - in: formData
-          description: 上传的文件
-          name: files
-          required: true
-          type: 'file'
-      responses:
-        200:
-          description: Success
-          schema:
-            type: array
-            items:
-              $ref: "#/definitions/File"
+/files:
+post:
+summary: 上传文件
+tags: - file
+description: 文件上传
+consumes: - "multipart/form-data"
+parameters: - in: formData
+description: 上传的文件
+name: files
+required: true
+type: 'file'
+responses:
+200:
+description: Success
+schema:
+type: array
+items:
+\$ref: "#/definitions/File"
 
-  /files/{id}:
-    get:
-      summary: 获取文件内容
-      tags:
-        - file
-      description: 获取文件内容
-      parameters:
-        - name: id
-          in: path
-          description: File ID
-          type: string
-          format: uuid
-          required: true
-      responses:
-        200:
-          description: 文件内容
+/files/{id}:
+get:
+summary: 获取文件内容
+tags: - file
+description: 获取文件内容
+parameters: - name: id
+in: path
+description: File ID
+type: string
+format: uuid
+required: true
+responses:
+200:
+description: 文件内容
 
-  /commodities:
-    get:
-      summary: 商品列表
-      tags:
-        - commodity
-        - pagination
-        - embed
-      description: 根据查询参数，返回商品列表
-      parameters:
-        - name: name
-          in: query
-          description: 商品名称
-          type: string
-        - name: category_id
-          in: query
-          description: 所属分类
-          type: string
-          format: uuid
-        - name: status
-          in: query
-          description: 上/下架状态，取值于Commodity_Status
-          type: string
-        - name: recommended
-          in: query
-          description: 是否推荐
-          type: boolean
-        - name: embed
-          in: query
-          description: 是否内嵌商品分类（embed='category'时，返回的数据中将包含'categories'字段）
-          type: string
-      responses:
-        200:
-          description: 商品列表
-          schema:
-            type: object
-            properties:
-              count:
-                type: integer
-              start:
-                type: integer
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/Commodity'
+/commodities:
+get:
+summary: 商品列表
+tags: - commodity - pagination - embed
+description: 根据查询参数，返回商品列表
+parameters: - name: name
+in: query
+description: 商品名称
+type: string - name: category_id
+in: query
+description: 所属分类
+type: string
+format: uuid - name: status
+in: query
+description: 上/下架状态，取值于 Commodity_Status
+type: string - name: recommended
+in: query
+description: 是否推荐
+type: boolean - name: embed
+in: query
+description: 是否内嵌商品分类（embed='category'时，返回的数据中将包含'categories'字段）
+type: string
+responses:
+200:
+description: 商品列表
+schema:
+type: object
+properties:
+count:
+type: integer
+start:
+type: integer
+items:
+type: array
+items:
+$ref: '#/definitions/Commodity'
               categories:
                 type: array
                 items:
                   $ref: '#/definitions/CommodityCategory'
-    post:
-      tags:
-        - commodity
-        - admin
-      summary: 添加商品
-      description: 添加新的商品
-      parameters:
-        - name: commodity
-          in: body
-          required: true
-          schema:
-            type: object
-            required:
-              - name
-              - category_id
-              - description
-              - price
-              - picture_ids
-            properties:
-              name:
-                type: string
-                description: 商品名称
-              category_id:
-                type: string
-                format: uuid
-                description: 所属类别id
-              description:
-                type: string
-                description: 商品描述
-              price:
-                type: number
-                description: 商品价格
-              act_price:
-                type: number
-                description: 活动价格
-              recommended:
-                type: boolean
-                description: 是否推荐
-              attr:
-                type: array
-                description: 商品属性
-                items:
-                  type: object
-                  properties:
-                    attr_name:
-                      type: string
-                    attr_value:
-                      type: array
-                      items:
-                        type: string
-              picture_ids:
-                type: array
-                description: 商品图片
-                items:
-                  type: string
-                  format: uuid
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Commodity'
+post:
+tags: - commodity - admin
+summary: 添加商品
+description: 添加新的商品
+parameters: - name: commodity
+in: body
+required: true
+schema:
+type: object
+required: - name - category_id - description - price - picture_ids
+properties:
+name:
+type: string
+description: 商品名称
+category_id:
+type: string
+format: uuid
+description: 所属类别 id
+description:
+type: string
+description: 商品描述
+price:
+type: number
+description: 商品价格
+act_price:
+type: number
+description: 活动价格
+recommended:
+type: boolean
+description: 是否推荐
+attr:
+type: array
+description: 商品属性
+items:
+type: object
+properties:
+attr_name:
+type: string
+attr_value:
+type: array
+items:
+type: string
+picture_ids:
+type: array
+description: 商品图片
+items:
+type: string
+format: uuid
+responses:
+200:
+description: Success
+schema:
+$ref: '#/definitions/Commodity'
     delete:
       tags:
         - commodity
@@ -375,57 +350,51 @@ paths:
             type: array
             items:
              $ref: '#/definitions/Commodity'
-    patch:
-      tags:
-        - commodity
-        - admin
-      summary: 批量修改商品(推荐/上架)
-      description: 根据ids批量修改商品
-      parameters:
-        - name: ids
-          in: query
-          description: 商品ids(eg:ids=uuid,uuid,uuid)
-          type: string
-          format: uuid
-          required: true
-        - name: attributes
-          in: body
-          required: true
-          schema:
-            type: object
-            properties:
-              status:
-                type: string
-                description: 上/下架状态 -['ON','OFF']
-              recommended:
-                type: boolean
-                description: 推荐 -[true, false]
-      responses:
-          200:
-            description: Success
-            schema:
-              type: array
-              items:
-                $ref: '#/definitions/Commodity'
+patch:
+tags: - commodity - admin
+summary: 批量修改商品(推荐/上架)
+description: 根据 ids 批量修改商品
+parameters: - name: ids
+in: query
+description: 商品 ids(eg:ids=uuid,uuid,uuid)
+type: string
+format: uuid
+required: true - name: attributes
+in: body
+required: true
+schema:
+type: object
+properties:
+status:
+type: string
+description: 上/下架状态 -['ON','OFF']
+recommended:
+type: boolean
+description: 推荐 -[true, false]
+responses:
+200:
+description: Success
+schema:
+type: array
+items:
+\$ref: '#/definitions/Commodity'
 
-  /commodities/{id}:
-    get:
-      tags:
-        - commodity
-      summary: 商品详情
-      description: 根据id查询商品详情
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: 商品id
-          type: string
-          format: uuid
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Commodity'
+/commodities/{id}:
+get:
+tags: - commodity
+summary: 商品详情
+description: 根据 id 查询商品详情
+parameters: - name: id
+in: path
+required: true
+description: 商品 id
+type: string
+format: uuid
+responses:
+200:
+description: Success
+schema:
+$ref: '#/definitions/Commodity'
     patch:
       summary: 修改商品
       description: 根据id修改商品信息
@@ -477,40 +446,36 @@ paths:
           schema:
             $ref: "#/definitions/Commodity"
 
-  /commodities/{id}/attributes:
-    post:
-      summary: 增加商品属性
-      tags:
-        - admin
-        - commodity
-      description: 为指定商品添加商品属性
-      parameters:
-        - in: path
-          name: id
-          required: true
-          type: string
-          format: uuid
-          description: 商品id
-        - in: body
-          name: attribute
-          required: true
-          description: 新增的商品属性
-          schema:
-            type: object
-            properties:
-              attr_name:
-                type: string
-                description: 属性名
-              attr_value:
-                type: array
-                description: 属性值数组
-                items:
-                  type: string
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: "#/definitions/CommodityAttr"
+/commodities/{id}/attributes:
+post:
+summary: 增加商品属性
+tags: - admin - commodity
+description: 为指定商品添加商品属性
+parameters: - in: path
+name: id
+required: true
+type: string
+format: uuid
+description: 商品 id - in: body
+name: attribute
+required: true
+description: 新增的商品属性
+schema:
+type: object
+properties:
+attr_name:
+type: string
+description: 属性名
+attr_value:
+type: array
+description: 属性值数组
+items:
+type: string
+responses:
+200:
+description: Success
+schema:
+\$ref: "#/definitions/CommodityAttr"
 
     get:
       summary: 获取商品属性列表
@@ -532,30 +497,27 @@ paths:
             items:
               $ref: "#/definitions/CommodityAttr"
 
-  /commodities/{id}/attributes/{attr_id}:
-    get:
-      summary: 获取商品指定属性
-      tags:
-        - commodity
-      description: 获取指定商品的指定属性
-      parameters:
-        - in: path
-          name: id
-          required: true
-          type: string
-          format: uuid
-          description: 商品id
-        - in: path
-          name: attr_id
-          required: true
-          type: string
-          format: uuid
-          description: 属性id
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: "#/definitions/CommodityAttr"
+/commodities/{id}/attributes/{attr_id}:
+get:
+summary: 获取商品指定属性
+tags: - commodity
+description: 获取指定商品的指定属性
+parameters: - in: path
+name: id
+required: true
+type: string
+format: uuid
+description: 商品 id - in: path
+name: attr_id
+required: true
+type: string
+format: uuid
+description: 属性 id
+responses:
+200:
+description: Success
+schema:
+$ref: "#/definitions/CommodityAttr"
     put:
       summary: 修改商品指定属性
       tags:
@@ -621,27 +583,25 @@ paths:
           schema:
             $ref: "#/definitions/CommodityAttr"
 
-  /commodity_categories:
-    get:
-      tags:
-        - commodity_category
-        - pagination
-      summary: 商品分类列表
-      description: 获取商品分类列表
-      responses:
-        200:
-          description: Success
-          schema:
-            type: object
-            properties:
-              count:
-                type: integer
-              start:
-                type: integer
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/CommodityCategory'
+/commodity_categories:
+get:
+tags: - commodity_category - pagination
+summary: 商品分类列表
+description: 获取商品分类列表
+responses:
+200:
+description: Success
+schema:
+type: object
+properties:
+count:
+type: integer
+start:
+type: integer
+items:
+type: array
+items:
+$ref: '#/definitions/CommodityCategory'
     post:
       tags:
         - commodity_category
@@ -669,76 +629,68 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/CommodityCategory'
-    delete:
-      tags:
-        - commodity_category
-        - admin
-      description: 根据ids删除商品分类
-      summary: 批量删除商品分类
-      parameters:
-        - name: ids
-          in: query
-          required: true
-          description: 删除的分类id(eg:ids=uuid,uuid,uuid)
-          type: string
-      responses:
-        200:
-          description: Success
-          schema:
-            type: array
-            items:
-             $ref: '#/definitions/CommodityCategory'
+delete:
+tags: - commodity_category - admin
+description: 根据 ids 删除商品分类
+summary: 批量删除商品分类
+parameters: - name: ids
+in: query
+required: true
+description: 删除的分类 id(eg:ids=uuid,uuid,uuid)
+type: string
+responses:
+200:
+description: Success
+schema:
+type: array
+items:
+\$ref: '#/definitions/CommodityCategory'
 
-  /commodity_categories/{id}:
-    patch:
-      tags:
-       - commodity_category
-       - admin
-      description: 修改商品分类
-      summary: 修改商品分类
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-          description: 商品分类id
-          format: uuid
-        - name: commodity_category
-          in: body
-          required: true
-          schema:
-            properties:
-              name:
-                type: string
-                description: 商品分类名称
-              cover_id:
-                type: string
-                format: uuid
-                description: 商品分类封面id
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/CommodityCategory'
+/commodity_categories/{id}:
+patch:
+tags: - commodity_category - admin
+description: 修改商品分类
+summary: 修改商品分类
+parameters: - name: id
+in: path
+required: true
+type: string
+description: 商品分类 id
+format: uuid - name: commodity_category
+in: body
+required: true
+schema:
+properties:
+name:
+type: string
+description: 商品分类名称
+cover_id:
+type: string
+format: uuid
+description: 商品分类封面 id
+responses:
+200:
+description: Success
+schema:
+\$ref: '#/definitions/CommodityCategory'
 
-  /banners:
-    get:
-      tags:
-        - banner
-      summary: 获取banner列表
-      description: 获取banner列表
-      responses:
-        200:
-          description: Success
-          schema:
-            type: object
-            properties:
-              count:
-                type: integer
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/Banner'
+/banners:
+get:
+tags: - banner
+summary: 获取 banner 列表
+description: 获取 banner 列表
+responses:
+200:
+description: Success
+schema:
+type: object
+properties:
+count:
+type: integer
+items:
+type: array
+items:
+$ref: '#/definitions/Banner'
     post:
       tags:
         - banner
@@ -768,25 +720,22 @@ paths:
           schema:
             $ref: '#/definitions/Banner'
 
-  /banners/{id}:
-    delete:
-      tags:
-        - banner
-        - admin
-      description: 根据id删除banner
-      summary: 删除banner
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: 删除的banner id
-          format: uuid
-          type: string
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Banner'
+/banners/{id}:
+delete:
+tags: - banner - admin
+description: 根据 id 删除 banner
+summary: 删除 banner
+parameters: - name: id
+in: path
+required: true
+description: 删除的 banner id
+format: uuid
+type: string
+responses:
+200:
+description: Success
+schema:
+\$ref: '#/definitions/Banner'
 
     patch:
       tags:
@@ -825,39 +774,33 @@ paths:
           schema:
             $ref: '#/definitions/Banner'
 
-  /cards:
-    get:
-      summary: 贺卡列表
-      tags:
-        - card
-        - admin
-        - pagination
-        - embed
-      description: 根据查询参数，返回贺卡列表
-      parameters:
-        - name: status
-          in: query
-          description: 贺卡状态,取值于Card_status
-          type: string
-        - name: user_id
-          in: query
-          description: 商家id
-          type: string
-          format: uuid
-      responses:
-        200:
-          description: 贺卡列表
-          schema:
-            type: object
-            properties:
-              count:
-                type: integer
-              start:
-                type: integer
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/Card'
+/cards:
+get:
+summary: 贺卡列表
+tags: - card - admin - pagination - embed
+description: 根据查询参数，返回贺卡列表
+parameters: - name: status
+in: query
+description: 贺卡状态,取值于 Card_status
+type: string - name: user_id
+in: query
+description: 商家 id
+type: string
+format: uuid
+responses:
+200:
+description: 贺卡列表
+schema:
+type: object
+properties:
+count:
+type: integer
+start:
+type: integer
+items:
+type: array
+items:
+$ref: '#/definitions/Card'
     post:
       tags:
         - card
@@ -870,24 +813,22 @@ paths:
           schema:
             $ref: '#/definitions/Card'
 
-  /cards/{id}:
-    get:
-      tags:
-        - card
-      summary: 贺卡详情
-      description: 根据id查询贺卡详情
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: 贺卡id
-          type: string
-          format: uuid
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Card'
+/cards/{id}:
+get:
+tags: - card
+summary: 贺卡详情
+description: 根据 id 查询贺卡详情
+parameters: - name: id
+in: path
+required: true
+description: 贺卡 id
+type: string
+format: uuid
+responses:
+200:
+description: Success
+schema:
+$ref: '#/definitions/Card'
     patch:
       summary: 修改贺卡
       description: 根据id修改贺卡信息
@@ -942,46 +883,41 @@ paths:
           description: Success
           schema:
             $ref: "#/definitions/Card"
-    delete:
-      tags:
-        - card
-        - admin
-      summary: 删除贺卡
-      description: 删除指定贺卡
-      parameters:
-        - name: id
-          in: path
-          description: 贺卡id
-          type: string
-          format: uuid
-          required: true
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Card'
+delete:
+tags: - card - admin
+summary: 删除贺卡
+description: 删除指定贺卡
+parameters: - name: id
+in: path
+description: 贺卡 id
+type: string
+format: uuid
+required: true
+responses:
+200:
+description: Success
+schema:
+\$ref: '#/definitions/Card'
 
-  /card_categories:
-    get:
-      tags:
-        - card_category
-        - pagination
-      summary: 贺卡分类列表
-      description: 获取贺卡分类列表
-      responses:
-        200:
-          description: Success
-          schema:
-            type: object
-            properties:
-              count:
-                type: integer
-              start:
-                type: integer
-              items:
-                type: array
-                items:
-                  $ref: '#/definitions/CardCategory'
+/card_categories:
+get:
+tags: - card_category - pagination
+summary: 贺卡分类列表
+description: 获取贺卡分类列表
+responses:
+200:
+description: Success
+schema:
+type: object
+properties:
+count:
+type: integer
+start:
+type: integer
+items:
+type: array
+items:
+$ref: '#/definitions/CardCategory'
     post:
       tags:
         - card_category
@@ -1022,50 +958,46 @@ paths:
           schema:
             $ref: '#/definitions/CardCategory'
 
-  /card_categories/{id}:
-    patch:
-      tags:
-       - card_category
-       - admin
-      description: 修改贺卡分类
-      summary: 修改贺卡分类
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-          description: 贺卡分类id
-          format: uuid
-        - name: card_category
-          in: body
-          required: true
-          schema:
-            properties:
-              name:
-                type: string
-                description: 商品类名
-              music_ids:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-                description: 背景音乐ids
-              background_ids:
-                type: array
-                items:
-                  type: string
-                  format: uuid
-                description: 背景图
-              blessing:
-                type: array
-                items:
-                  type: string
-                description: 祝福语
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/CardCategory'
+/card_categories/{id}:
+patch:
+tags: - card_category - admin
+description: 修改贺卡分类
+summary: 修改贺卡分类
+parameters: - name: id
+in: path
+required: true
+type: string
+description: 贺卡分类 id
+format: uuid - name: card_category
+in: body
+required: true
+schema:
+properties:
+name:
+type: string
+description: 商品类名
+music_ids:
+type: array
+items:
+type: string
+format: uuid
+description: 背景音乐 ids
+background_ids:
+type: array
+items:
+type: string
+format: uuid
+description: 背景图
+blessing:
+type: array
+items:
+type: string
+description: 祝福语
+responses:
+200:
+description: Success
+schema:
+$ref: '#/definitions/CardCategory'
     
     delete:
       tags:
@@ -1088,237 +1020,237 @@ paths:
 
 definitions:
 
-  Commodity_Status:
-    type: string
-    description: 上/下架状态
-    enum: [
-      'ON',
-      'OFF',
-    ]
+Commodity_Status:
+type: string
+description: 上/下架状态
+enum: [
+'ON',
+'OFF',
+]
 
-  Card_Status:
-    type: string
-    description: 空/非空状态
-    enum: [
-      'BLANK',
-      'NONBLANK',
-    ]
+Card_Status:
+type: string
+description: 空/非空状态
+enum: [
+'BLANK',
+'NONBLANK',
+]
 
-  User:
-    properties:
-      id:
-        type: string
-        format: uuid
-      no:
-        type: integer
-      name:
-        type: string
-      phone:
-        type: string
-      contact:
-        type: string
-      address:
-        type: string
-      avatar_id:
-        type: string
-        format: uuid
-      card_num:
-        type: integer
-      card_total:
-        type: integer
-      picture_ids:
-        type: array
-        description: 商品图片id
-        items:
-          type: string
-          format: uuid
-      url:
-        type: string
-      status:
-        $ref: "#/definitions/Commodity_Status"
-      role:
-        type: string
+User:
+properties:
+id:
+type: string
+format: uuid
+no:
+type: integer
+name:
+type: string
+phone:
+type: string
+contact:
+type: string
+address:
+type: string
+avatar_id:
+type: string
+format: uuid
+card_num:
+type: integer
+card_total:
+type: integer
+picture_ids:
+type: array
+description: 商品图片 id
+items:
+type: string
+format: uuid
+url:
+type: string
+status:
+\$ref: "#/definitions/Commodity_Status"
+role:
+type: string
 
-  File:
-    properties:
-      id:
-        type: string
-        format: uuid
-      name:
-        type: string
-        description: 文件名
-      type:
-        type: string
-        description: 文件类型
-      size:
-        type: string
-        description: 文件大小
+File:
+properties:
+id:
+type: string
+format: uuid
+name:
+type: string
+description: 文件名
+type:
+type: string
+description: 文件类型
+size:
+type: string
+description: 文件大小
 
-  Commodity:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uuid
-        description: 商品id
-      description:
-        type: string
-        description: 商品描述
-      price:
-        type: number
-        description: 商品价格
-      act_price:
-        type: number
-        description: 活动价格
-      total:
-        type: number
-        default: 0
-        description: 商品总数
-      sales:
-        type: number
-        default: 0
-        description: 已售出数量
-      recommended:
-        type: boolean
-        default: false
-        description: 是否推荐
-      status:
-        $ref: "#/definitions/Commodity_Status"
-      attr_ids:
-        type: array
-        description: 属性id
-        items:
-          type: string
-          format: uuid
-      category_id:
-        type: string
-        format: uuid
-        description: 商品所属类型id
-      picture_ids:
-        type: array
-        description: 商品图片id
-        items:
-          type: string
-          format: uuid
+Commodity:
+type: object
+properties:
+id:
+type: string
+format: uuid
+description: 商品 id
+description:
+type: string
+description: 商品描述
+price:
+type: number
+description: 商品价格
+act_price:
+type: number
+description: 活动价格
+total:
+type: number
+default: 0
+description: 商品总数
+sales:
+type: number
+default: 0
+description: 已售出数量
+recommended:
+type: boolean
+default: false
+description: 是否推荐
+status:
+\$ref: "#/definitions/Commodity_Status"
+attr_ids:
+type: array
+description: 属性 id
+items:
+type: string
+format: uuid
+category_id:
+type: string
+format: uuid
+description: 商品所属类型 id
+picture_ids:
+type: array
+description: 商品图片 id
+items:
+type: string
+format: uuid
 
-  CommodityAttr:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uuid
-      name:
-        type: string
-        description: 属性描述
-      values:
-        type: array
-        description: 属性值
-        items:
-          type: string
-      commodity_id:
-        type: string
-        format: uuid
-        description: 商品id
+CommodityAttr:
+type: object
+properties:
+id:
+type: string
+format: uuid
+name:
+type: string
+description: 属性描述
+values:
+type: array
+description: 属性值
+items:
+type: string
+commodity_id:
+type: string
+format: uuid
+description: 商品 id
 
-  CommodityCategory:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uuid
-      name:
-        type: string
-        description: 类型名
-      cover_id:
-        type: string
-        format: uuid
-        description: 产品类型封面id
+CommodityCategory:
+type: object
+properties:
+id:
+type: string
+format: uuid
+name:
+type: string
+description: 类型名
+cover_id:
+type: string
+format: uuid
+description: 产品类型封面 id
 
-  Banner:
-    properties:
-      id:
-        type: string
-        format: uuid
-      cover_id:
-        type: string
-        format: uuid
-      video_url:
-        type: string
-        format: uuid
-        
-  CardCategory:
-    properties:
-      id:
-        type: string
-        format: uuid
-      no:
-        type: number
-        description: 贺卡分类序号
-      name:
-        type: string
-        description: 分类名
-      background_ids:
-        type: array
-        description: 背景图
-        items:
-          type: string
-          format: uuid
-      music_ids:
-        type: array
-        description: 背景音乐
-        items:
-          type: string
-          format: uuid
-      blessings:
-        type: array
-        description: 祝福语
-        items:
-          type: string
+Banner:
+properties:
+id:
+type: string
+format: uuid
+cover_id:
+type: string
+format: uuid
+video_url:
+type: string
+format: uuid
 
-  Card:
-    type: object
-    properties:
-      id:
-        type: string
-        format: uuid
-        description: 贺卡id
-      no:
-        type: number
-        description: 贺卡序号
-      voice_id:
-        type: string
-        format: uuid
-        description: 录音文件id
-      video_url:
-        type: string
-        format: uuid
-        description: 录像文件id
-      cover_id:
-        type: string
-        format: uuid
-        description: 录像封面文件id
-      blessing:
-        type: string
-        description: 祝福语
-      background_id:
-        type: string
-        format: uuid
-        description: 背景图id
-      click:
-        type: number
-        default: 0
-        description: 点击量
-      status:
-        $ref: "#/definitions/Card_Status"
-      picture_id:
-        type: string
-        format: uuid
-        description: 照片id
-      union_id:
-        type: string
-        format: uuid
-        description: 贺卡编辑者id
-      user_id:
-        type: string
-        format: uuid
-        description: 商家id
+CardCategory:
+properties:
+id:
+type: string
+format: uuid
+no:
+type: number
+description: 贺卡分类序号
+name:
+type: string
+description: 分类名
+background_ids:
+type: array
+description: 背景图
+items:
+type: string
+format: uuid
+music_ids:
+type: array
+description: 背景音乐
+items:
+type: string
+format: uuid
+blessings:
+type: array
+description: 祝福语
+items:
+type: string
+
+Card:
+type: object
+properties:
+id:
+type: string
+format: uuid
+description: 贺卡 id
+no:
+type: number
+description: 贺卡序号
+voice_id:
+type: string
+format: uuid
+description: 录音文件 id
+video_url:
+type: string
+format: uuid
+description: 录像文件 id
+cover_id:
+type: string
+format: uuid
+description: 录像封面文件 id
+blessing:
+type: string
+description: 祝福语
+background_id:
+type: string
+format: uuid
+description: 背景图 id
+click:
+type: number
+default: 0
+description: 点击量
+status:
+\$ref: "#/definitions/Card_Status"
+picture_id:
+type: string
+format: uuid
+description: 照片 id
+union_id:
+type: string
+format: uuid
+description: 贺卡编辑者 id
+user_id:
+type: string
+format: uuid
+description: 商家 id

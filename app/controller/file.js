@@ -3,7 +3,7 @@
 const fs = require('fs');
 const gm = require('gm');
 const path = require('path');
-
+const assert = require('assert');
 module.exports = app => {
   /**
    * file相关Controller
@@ -108,12 +108,10 @@ module.exports = app => {
       });
 
       ctx.jsonBody = {
-        data: {
-          id: file.id,
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        },
+        id: file.id,
+        name: file.name,
+        size: file.size,
+        type: file.type,
       };
     }
 
@@ -125,8 +123,9 @@ module.exports = app => {
      */
     async show() {
       const { ctx, service, showRule } = this;
-      await ctx.verify(showRule, ctx.params);
-      const file = await service.file.findById(ctx.params.id);
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const file = await service.file.findById(id);
+      assert(file, '未找到该相关资源', 404);
       const { range: requestRange } = ctx.headers;
       const { size } = fs.statSync(file.path);
       const fileSize = !!~file.type.indexOf('image') ? size : file.size; // eslint-disable-line
@@ -165,14 +164,15 @@ module.exports = app => {
      */
     async thumbnail() {
       const { ctx, service, showRule } = this;
-      await ctx.validate(showRule);
-      const file = await service.file.getByIdOrThrow(ctx.params.id);
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const file = await service.file.findById(id);
 
-      ctx.error(
-        !file.type.includes('image'),
+      ctx.assert(file, '未找到相关资源', 404);
+      ctx.assert(
+        file.type.includes('image'),
         '非图片类型文件，不存在缩略图',
-        16003
-      ); // eslint-disable-line
+        400
+      );
       gm(fs.createReadStream(file.path))
         .thumbnail(160, 160)
         .stream((err, data) => {
@@ -197,12 +197,13 @@ module.exports = app => {
     async delete() {
       const { ctx, service, showRule } = this;
       const { id } = await ctx.verify(showRule, ctx.params);
-      await service.file.findById(id);
+      const file = await service.file.findById(id);
+      ctx.assert(file, '未找到相关资源', 404);
 
-      const file = await service.file.destroy({ _id: id });
-      ctx.jsonBody = {
-        data: file,
-      };
+      const result = await service.file.destroy({ _id: id }, false, true);
+      ctx.assert(result.ok === 1, '删除失败', 500);
+      fs.unlinkSync(file.path);
+      ctx.jsonBody = file;
     }
   }
   return fileController;

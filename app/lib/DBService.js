@@ -30,8 +30,14 @@ class DBService extends Service {
    */
   async findById(id) {
     const { EMONGODB } = this.ctx.errors;
+    const query = Object.assign(
+      {
+        deleted_at: null,
+      },
+      { _id: id }
+    );
 
-    const data = await this.ctx.model[this.type].findById(id).catch(error => {
+    const data = await this.ctx.model[this.type].findOne(query).catch(error => {
       throw new VError(
         {
           name: EMONGODB,
@@ -149,14 +155,14 @@ class DBService extends Service {
    */
   async count(options) {
     const { EMONGODB } = this.ctx.errors;
-    const op = Object.assign(
+    const query = Object.assign(
       {
         deleted_at: null,
       },
       options
     );
     const count = await this.ctx.model[this.type]
-      .find(op)
+      .find(query)
       .count()
       .catch(error => {
         throw new VError(
@@ -164,7 +170,7 @@ class DBService extends Service {
             name: EMONGODB,
             cause: error,
             info: {
-              op,
+              query,
             },
           },
           '[%s] 查询失败 ',
