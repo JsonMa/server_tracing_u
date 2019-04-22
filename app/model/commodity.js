@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
 
   /**
    * 商品Model
@@ -30,52 +24,60 @@ module.exports = ({
    * @property {int}     quata          - 二维码额度
    * @property {Array}   brands         - 标签
    */
-  const schema = new Schema({
-    name: {
-      type: String,
-      required: true,
+  const schema = new Schema(
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      description: String,
+      price: {
+        type: Number,
+        required: true,
+      },
+      act_price: {
+        type: Number,
+        required: true,
+      },
+      sales: {
+        type: Number,
+        default: 0,
+        required: true,
+      },
+      recommended: {
+        type: Boolean,
+        default: false,
+      },
+      enable: {
+        type: Boolean,
+        default: true,
+        required: true,
+      },
+      category: {
+        type: Schema.Types.ObjectId,
+        ref: 'commodity_category',
+      },
+      pictures: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'file',
+        },
+      ],
+      quata: {
+        type: Number,
+        default: 0,
+        required: true,
+      },
+      brands: String,
+      deleted_at: Date,
     },
-    description: String,
-    price: {
-      type: Number,
-      required: true,
-    },
-    act_price: {
-      type: Number,
-      required: true,
-    },
-    sales: {
-      type: Number,
-      default: 0,
-      required: true,
-    },
-    recommended: {
-      type: Boolean,
-      default: false,
-    },
-    enable: {
-      type: Boolean,
-      default: true,
-      required: true,
-    },
-    category: {
-      type: Schema.Types.ObjectId,
-      ref: 'commodity_category',
-    },
-    pictures: [{
-      type: Schema.Types.ObjectId,
-      ref: 'file',
-    }],
-    quata: {
-      type: Number,
-      default: 0,
-      required: true,
-    },
-    brands: String,
-  },
-  Object.assign({}, {
-    timestamps,
-  }));
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
+  );
 
   return mongoose.model('commodity', schema);
 };

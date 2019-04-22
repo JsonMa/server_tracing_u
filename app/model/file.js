@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
   /**
    * 文件
    *
@@ -20,27 +14,33 @@ module.exports = ({
    * @property {String} type - 文件类型
    * @property {Number} size - 文件大小
    */
-  const schema = new Schema({
-    name: {
-      type: String,
-      required: true,
+  const schema = new Schema(
+    {
+      name: {
+        type: String,
+        required: true,
+      },
+      path: {
+        type: String,
+        required: true,
+      },
+      type: {
+        type: String,
+        required: true,
+      },
+      size: {
+        type: Number,
+        required: true,
+      },
+      deleted_at: Date,
     },
-    path: {
-      type: String,
-      required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-    },
-    size: {
-      type: Number,
-      required: true,
-    },
-  },
-  Object.assign({}, {
-    timestamps,
-  }));
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
+  );
 
   return mongoose.model('file', schema);
 };

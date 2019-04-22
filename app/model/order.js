@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
   /**
    * 订单Model
    *
@@ -26,40 +20,55 @@ module.exports = ({
    * @property {Object}   express.courier        - 快递员信息
    *
    */
-  const schema = new Schema({
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-    },
-    commodity: {
-      type: Schema.Types.ObjectId,
-      ref: 'commodity',
-    },
-    count: {
-      type: Number,
-      required: true,
-      default: 1,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    status: {
-      type: String,
-      values: ['CREATED', 'QUOTED', 'HALF_PAYED', 'ALL_PAYED', 'SHIPPED', 'FINISHED', 'CLOSED'],
-      defaultValue: 'CREATED',
-    },
-    trade_id: String,
-    express: {
-      id: String,
-      courier: {
+  const schema = new Schema(
+    {
+      user: {
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
+      commodity: {
+        type: Schema.Types.ObjectId,
+        ref: 'commodity',
+      },
+      count: {
+        type: Number,
+        required: true,
+        default: 1,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+      status: {
+        type: String,
+        values: [
+          'CREATED',
+          'QUOTED',
+          'HALF_PAYED',
+          'ALL_PAYED',
+          'SHIPPED',
+          'FINISHED',
+          'CLOSED',
+        ],
+        defaultValue: 'CREATED',
+      },
+      trade_id: String,
+      express: {
+        id: String,
+        courier: {
+          type: Schema.Types.ObjectId,
+          ref: 'user',
+        },
+      },
+      deleted_at: Date,
     },
-  }, Object.assign({}, {
-    timestamps,
-  }));
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
+  );
 
   return mongoose.model('order', schema);
 };

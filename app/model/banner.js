@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
 
   /**
    * banner
@@ -23,24 +17,30 @@ module.exports = ({
    * @property {Boolean}   enable    - 是否启用
    */
 
-  const schema = new Schema({
-    cover: {
-      type: Schema.Types.ObjectId,
-      ref: 'file',
+  const schema = new Schema(
+    {
+      cover: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      title: String,
+      content: String,
+      video_url: {
+        type: String,
+      },
+      enable: {
+        type: Boolean,
+        defalut: true,
+      },
+      deleted_at: Date,
     },
-    title: String,
-    content: String,
-    video_url: {
-      type: String,
-    },
-    enable: {
-      type: Boolean,
-      defalut: true,
-    },
-  },
-  Object.assign({}, {
-    timestamps,
-  }));
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
+  );
 
   return mongoose.model('banner', schema);
 };
