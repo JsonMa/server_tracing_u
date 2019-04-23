@@ -46,7 +46,7 @@ module.exports = () => {
     client: {
       port: 6379,
       host: 'localhost',
-      password: '',
+      password: 'tracing_redis123456',
       db: 0
     }
   };
@@ -55,9 +55,9 @@ module.exports = () => {
     client: {
       url: 'mongodb://127.0.0.1/tracing_u',
       options: {
-        useNewUrlParser: true,
-      },
-    },
+        useNewUrlParser: true
+      }
+    }
   };
 
   exports.security = {
