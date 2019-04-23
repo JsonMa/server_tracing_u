@@ -1,10 +1,7 @@
 'use strict';
 
 module.exports = app => {
-  const {
-    formidable,
-    compress,
-  } = app.middleware;
+  const { formidable, compress } = app.middleware;
   // const wechat = require('co-wechat-body');
 
   /* istanbul ignore next */
@@ -19,20 +16,6 @@ module.exports = app => {
   app.get(`${prefix}/users/:id`, 'user.show');
   app.post(`${prefix}/users`, 'user.create');
   app.put(`${prefix}/users/:id`, 'user.update');
-
-  // card
-  // app.get(`${prefix}/cards`, 'card.index');
-  // app.get(`${prefix}/cards/:id`, 'card.show');
-  // app.post(`${prefix}/cards`, 'card.create');
-  // app.put(`${prefix}/cards/:id`, 'card.update');
-  // app.delete(`${prefix}/cards/:id`, 'card.destroy');
-
-  // // card category
-  // app.get(`${prefix}/card_categories`, 'cardCategory.index');
-  // app.post(`${prefix}/card_categories`, 'cardCategory.create');
-  // app.get(`${prefix}/card_categories/:id`, 'cardCategory.show');
-  // app.delete(`${prefix}/card_categories/:id`, 'cardCategory.destroy');
-  // app.put(`${prefix}/card_categories/:id`, 'cardCategory.update');
 
   // // commodity
   // app.get(`${prefix}/commodities`, 'commodity.index');

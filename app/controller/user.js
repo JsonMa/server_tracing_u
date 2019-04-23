@@ -65,7 +65,7 @@ module.exports = app => {
             $ref: 'schema.user#',
           },
           with: {
-            required: ['role_type'],
+            required: ['role_type', 'unionId'],
             additionalProperties: false,
           },
         },
@@ -112,13 +112,8 @@ module.exports = app => {
      * @return {promise} 用户列表
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
+      const { ctx, indexRule } = this;
+      const { generateSortParam } = ctx.helper.pagination;
 
       const {
         enable,
@@ -156,16 +151,10 @@ module.exports = app => {
      * @return {promise} 新建的用户
      */
     async create() {
-      const {
-        ctx,
-        service,
-        createRule,
-      } = this;
+      const { ctx, service, createRule } = this;
       await ctx.verify(createRule, ctx.request.body);
 
-      const {
-        role_type,
-      } = ctx.request.body;
+      const { role_type } = ctx.request.body;
       let role_id;
       switch (role_type) {
         case 'platform':
@@ -212,14 +201,8 @@ module.exports = app => {
      * @return {promise} 用户详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
       const user = await service.user.findById(id);
       ctx.jsonBody = user;
     }
@@ -231,25 +214,23 @@ module.exports = app => {
      * @return {promise} 被修改用户信息
      */
     async update() {
-      const {
-        ctx,
-        service,
+      const { ctx, service, updateRule } = this;
+      const { id, enable, inviter } = await ctx.verify(
         updateRule,
-      } = this;
-      const {
-        id,
-        enable,
-        inviter,
-      } = await ctx.verify(updateRule, Object.assign(ctx.params, ctx.request.body));
+        Object.assign(ctx.params, ctx.request.body)
+      );
 
       const user = await service.user.findById(id);
       ctx.assert(user, '不存在该用户', 404);
       const updateData = {};
       if (enable) updateData.enable = enable;
       if (inviter) updateData.inviter = inviter;
-      await service.user.update({
-        _id: id,
-      }, updateData);
+      await service.user.update(
+        {
+          _id: id,
+        },
+        updateData
+      );
 
       ctx.jsonBody = Object.assign(user, updateData);
     }

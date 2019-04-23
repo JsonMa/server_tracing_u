@@ -1,7 +1,6 @@
 'use strict';
 
 const uuid = require('uuid/v4');
-const crypto = require('crypto');
 
 module.exports = app => {
   /**
@@ -20,14 +19,11 @@ module.exports = app => {
     get loginRule() {
       return {
         properties: {
-          phone: {
-            type: 'string',
-          },
-          password: {
+          code: {
             type: 'string',
           },
         },
-        required: ['phone', 'password'],
+        required: ['code'],
         $async: true,
         additionalProperties: false,
       };
@@ -40,35 +36,32 @@ module.exports = app => {
      * @return {Object} user & token
      */
     async login() {
-      const {
-        ctx,
-        loginRule,
-      } = this;
+      const { ctx, loginRule } = this;
 
-      let ecptPassword = '';
-      const {
-        phone,
-        password,
-      } = await ctx.validate(loginRule);
-      const user = await this.app.model.User.findOne({
-        where: {
-          phone,
-        },
-      });
-
-      /* 数据库验证 */
-      const md5 = crypto.createHash('md5');
-      ecptPassword = md5.update(password).digest('hex');
-      ctx.error(user && ecptPassword === user.password, '账号或密码错误', 10002, 400);
+      const { code } = await ctx.verify(loginRule, ctx.request.body);
+      const { openid, session_key, unionid } = await this.code2Session(code);
+      const user = await ctx.service.user.findOne({ unionid });
+      let isRegistered = false;
+      const sessionData = {
+        openid,
+        session_key,
+        unionid,
+      };
+      if (user) {
+        isRegistered = true;
+        sessionData.role_type = user.role_type;
+        sessionData.role_id = user.role_id;
+      }
       const token = uuid();
-      app.redis.set(`${app.config.auth.prefix}:${token}`, JSON.stringify({
-        role: user.role,
-        id: user.id,
-      }));
+      app.redis.set(
+        `${app.config.auth.prefix}:${token}`,
+        JSON.stringify(sessionData)
+      );
       ctx.cookies.set('access_token', token);
       ctx.jsonBody = {
-        user,
         token,
+        user,
+        isRegistered,
       };
     }
 
@@ -79,17 +72,35 @@ module.exports = app => {
      * @return {object} 返回登出结果
      */
     async logout() {
-      const {
-        ctx,
-      } = this;
-      const {
-        access_token: token,
-      } = ctx.header;
+      const { ctx } = this;
+      const { access_token: token } = ctx.header;
 
       const ret = await app.redis.del(`${app.config.auth.prefix}:${token}`);
-      ctx.error(ret !== 1, '退出登登录失败', 10999);
-      ctx.jsonBody({
-        msg: '成功退出登录',
+      ctx.assert(ret === 1, '退出登登录失败', 500);
+      ctx.jsonBody = { data: '退出登登录失败' };
+    }
+
+    /**
+     * code2Session
+     *
+     * @param {string} code - login codee
+     * @return {promise} session data
+     * @memberof AuthController
+     */
+    code2Session(code) {
+      const { ctx } = this;
+      const config = ctx.config.wechat;
+      ctx.assert(typeof code === 'string', 'code需为字符串', 400);
+
+      return ctx.curl(`${config.openid_url}`, {
+        method: 'GET',
+        data: {
+          appid: config.appid,
+          secret: config.secret,
+          js_code: code,
+          grant_type: config.grant_type,
+        },
+        dataType: 'json', // 以JSON格式处理返回的响应body
       });
     }
   }
