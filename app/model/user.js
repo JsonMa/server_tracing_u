@@ -1,8 +1,14 @@
 'use strict';
-const { timestamps } = require('../lib/model_common');
+const {
+  timestamps,
+} = require('../lib/model_common');
 
-module.exports = ({ mongoose }) => {
-  const { Schema } = mongoose;
+module.exports = ({
+  mongoose,
+}) => {
+  const {
+    Schema,
+  } = mongoose;
 
   /**
    * 用户Model
@@ -10,9 +16,8 @@ module.exports = ({ mongoose }) => {
    * @model User
    * @namespace Model
    *
-   * @param {uuid}     id
-   * @param {Enum}     role_type                       - 角色类型[business,salesman,courier,factroy,]
-   * @param {Integer}  role_id                         - 用户角色[1-10平台用户][11厂家][12-20各级经销商用户][21-30销售账户][31快递员][32普通用户]
+   * @param {Number}   role_type                       - 角色类型[business,salesman,courier,factroy,platform,unauthed]
+   * @param {Integer}  role_id                         - 用户角色[10平台用户][20厂家][30各级经销商用户][40销售账户][50快递员][60普通未认证的用户]
    * @param {Object}   platform                        - 平台用户
    * @param {string}   platform.name                   - 平台用户【名称】
    * @param {string}   platform.email                  - 平台用户【邮箱】
@@ -41,140 +46,130 @@ module.exports = ({ mongoose }) => {
    *
    */
 
-  const schema = new Schema(
-    {
-      id: String,
-      role_type: {
-        type: String,
-        enum: ['platform', 'factory', 'business', 'courier', 'salesman'],
-      },
-      role_id: {
-        type: Number,
-        default: 32,
-      },
-      // 平台用户
-      platform: {
-        name: {
-          type: String,
-        },
-        email: {
-          type: String,
-        },
-        password: {
-          type: String,
-        },
-        avatar: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-      // 厂家
-      factory: {
-        name: {
-          type: String,
-        },
-        public_account: {
-          type: String,
-        },
-        email: {
-          type: String,
-        },
-        contact: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        license: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        receiving_info: {
-          name: {
-            type: String,
-          },
-          phone: {
-            type: String,
-          },
-          address: {
-            type: String,
-          },
-        },
-      },
-      // 商家
-      business: {
-        name: {
-          type: String,
-        },
-        address: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        contact: {
-          type: String,
-        },
-        banner: [
-          {
-            type: Schema.Types.ObjectId,
-            ref: 'file',
-          },
-        ],
-      },
-      // 快递员
-      courier: {
-        company: {
-          type: String,
-        },
-        name: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        employee_card: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-
-      // 销售
-      salesman: {
-        name: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        address: {
-          type: String,
-        },
-        id_card: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-      unionId: {
-        type: String,
-      },
-      enable: {
-        type: Boolean,
-        default: true,
-      },
-      inviter: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      last_login: Date,
-      deleted_at: Date,
+  const schema = new Schema({
+    role_type: {
+      type: String,
+      enum: ['platform', 'factory', 'business', 'courier', 'salesman', 'unauthed'],
+      default: 'unauthed',
     },
-    Object.assign(
-      {},
-      {
-        timestamps,
-      }
-    )
+    role_id: {
+      type: Number,
+      default: 60,
+    },
+    // 平台用户
+    platform: {
+      name: {
+        type: String,
+      },
+      email: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+    },
+    // 厂家
+    factory: {
+      name: {
+        type: String,
+      },
+      public_account: {
+        type: String,
+      },
+      email: {
+        type: String,
+      },
+      contact: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      license: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      receiving_info: {
+        name: {
+          type: String,
+        },
+        phone: {
+          type: String,
+        },
+        address: {
+          type: String,
+        },
+      },
+    },
+    // 商家
+    business: {
+      name: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      contact: {
+        type: String,
+      },
+      banner: [{
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      }],
+    },
+    // 快递员
+    courier: {
+      company: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      employee_card: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+
+    // 销售
+    salesman: {
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      id_card: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+    unionId: {
+      type: String,
+    },
+    enable: {
+      type: Boolean,
+      default: true,
+    },
+    inviter: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    last_login: Date,
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('user', schema);

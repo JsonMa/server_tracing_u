@@ -5,6 +5,17 @@ module.exports = {
     role_id: {
       $ref: 'schema.definition#/role_id',
     },
+    platform: {
+      name: {
+        $ref: 'schema.definition#/name',
+      },
+      email: {
+        $ref: 'schema.definition#/email',
+      },
+      phone: {
+        $ref: 'schema.definition#/mobile',
+      },
+    },
     factory: {
       type: 'object',
       properties: {
@@ -104,6 +115,9 @@ module.exports = {
     },
     inviter: {
       $ref: 'schema.definition#/oid',
+    },
+    role_type: {
+      $ref: 'schema.definition#/role_type',
     },
   },
 };

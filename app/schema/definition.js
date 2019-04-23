@@ -23,8 +23,7 @@ module.exports = {
   },
   email: {
     type: 'string',
-    pattern:
-      '^([a-zA-Z0-9_\\.\\-])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$',
+    pattern: '^([a-zA-Z0-9_\\.\\-])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$',
   },
   password: {
     type: 'string',
@@ -47,35 +46,12 @@ module.exports = {
   role_id: {
     type: 'integer',
     minimum: 1,
-    maximum: 32,
+    maximum: 60,
   },
-  uuidRegrex:
-    '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  uuidRegrex: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
   uuid: {
     type: 'string',
-    pattern:
-      '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
-  },
-  pagination: {
-    start: {
-      type: 'number',
-      minLength: 0,
-      defualt: 0,
-    },
-    count: {
-      type: 'number',
-      minLength: 1,
-      maxLength: 100,
-      defualt: 10,
-    },
-    sort: {
-      type: 'string',
-      defualt: 'true',
-    },
-  },
-  phone: {
-    type: 'string',
-    pattern: '^([1][0-9]{10})|(0[1-9]{2,3}-?[0-9]{7,8})$',
+    pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
   },
   date: {
     type: 'string',
@@ -83,7 +59,16 @@ module.exports = {
   },
   url: {
     type: 'string',
-    pattern:
-      '(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]',
+    pattern: '(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]',
+  },
+  role_type: {
+    type: 'string',
+    enum: [
+      'platform',
+      'factory',
+      'business',
+      'courier',
+      'salesman',
+    ],
   },
 };

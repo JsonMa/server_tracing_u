@@ -109,7 +109,7 @@ module.exports = app => {
         sort,
         start,
         count,
-      } = await ctx.validate(indexRule, ctx.helper.preprocessor.pagination);
+      } = await ctx.validate(indexRule);
       const commodityCategories = await service.commodityCategory.fetch(start, count, sort);
 
       ctx.jsonBody = {

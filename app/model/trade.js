@@ -1,9 +1,15 @@
 'use strict';
 
-const { timestamps } = require('../lib/model_common');
+const {
+  timestamps,
+} = require('../lib/model_common');
 
-module.exports = ({ mongoose }) => {
-  const { Schema } = mongoose;
+module.exports = ({
+  mongoose,
+}) => {
+  const {
+    Schema,
+  } = mongoose;
 
   /**
    * 交易Model
@@ -16,31 +22,27 @@ module.exports = ({ mongoose }) => {
    * @property {string}   detail   - 支付详细信息, 序列化的JSON格式存储
    *
    */
-  const schema = new Schema(
-    {
-      order_id: {
-        type: String,
-        required: true,
-      },
-      trade_no: {
-        type: String,
-        required: true,
-      },
-      status: {
-        type: String,
-        enum: ['PENDING', 'CLOSED', 'SUCCESS'],
-        required: true,
-        default: 'PENDING',
-      },
-      detail: String,
-      deleted_at: Date,
+  const schema = new Schema({
+    order_id: {
+      type: String,
+      required: true,
     },
-    Object.assign(
-      {},
-      {
-        timestamps,
-      }
-    )
+    trade_no: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ['PENDING', 'CLOSED', 'SUCCESS'],
+      required: true,
+      default: 'PENDING',
+    },
+    detail: String,
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('trade', schema);

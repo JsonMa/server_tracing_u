@@ -1,7 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  const { formidable, compress } = app.middleware;
+  const {
+    formidable,
+    compress,
+  } = app.middleware;
   // const wechat = require('co-wechat-body');
 
   /* istanbul ignore next */
@@ -16,7 +19,6 @@ module.exports = app => {
   app.get(`${prefix}/users/:id`, 'user.show');
   app.post(`${prefix}/users`, 'user.create');
   app.put(`${prefix}/users/:id`, 'user.update');
-  app.put(`${prefix}/users/:id/qr`, 'user.updateQr');
 
   // card
   // app.get(`${prefix}/cards`, 'card.index');

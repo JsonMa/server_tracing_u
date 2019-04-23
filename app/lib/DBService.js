@@ -1,7 +1,9 @@
 'use strict';
 
 const VError = require('verror');
-const { Service } = require('egg');
+const {
+  Service,
+} = require('egg');
 
 /**
  * db base service
@@ -29,25 +31,25 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findById(id) {
-    const { EMONGODB } = this.ctx.errors;
-    const query = Object.assign(
-      {
-        deleted_at: null,
-      },
-      { _id: id }
-    );
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({
+      deleted_at: null,
+    }, {
+      _id: id,
+    });
 
     const data = await this.ctx.model[this.type].findOne(query).catch(error => {
-      throw new VError(
-        {
-          name: EMONGODB,
-          cause: error,
-          info: {
-            id,
-          },
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: {
+          id,
         },
-        '[%s] 查询失败 ',
-        this.type
+      },
+      '[%s] 查询失败 ',
+      this.type
       );
     });
 
@@ -62,24 +64,24 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findOne(conditions) {
-    const { EMONGODB } = this.ctx.errors;
-    const query = Object.assign(
-      {
-        deleted_at: null,
-      },
-      conditions
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({
+      deleted_at: null,
+    },
+    conditions
     );
     const data = await this.ctx.model[this.type].findOne(query).catch(error => {
-      throw new VError(
-        {
-          name: EMONGODB,
-          cause: error,
-          info: {
-            query,
-          },
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: {
+          query,
         },
-        '[%s] 查询失败 ',
-        this.type
+      },
+      '[%s] 查询失败 ',
+      this.type
       );
     });
     return data;
@@ -95,26 +97,26 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findMany(conditions, fields = null, options = null) {
-    const { EMONGODB } = this.ctx.errors;
-    const query = Object.assign(
-      {
-        deleted_at: null,
-      },
-      conditions
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({
+      deleted_at: null,
+    },
+    conditions
     );
     const items = await this.ctx.model[this.type]
       .find(query, fields, options)
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: {
-              query,
-            },
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: {
+            query,
           },
-          '[%s] 查询失败 ',
-          this.type
+        },
+        '[%s] 查询失败 ',
+        this.type
         );
       });
     return items;
@@ -128,19 +130,20 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findAll(conditions) {
-    const { EMONGODB } = this.ctx.errors;
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
     const query = Object.assign({}, conditions);
     const date = await this.ctx.model[this.type].findOne(query).catch(error => {
-      throw new VError(
-        {
-          name: EMONGODB,
-          cause: error,
-          info: {
-            query,
-          },
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: {
+          query,
         },
-        '[%s] 查询失败 ',
-        this.type
+      },
+      '[%s] 查询失败 ',
+      this.type
       );
     });
     return date;
@@ -154,27 +157,27 @@ class DBService extends Service {
    * @memberof DBService
    */
   async count(options) {
-    const { EMONGODB } = this.ctx.errors;
-    const query = Object.assign(
-      {
-        deleted_at: null,
-      },
-      options
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
+    const query = Object.assign({
+      deleted_at: null,
+    },
+    options
     );
     const count = await this.ctx.model[this.type]
       .find(query)
       .count()
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: {
-              query,
-            },
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: {
+            query,
           },
-          '[%s] 查询失败 ',
-          this.type
+        },
+        '[%s] 查询失败 ',
+        this.type
         );
       });
     return count;
@@ -188,15 +191,16 @@ class DBService extends Service {
    * @memberof DBService
    */
   async create(data) {
-    const { EMONGODB } = this.ctx.errors;
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
     const item = await this.ctx.model[this.type].create(data).catch(error => {
-      throw new VError(
-        {
-          name: EMONGODB,
-          cause: error,
-          info: data,
-        },
-        `[${this.type}] 创建失败`
+      throw new VError({
+        name: EMONGODB,
+        cause: error,
+        info: data,
+      },
+      `[${this.type}] 创建失败`
       );
     });
     return item;
@@ -210,17 +214,18 @@ class DBService extends Service {
    * @memberof DBService
    */
   async insertMany(data) {
-    const { EMONGODB } = this.ctx.errors;
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
     const item = await this.ctx.model[this.type]
       .insertMany(data)
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: data,
-          },
-          `[${this.type}] 创建失败`
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: data,
+        },
+        `[${this.type}] 创建失败`
         );
       });
     return item;
@@ -237,25 +242,24 @@ class DBService extends Service {
    * @memberof DBService
    */
   async update(options, values, multiple = false, upsert = false) {
-    const { EMONGODB } = this.ctx.errors;
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
     const items = await this.ctx.model[this.type]
       [multiple ? 'updateOne' : 'updateMany'](
-        options,
-        {
+        options, {
           $set: values,
-        },
-        {
+        }, {
           upsert,
         }
       )
       .catch(error => {
-        throw new VError(
-          {
-            name: EMONGODB,
-            cause: error,
-            info: options,
-          },
-          `[${this.type}] 更新失败`
+        throw new VError({
+          name: EMONGODB,
+          cause: error,
+          info: options,
+        },
+        `[${this.type}] 更新失败`
         );
       });
     return items;
@@ -271,40 +275,38 @@ class DBService extends Service {
    * @memberof DBService
    */
   async destroy(options, multiple = false, force = false) {
-    const { EMONGODB } = this.ctx.errors;
+    const {
+      EMONGODB,
+    } = this.ctx.errors;
     let ret;
     if (force) {
       ret = await this.ctx.model[this.type]
         [multiple ? 'deleteOne' : 'deleteMany'](options)
         .catch(error => {
-          throw new VError(
-            {
-              name: EMONGODB,
-              cause: error,
-              info: options,
-            },
-            `[${this.type}] 删除失败`
+          throw new VError({
+            name: EMONGODB,
+            cause: error,
+            info: options,
+          },
+          `[${this.type}] 删除失败`
           );
         });
     } else {
       ret = await this.ctx.model[this.type]
         [multiple ? 'updateOne' : 'updateMany'](
-          options,
-          {
+          options, {
             deleted_at: new Date(),
-          },
-          {
+          }, {
             multiple: true,
           }
         )
         .catch(error => {
-          throw new VError(
-            {
-              name: EMONGODB,
-              cause: error,
-              info: options,
-            },
-            `[${this.type}] 删除失败`
+          throw new VError({
+            name: EMONGODB,
+            cause: error,
+            info: options,
+          },
+          `[${this.type}] 删除失败`
           );
         });
     }

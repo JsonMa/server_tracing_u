@@ -97,8 +97,7 @@ module.exports = app => {
     async list() {
       // this.ctx.adminPermission();
       const query = await this.ctx.validate(
-        this.listRule,
-        this.ctx.helper.preprocessor.pagination
+        this.listRule
       );
       const {
         count,

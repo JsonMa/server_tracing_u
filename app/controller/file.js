@@ -60,14 +60,22 @@ module.exports = app => {
      * @return {promise} 上传的文件
      */
     async upload() {
-      const { ctx, uploadRule } = this;
+      const {
+        ctx,
+        uploadRule,
+      } = this;
       const [files] = ctx.request.files;
       await ctx.verify(uploadRule, ctx.request.files);
 
       let cosResult = null;
       if (files.type.includes('mp4')) {
         const config = app.config.tencent;
-        const { fileType, notifyUrl, secretId, secretKey } = config;
+        const {
+          fileType,
+          notifyUrl,
+          secretId,
+          secretKey,
+        } = config;
         const VodUploadApi = ctx.helper.vodUploadApi;
         const filePath = path.join(`${app.baseDir}`, files.path);
         const slicePage = 512 * 1024;
@@ -122,18 +130,31 @@ module.exports = app => {
      * @return {promise} 文件详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(id);
-      assert(file, '未找到该相关资源', 404);
-      const { range: requestRange } = ctx.headers;
-      const { size } = fs.statSync(file.path);
+      ctx.assert(file, '未找到相关资源', 404);
+      const {
+        range: requestRange,
+      } = ctx.headers;
+      const {
+        size,
+      } = fs.statSync(file.path);
       const fileSize = !!~file.type.indexOf('image') ? size : file.size; // eslint-disable-line
 
       if (requestRange && file.type.includes('video')) {
         const range = ctx.helper.video.range(ctx.headers.range, fileSize);
         if (range) {
-          const { start, end } = range;
+          const {
+            start,
+            end,
+          } = range;
           ctx.set({
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Content-Type': file.type,
@@ -163,8 +184,14 @@ module.exports = app => {
      * @return {promise} 缩略图
      */
     async thumbnail() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(id);
 
       ctx.assert(file, '未找到相关资源', 404);
@@ -195,12 +222,20 @@ module.exports = app => {
      * @memberof fileController
      */
     async delete() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(id);
       ctx.assert(file, '未找到相关资源', 404);
 
-      const result = await service.file.destroy({ _id: id }, false, true);
+      const result = await service.file.destroy({
+        _id: id,
+      }, false, true);
       ctx.assert(result.ok === 1, '删除失败', 500);
       fs.unlinkSync(file.path);
       ctx.jsonBody = file;

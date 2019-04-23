@@ -2,7 +2,7 @@
 
 module.exports = {
   ajv: require('./helper/ajv'),
-  preprocessor: require('./helper/preprocessor'),
+  pagination: require('./helper/pagination'),
   assert: require('assert'),
   printer: require('./helper/printer'),
   video: require('./helper/video'),

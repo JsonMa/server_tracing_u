@@ -349,7 +349,7 @@ module.exports = app => {
         status,
         recommended,
         embed,
-      } = await ctx.validate(indexRule, ctx.helper.preprocessor.pagination);
+      } = await ctx.validate(indexRule);
 
       // 获取商品及商品分类
       const commodities = await commodity.fetch(name, categoryId, status, recommended, start, count, sort); // eslint-disable-line
