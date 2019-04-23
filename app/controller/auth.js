@@ -46,11 +46,13 @@ module.exports = app => {
         openid,
         session_key,
         unionid,
+        isRegistered,
       };
       if (user) {
         isRegistered = true;
         sessionData.role_type = user.role_type;
         sessionData.role_id = user.role_id;
+        sessionData.isRegistered = true;
       }
       const token = uuid();
       app.redis.set(
