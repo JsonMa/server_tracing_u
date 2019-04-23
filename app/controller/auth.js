@@ -78,8 +78,8 @@ module.exports = app => {
       const { access_token: token } = ctx.header;
 
       const ret = await app.redis.del(`${app.config.auth.prefix}:${token}`);
-      ctx.assert(ret === 1, '退出登登录失败', 500);
-      ctx.jsonBody = { data: '退出登登录失败' };
+      ctx.assert(ret === 1, '退出登录失败', 500);
+      ctx.jsonBody = null;
     }
 
     /**
