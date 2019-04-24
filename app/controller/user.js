@@ -1,7 +1,5 @@
 'use strict';
 
-const crypto = require('crypto');
-
 module.exports = app => {
   /**
    * User 相关路由
@@ -65,7 +63,7 @@ module.exports = app => {
             $ref: 'schema.user#',
           },
           with: {
-            required: ['role_type', 'unionId'],
+            required: ['role_type', 'role_id'],
             additionalProperties: false,
           },
         },
@@ -112,8 +110,13 @@ module.exports = app => {
      * @return {promise} 用户列表
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { generateSortParam } = ctx.helper.pagination;
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
 
       const {
         enable,
@@ -151,37 +154,24 @@ module.exports = app => {
      * @return {promise} 新建的用户
      */
     async create() {
-      const { ctx, service, createRule } = this;
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
       await ctx.verify(createRule, ctx.request.body);
 
-      const { role_type } = ctx.request.body;
-      let role_id;
-      switch (role_type) {
-        case 'platform':
-          role_id = 10;
-          break;
-        case 'factory':
-          role_id = 20;
-          break;
-        case 'business':
-          role_id = 30;
-          break;
-        case 'salesman':
-          role_id = 40;
-          break;
-        case 'courier':
-          role_id = 50;
-          break;
-        default:
-          role_id = 60;
-          break;
-      }
+      const {
+        role_type,
+        role_id,
+      } = ctx.request.body;
       // 验证用户是否存在
       const userData = ctx.request.body[role_type];
+      // 从登录信息中获取unionID并存入数据库
       const query = {};
       query[`${role_type}.name`] = userData.name;
       const user = await service.user.findOne(query);
-      ctx.assert(!user, '创建失败，该用户名已存在', 400);
+      ctx.error(!user, 10003, '创建失败，该用户名已存在', 400);
       let targetData = {};
       targetData[role_type] = userData;
       targetData = Object.assign(targetData, {
@@ -201,8 +191,14 @@ module.exports = app => {
      * @return {promise} 用户详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
       const user = await service.user.findById(id);
       ctx.jsonBody = user;
     }
@@ -214,8 +210,16 @@ module.exports = app => {
      * @return {promise} 被修改用户信息
      */
     async update() {
-      const { ctx, service, updateRule } = this;
-      const { id, enable, inviter } = await ctx.verify(
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
+      const {
+        id,
+        enable,
+        inviter,
+      } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
@@ -225,11 +229,10 @@ module.exports = app => {
       const updateData = {};
       if (enable) updateData.enable = enable;
       if (inviter) updateData.inviter = inviter;
-      await service.user.update(
-        {
-          _id: id,
-        },
-        updateData
+      await service.user.update({
+        _id: id,
+      },
+      updateData
       );
 
       ctx.jsonBody = Object.assign(user, updateData);

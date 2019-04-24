@@ -30,22 +30,48 @@ module.exports = app => {
     }
 
     /**
+     * logger
+     *
+     * @readonly
+     * @memberof AuthController
+     */
+    get logger() {
+      const handler = {
+        get(target, attrName) {
+          if (attrName in target) {
+            return target[attrName].bind(target, '[AuthController]');
+          }
+        },
+      };
+      return new Proxy(this.ctx.logger, handler);
+    }
+
+    /**
      * login
      *
      * @memberof AuthController
      * @return {Object} user & token
      */
     async login() {
-      const { ctx, loginRule } = this;
+      const {
+        ctx,
+        loginRule,
+      } = this;
 
-      const { code } = await ctx.verify(loginRule, ctx.request.body);
-      const { openid, session_key, unionid } = await this.code2Session(code);
-      const user = await ctx.service.user.findOne({ unionid });
+      const {
+        code,
+      } = await ctx.verify(loginRule, ctx.request.body);
+      const {
+        openid,
+        session_key,
+      } = await this.code2Session(code);
+      const user = await ctx.service.user.findOne({
+        openid,
+      });
       let isRegistered = false;
       const sessionData = {
         openid,
         session_key,
-        unionid,
         isRegistered,
       };
       if (user) {
@@ -74,8 +100,12 @@ module.exports = app => {
      * @return {object} 返回登出结果
      */
     async logout() {
-      const { ctx } = this;
-      const { access_token: token } = ctx.header;
+      const {
+        ctx,
+      } = this;
+      const {
+        access_token: token,
+      } = ctx.header;
 
       const ret = await app.redis.del(`${app.config.auth.prefix}:${token}`);
       ctx.assert(ret === 1, '退出登录失败', 500);
@@ -89,12 +119,16 @@ module.exports = app => {
      * @return {promise} session data
      * @memberof AuthController
      */
-    code2Session(code) {
-      const { ctx } = this;
-      const config = ctx.config.wechat;
+    async code2Session(code) {
+      const {
+        ctx,
+      } = this;
+      const config = ctx.app.config.wechat;
       ctx.assert(typeof code === 'string', 'code需为字符串', 400);
 
-      return ctx.curl(`${config.openid_url}`, {
+      const {
+        data,
+      } = await ctx.curl('https://api.weixin.qq.com/sns/jscode2session', {
         method: 'GET',
         data: {
           appid: config.appid,
@@ -102,8 +136,17 @@ module.exports = app => {
           js_code: code,
           grant_type: config.grant_type,
         },
-        dataType: 'json', // 以JSON格式处理返回的响应body
+        dataType: 'json',
       });
+      const {
+        errcode,
+        errmsg,
+      } = data;
+      if (errcode) {
+        this.logger.error(`[code2Session] - code: ${errcode}, msg: ${errmsg}`);
+        ctx.error(11005, 'wechat code错误');
+      }
+      return data;
     }
   }
   return AuthController;

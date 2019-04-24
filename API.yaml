@@ -1,700 +1,1238 @@
+---
 swagger: "2.0"
 info:
-  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
-  version: "1.0.0"
-  title: "Swagger Petstore"
-  termsOfService: "http://swagger.io/terms/"
+  version: "1.0"
+  description: |
+    ### session
+    想鉴你API使用access_token作为登录凭证，小程序、PC、APP均有效。
+
+    ## response
+    ### 返回正常数据
+    以下API仅仅定义data内部的内容，所有API返回格式如下:
+    ```
+    {
+      code: 0,
+      msg: 'success',
+      data: {
+        embed: Object, # 附加数据,用法参考"embed"
+        meta: {
+          offset: Integer,  #起始偏移量数,默认为：0
+          limit:  Integer,  #获取的数据条数，默认为：10
+          sort:   String    #排序方式，默认为：-created_at，即：按创建时间倒叙
+        },  # 与请求资源无关的数据，例如：分页以及access_token等
+        data: Object   # 请求的资源
+      }
+    }
+    ```
+    ### 返回错误数据
+    ```
+    {
+      code: Number,    #错误码
+      msg: String, #错误的详情
+      errors: Array, #开发阶段才存在，展示错误的堆栈信息
+    }
+    ```
+    ## embed
+    部分批量获取接口需要对某些字段进行展开，如user_id展开为user, 该类接口由“embed”标签标注。
+
+    Example:
+    ```
+    GET api/orders?sort=-created_at&limit=10&offset=0&embed=user
+    {
+      embed: {
+        user: {
+          name: xxxx,
+          age: xxxx
+        } #embed user数据
+      },
+      data: [
+        {
+          _id: xxxx,
+          commodity: xxxx,
+          total_price: xxxx
+        }
+      ],
+      meta: {
+        sotrt: '-created_at',#排序方式
+        limit: 10, #请求数
+        offset: 0, #偏移
+        count: 20, #总数量
+      }
+    }
+    ```
+   ### http 状态码
+    - 200-500: http status
+        | 状态码  | 含义          | 说明             |
+    | ---- | ----------- | ---------------- |
+    | 200  | success     | 请求成功             |
+    | 204  | no content  | 请求成功，但是没有返回内容    |
+    | 304  | redirect    | 重定向              |
+    | 400  | bad request | 参数错误，msg中有错误字段提示 |
+    | 403  | forbidden   | 没有登录或者没有管理员权限 |
+    | 404  | not found   | 接口不存在            |
+    | 500  | error       | 服务器错误            |
+
+   ### error code 错误码
+    - 10000 - 10999: Server服务器内部错误
+    - 11000 - 11999: 数据库相关错误
+    - 12000 - 12999: Auth 相关错误
+    - 13000 - 13999: Banner 相关错误
+    - 14000 - 14999: Commodity category 相关错误
+    - 15000 - 15999: Commodity 相关错误
+    - 16000 - 16999: File 相关错误
+    - 17000 - 17999: Card 相关错误
+    - 18000 - 18999: Printer 相关错误
+    - 19000 - 19999: Card category 相关错误
+    - 20000 - 20999: Order 相关错误
+    - 21000 - 21999: Trade 相关错误
+    - 22000 - 22999: Tencent API 相关错误
+    - 23000 - 23999: miniProgram API 相关错误
+
+    | 错误码  | 含义          | 说明             |
+    | 10001 | server error          | 服务器内部错误    |
+    | 10002 | mongodb error          | mongodb错误    |
+    | 10003 | redis error          | redis错误    |
+    | 11001 | auth error          | Session已失效, 请重新登录      |
+    | 11002 | auth error          | 用户名或密码错误               |
+    | 11003 | user error          | 用户已存在                    |
+    | 11004 | user error          | 用户不存在                    |
+    | 11005 | user error          | wechat code失效或重复           |
+    | 12001 | banner error          | 视频封面非图片类型文件        |
+    | 12002 | banner error          | 非视频类型文件               |
+    | 12003 | banner error          | banner不存在                |
+    | 13000 | commodity attr error| 商品属性不存在                 |
+    | 13001 | commodity attr error| 商品属性已存在                 |
+    | 14000 | commodity category error | 商品分类不存在            |
+    | 14001 | commodity category error | 商品分类名已存在          |
+    | 14002 | commodity category error | 封面非图片类型文件        |
+    | 14003 | commodity category error | 商品分类中存在关联商品    |
+    | 15000 | commodity error     | 商品不存在                    |
+    | 15001 | commodity error     | 商品图片数量需在1~5张范围内     |
+    | 15002 | commodity error     | 商品图片重复/丢失或包含非图片类型文件 |
+    | 15003 | commodity error     | 参数中包含不存在的商品          |
+    | 16000 | file error          | 文件丢失                      |
+    | 16001 | file error          | 文件类型错误                   |
+    | 16002 | file error          | 文件大小超出限制               |
+    | 16003 | file error          | 非图片类型文件，不存在缩略图    |
+    | 16004 | file error          | 视频上传失败                  |
+    | 17001 | card error          | 贺卡不存在                    |
+    | 17002 | card error          | 贺卡已经被编辑过，不能再次编辑   |
+    | 17003 | card error          | 录音文件非音频类型              |
+    | 17004 | card error          | 贺卡照片数量需在1~5张范围内       |
+    | 17005 | card error          | 贺卡照片重复/丢失或包含非图片类型文件  |
+    | 17006 | card error          | 录像文件非视频类型              |
+    | 17007 | card error          | 录像封面非图片类型              |
+    | 17008 | card error          | 贺卡背景非图片类型              |
+    | 17009 | card error          | 创建贺卡失败，剩余数量小于1      |
+    | 17010 | card error          | 照片非图片类型文件              |
+    | 17011 | card error          | 贺卡用户信息非JSON格式          |
+    | 17012 | card error          | 贺卡用户信息不存在头像或昵称     |
+    | 17013 | card error          | 未完成支付，无法批量生成贺卡     |
+    | 17014 | card error          | 该商品类型无法批量生成贺卡       |
+    | 18001 | printer error       | printer权限认证相关错误         |
+    | 19001 | card category error       | 贺卡背景图片重复/丢失或包含非图片类型文件 |
+    | 19002 | card category error       | 贺卡背景音乐重复/丢失或包含非音频类型文件 |
+    | 19003 | card category error       | 贺卡分类已经存在 |
+    | 19004 | card category error       | 贺卡分类中存在关联贺卡 |
+    | 20001 | order error       | 订单不存在 |
+    | 21001 | trade error       | openid获取失败 |
+    | 22001 | tencent api error       | 腾讯API认证失败 |
+    | 23001 | miniProgram api error       | 小程序token获取失败 |
+
+
+  title: "Tracing API"
+  termsOfService: "http://119.28.66.197:7001/"
   contact:
-    email: "apiteam@swagger.io"
-  license:
-    name: "Apache 2.0"
-    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
-host: "petstore.swagger.io"
-basePath: "/v2"
-tags:
-  - name: "pet"
-    description: "Everything about your Pets"
-    externalDocs:
-      description: "Find out more"
-      url: "http://swagger.io"
-  - name: "store"
-    description: "Access to Petstore orders"
-  - name: "user"
-    description: "Operations about user"
-    externalDocs:
-      description: "Find out more about our store"
-      url: "http://swagger.io"
+    email: "mahao-0321@hotmail.com"
+host: "119.28.66.197:7001"
+basePath: "/api"
 schemes:
-  - "https"
-  - "http"
+  - http
+produces:
+  - application/json
+consumes:
+  - application/json
+tags:
+  - name: user
+  - name: pagination
+  - name: admin
+  - name: file
+  - name: auth
+  - name: commodity
+  - name: embed
+  - name: card
+  - name: blessing
+  - name: card_category
+  - name: guest
+
 paths:
-  /pet:
+
+  /auth/login:
     post:
+      description: 用户登录
       tags:
-        - "pet"
-      summary: "Add a new pet to the store"
-      description: ""
-      operationId: "addPet"
-      consumes:
-        - "application/json"
-        - "application/xml"
-      produces:
-        - "application/xml"
-        - "application/json"
+        - auth
       parameters:
-        - in: "body"
-          name: "body"
-          description: "Pet object that needs to be added to the store"
-          required: true
+        - in: body
+          name: user
           schema:
-            $ref: "#/definitions/Pet"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-    put:
-      tags:
-        - "pet"
-      summary: "Update an existing pet"
-      description: ""
-      operationId: "updatePet"
-      consumes:
-        - "application/json"
-        - "application/xml"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Pet object that needs to be added to the store"
-          required: true
-          schema:
-            $ref: "#/definitions/Pet"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-        405:
-          description: "Validation exception"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-  /pet/findByStatus:
-    get:
-      tags:
-        - "pet"
-      summary: "Finds Pets by status"
-      description: "Multiple status values can be provided with comma separated strings"
-      operationId: "findPetsByStatus"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "status"
-          in: "query"
-          description: "Status values that need to be considered for filter"
-          required: true
-          type: "array"
-          items:
-            type: "string"
-            enum:
-              - "available"
-              - "pending"
-              - "sold"
-            default: "available"
-          collectionFormat: "multi"
+            type: object
+            required:
+              - unionId
+            properties:
+              unionId:
+                type: string
       responses:
         200:
-          description: "successful operation"
+          description: Success
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid status value"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-  /pet/findByTags:
+            type: object
+            properties:
+              user:
+                $ref: "#/definitions/User"
+              token:
+                description: access_token
+
+  /auth/logout:
     get:
+      description: 退出登录
       tags:
-        - "pet"
-      summary: "Finds Pets by tags"
-      description: "Muliple tags can be provided with comma separated strings. Use         tag1, tag2, tag3 for testing."
-      operationId: "findPetsByTags"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "tags"
-          in: "query"
-          description: "Tags to filter by"
-          required: true
-          type: "array"
-          items:
-            type: "string"
-          collectionFormat: "multi"
+        - auth
       responses:
         200:
-          description: "successful operation"
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid tag value"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-      deprecated: true
-  /pet/{petId}:
-    get:
-      tags:
-        - "pet"
-      summary: "Find pet by ID"
-      description: "Returns a single pet"
-      operationId: "getPetById"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "petId"
-          in: "path"
-          description: "ID of pet to return"
-          required: true
-          type: "integer"
-          format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Pet"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-        - api_key: []
+          description: Success
+
+  /files:
     post:
+      summary: 上传文件
       tags:
-        - "pet"
-      summary: "Updates a pet in the store with form data"
-      description: ""
-      operationId: "updatePetWithForm"
-      consumes:
-        - "application/x-www-form-urlencoded"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "petId"
-          in: "path"
-          description: "ID of pet that needs to be updated"
-          required: true
-          type: "integer"
-          format: "int64"
-        - name: "name"
-          in: "formData"
-          description: "Updated name of the pet"
-          required: false
-          type: "string"
-        - name: "status"
-          in: "formData"
-          description: "Updated status of the pet"
-          required: false
-          type: "string"
-      responses:
-        405:
-          description: "Invalid input"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-    delete:
-      tags:
-        - "pet"
-      summary: "Deletes a pet"
-      description: ""
-      operationId: "deletePet"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "api_key"
-          in: "header"
-          required: false
-          type: "string"
-        - name: "petId"
-          in: "path"
-          description: "Pet id to delete"
-          required: true
-          type: "integer"
-          format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Pet not found"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-  /pet/{petId}/uploadImage:
-    post:
-      tags:
-        - "pet"
-      summary: "uploads an image"
-      description: ""
-      operationId: "uploadFile"
+        - file
+      description: 文件上传
       consumes:
         - "multipart/form-data"
-      produces:
-        - "application/json"
       parameters:
-        - name: "petId"
-          in: "path"
-          description: "ID of pet to update"
+        - in: formData
+          description: 上传的文件
+          name: files
           required: true
-          type: "integer"
-          format: "int64"
-        - name: "additionalMetadata"
-          in: "formData"
-          description: "Additional data to pass to server"
-          required: false
-          type: "string"
-        - name: "file"
-          in: "formData"
-          description: "file to upload"
-          required: false
-          type: "file"
+          type: 'file'
       responses:
         200:
-          description: "successful operation"
+          description: Success
           schema:
-            $ref: "#/definitions/ApiResponse"
-      security:
-        - petstore_auth:
-            - "write:pets"
-            - "read:pets"
-  /store/inventory:
+            type: array
+            items:
+              $ref: "#/definitions/File"
+
+  /files/{id}:
     get:
+      summary: 获取文件内容
       tags:
-        - "store"
-      summary: "Returns pet inventories by status"
-      description: "Returns a map of status codes to quantities"
-      operationId: "getInventory"
-      produces:
-        - "application/json"
-      parameters: []
+        - file
+      description: 获取文件内容
+      parameters:
+        - name: id
+          in: path
+          description: File ID
+          type: string
+          format: uuid
+          required: true
       responses:
         200:
-          description: "successful operation"
+          description: 文件内容
+
+  /commodities:
+    get:
+      summary: 商品列表
+      tags:
+        - commodity
+        - pagination
+        - embed
+      description: 根据查询参数，返回商品列表
+      parameters:
+        - name: name
+          in: query
+          description: 商品名称
+          type: string
+        - name: category_id
+          in: query
+          description: 所属分类
+          type: string
+          format: uuid
+        - name: status
+          in: query
+          description: 上/下架状态，取值于Commodity_Status
+          type: string
+        - name: recommended
+          in: query
+          description: 是否推荐
+          type: boolean
+      responses:
+        200:
+          description: 商品列表
           schema:
-            type: "object"
-            additionalProperties:
-              type: "integer"
-              format: "int32"
-      security:
-        - api_key: []
-  /store/order:
+            type: object
+            properties:
+              count:
+                type: integer
+              start:
+                type: integer
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/Commodity'
+              categories:
+                type: array
+                items:
+                  $ref: '#/definitions/CommodityCategory'
     post:
       tags:
-        - "store"
-      summary: "Place an order for a pet"
-      description: ""
-      operationId: "placeOrder"
-      produces:
-        - "application/xml"
-        - "application/json"
+        - commodity
+        - admin
+      summary: 添加商品
+      description: 添加新的商品
       parameters:
-        - in: "body"
-          name: "body"
-          description: "order placed for purchasing the pet"
+        - name: commodity
+          in: body
           required: true
           schema:
-            $ref: "#/definitions/Order"
+            type: object
+            required:
+              - name
+              - category_id
+              - description
+              - price
+              - picture_ids
+            properties:
+              name:
+                type: string
+                description: 商品名称
+              category_id:
+                type: string
+                format: uuid
+                description: 所属类别id
+              description:
+                type: string
+                description: 商品描述
+              price:
+                type: number
+                description: 商品价格
+              act_price:
+                type: number
+                description: 活动价格
+              recommended:
+                type: boolean
+                description: 是否推荐
+              attr:
+                type: array
+                description: 商品属性
+                items:
+                  type: object
+                  properties:
+                    attr_name:
+                      type: string
+                    attr_value:
+                      type: array
+                      items:
+                        type: string
+              picture_ids:
+                type: array
+                description: 商品图片
+                items:
+                  type: string
+                  format: uuid
       responses:
         200:
-          description: "successful operation"
+          description: Success
           schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid Order"
-  /store/order/{orderId}:
-    get:
-      tags:
-        - "store"
-      summary: "Find purchase order by ID"
-      description: "For valid response try integer IDs with value >= 1 and <= 10.         Other values will generated exceptions"
-      operationId: "getOrderById"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "orderId"
-          in: "path"
-          description: "ID of pet that needs to be fetched"
-          required: true
-          type: "integer"
-          maximum: 10.0
-          minimum: 1.0
-          format: "int64"
-      responses:
-        200:
-          description: "successful operation"
-          schema:
-            $ref: "#/definitions/Order"
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
+            $ref: '#/definitions/Commodity'
     delete:
       tags:
-        - "store"
-      summary: "Delete purchase order by ID"
-      description: "For valid response try integer IDs with positive integer value.         Negative or non-integer values will generate API errors"
-      operationId: "deleteOrder"
-      produces:
-        - "application/xml"
-        - "application/json"
+        - commodity
+        - admin
+      summary: 删除商品
+      description: 批量删除商品
       parameters:
-        - name: "orderId"
-          in: "path"
-          description: "ID of the order that needs to be deleted"
+        - name: ids
+          in: query
           required: true
-          type: "integer"
-          minimum: 1.0
-          format: "int64"
-      responses:
-        400:
-          description: "Invalid ID supplied"
-        404:
-          description: "Order not found"
-  /user:
-    post:
-      tags:
-        - "user"
-      summary: "Create user"
-      description: "This can only be done by the logged in user."
-      operationId: "createUser"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "Created user object"
-          required: true
-          schema:
-            $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithArray:
-    post:
-      tags:
-        - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithArrayInput"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "List of user object"
-          required: true
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/createWithList:
-    post:
-      tags:
-        - "user"
-      summary: "Creates list of users with given input array"
-      description: ""
-      operationId: "createUsersWithListInput"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "body"
-          description: "List of user object"
-          required: true
-          schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/User"
-      responses:
-        default:
-          description: "successful operation"
-  /user/login:
-    get:
-      tags:
-        - "user"
-      summary: "Logs user into the system"
-      description: ""
-      operationId: "loginUser"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters:
-        - name: "username"
-          in: "query"
-          description: "The user name for login"
-          required: true
-          type: "string"
-        - name: "password"
-          in: "query"
-          description: "The password for login in clear text"
-          required: true
-          type: "string"
+          description: 删除的商品ids(eg:ids='1,2,3')
+          type: string
       responses:
         200:
-          description: "successful operation"
+          description: Success
           schema:
-            type: "string"
-          headers:
-            X-Rate-Limit:
-              type: "integer"
-              format: "int32"
-              description: "calls per hour allowed by the user"
-            X-Expires-After:
-              type: "string"
-              format: "date-time"
-              description: "date in UTC when token expires"
-        400:
-          description: "Invalid username/password supplied"
-  /user/logout:
-    get:
+            type: array
+            items:
+             $ref: '#/definitions/Commodity'
+    patch:
       tags:
-        - "user"
-      summary: "Logs out current logged in user session"
-      description: ""
-      operationId: "logoutUser"
-      produces:
-        - "application/xml"
-        - "application/json"
-      parameters: []
-      responses:
-        default:
-          description: "successful operation"
-  /user/{username}:
-    get:
-      tags:
-        - "user"
-      summary: "Get user by user name"
-      description: ""
-      operationId: "getUserByName"
-      produces:
-        - "application/xml"
-        - "application/json"
+        - commodity
+        - admin
+      summary: 批量修改商品(推荐/上架)
+      description: 根据ids批量修改商品
       parameters:
-        - name: "username"
-          in: "path"
-          description: "The name that needs to be fetched. Use user1 for testing. "
+        - name: ids
+          in: query
+          description: 商品ids(eg:ids=uuid,uuid,uuid)
+          type: string
+          format: uuid
           required: true
-          type: "string"
+        - name: attributes
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                description: 上/下架状态 -['ON','OFF']
+              recommended:
+                type: boolean
+                description: 推荐 -[true, false]
+      responses:
+          200:
+            description: Success
+            schema:
+              type: array
+              items:
+                $ref: '#/definitions/Commodity'
+
+  /commodities/{id}:
+    get:
+      tags:
+        - commodity
+      summary: 商品详情
+      description: 根据id查询商品详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 商品id
+          type: string
+          format: uuid
       responses:
         200:
-          description: "successful operation"
+          description: Success
           schema:
-            $ref: "#/definitions/User"
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-    put:
+            $ref: '#/definitions/Commodity'
+    patch:
+      summary: 修改商品
+      description: 根据id修改商品信息
       tags:
-        - "user"
-      summary: "Updated user"
-      description: "This can only be done by the logged in user."
-      operationId: "updateUser"
-      produces:
-        - "application/xml"
-        - "application/json"
+        - commodity
+        - admin
       parameters:
-        - name: "username"
-          in: "path"
-          description: "name that need to be updated"
+        - name: id
+          in: path
+          description: 商品id
+          type: string
+          format: uuid
           required: true
-          type: "string"
-        - in: "body"
-          name: "body"
-          description: "Updated user object"
+        - in: body
+          name: commodity
+          description: 修改商品信息
           required: true
           schema:
-            $ref: "#/definitions/User"
+            type: object
+            properties:
+              name:
+                type: string
+                description: 商品名称
+              category_id:
+                type: string
+                format: uuid
+                description: 所属类别id
+              description:
+                type: string
+                description: 商品描述
+              price:
+                type: number
+                description: 商品价格
+              act_price:
+                type: number
+                description: 活动价格
+              recommended:
+                type: boolean
+                description: 是否推荐
+              picture_ids:
+                type: array
+                description: 商品图片
+                items:
+                  type: string
+                  format: uuid
       responses:
-        400:
-          description: "Invalid user supplied"
-        404:
-          description: "User not found"
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/Commodity"
+  /commodity_categories:
+    get:
+      tags:
+        - commodity_category
+        - pagination
+      summary: 商品分类列表
+      description: 获取商品分类列表
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              start:
+                type: integer
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/CommodityCategory'
+    post:
+      tags:
+        - commodity_category
+        - admin
+      summary: 添加商品分类
+      description: 添加商品分类
+      parameters:
+        - name: commodity_category
+          in: body
+          required: true
+          schema:
+            required:
+              - name
+              - cover_id
+            properties:
+              name:
+                type: string
+                description: 商品类名
+              cover_id:
+                type: string
+                format: uuid
+                description: 类型封面图id
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CommodityCategory'
     delete:
       tags:
-        - "user"
-      summary: "Delete user"
-      description: "This can only be done by the logged in user."
-      operationId: "deleteUser"
-      produces:
-        - "application/xml"
-        - "application/json"
+        - commodity_category
+        - admin
+      description: 根据ids删除商品分类
+      summary: 批量删除商品分类
       parameters:
-        - name: "username"
-          in: "path"
-          description: "The name that needs to be deleted"
+        - name: ids
+          in: query
           required: true
-          type: "string"
+          description: 删除的分类id(eg:ids=uuid,uuid,uuid)
+          type: string
       responses:
-        400:
-          description: "Invalid username supplied"
-        404:
-          description: "User not found"
-securityDefinitions:
-  petstore_auth:
-    type: "oauth2"
-    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
-    flow: "implicit"
-    scopes:
-      write:pets: "modify pets in your account"
-      read:pets: "read your pets"
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "header"
+        200:
+          description: Success
+          schema:
+            type: array
+            items:
+             $ref: '#/definitions/CommodityCategory'
+
+  /commodity_categories/{id}:
+    patch:
+      tags:
+       - commodity_category
+       - admin
+      description: 修改商品分类
+      summary: 修改商品分类
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: 商品分类id
+          format: uuid
+        - name: commodity_category
+          in: body
+          required: true
+          schema:
+            properties:
+              name:
+                type: string
+                description: 商品分类名称
+              cover_id:
+                type: string
+                format: uuid
+                description: 商品分类封面id
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CommodityCategory'
+
+  /banners:
+    get:
+      tags:
+        - banner
+      summary: 获取banner列表
+      description: 获取banner列表
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/Banner'
+    post:
+      tags:
+        - banner
+        - admin
+      summary: 添加banner
+      description: 添加banner
+      parameters:
+        - name: picture
+          in: body
+          required: true
+          schema:
+            required:
+              - cover_id
+              - video_url
+            properties:
+              cover_id:
+                type: string
+                format: uuid
+                description: banner图id
+              video_url:
+                type: string
+                format: uuid
+                description: banner video id
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Banner'
+
+  /banners/{id}:
+    delete:
+      tags:
+        - banner
+        - admin
+      description: 根据id删除banner
+      summary: 删除banner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 删除的banner id
+          format: uuid
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Banner'
+
+    patch:
+      tags:
+       - banner
+       - admin
+      description: 修改banner
+      summary: 修改banner
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: banner id
+          format: uuid
+        - name: picture
+          in: body
+          required: true
+          description: banner封面图
+          schema:
+            type: object
+            required:
+              - cover_id
+              - video_url
+            properties:
+              cover_id:
+                type: string
+                format: uuid
+                description: banner图id
+              video_url:
+                type: string
+                format: uuid
+                description: banner video id
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Banner'
+
+  /users:
+    get:
+      summary: 用户列表
+      tags:
+        - user
+        - admin
+        - pagination
+      description: 根据查询参数，返回用户列表
+      parameters:
+        - name: enable
+          in: query
+          description: 用户禁用状态
+          type: string
+        - name: role_type
+          in: query
+          description: 用户类型
+          type: string
+      responses:
+        200:
+          description: 用户列表
+          schema:
+            type: object
+            properties:
+              embed:
+                type: object
+              meta:
+                type: object
+                properties:
+                  offset:
+                    type: integer
+                  limit:
+                    type: integer
+                  count:
+                    type: string
+                  sotr:
+                    type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/User'
+    post:
+      tags:
+        - user
+      summary: 添加用户
+      description: 添加新的用户
+      parameters:
+        - name: business或者salesman或者courier或者factroy或者platform或者unauthed
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/User'
+      responses:
+        200:
+          description: Success
+          properties:
+            role_type: string
+          schema:
+            $ref: '#/definitions/User'
+
+  /cards/{id}:
+    get:
+      tags:
+        - card
+      summary: 贺卡详情
+      description: 根据id查询贺卡详情
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: 贺卡id
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Card'
+    patch:
+      summary: 修改贺卡
+      description: 根据id修改贺卡信息
+      tags:
+        - card
+        - guest
+      parameters:
+        - name: id
+          in: path
+          description: 贺卡id
+          type: string
+          format: uuid
+          required: true
+        - in: body
+          name: card
+          description: 修改贺卡信息
+          required: true
+          schema:
+            type: object
+            properties:
+              voice_id:
+                type: string
+                format: uuid
+                description: 录音文件id
+              video_url:
+                type: string
+                format: uuid
+                description: 录像文件id
+              cover_id:
+                type: string
+                description: 录像封面id
+              status:
+                type: string
+                description: 贺卡状态，取值于Card_Status
+              union_id:
+                type: string
+                format: uuid
+                description: 编辑者唯一识别号
+              background_id:
+                type: string
+                format: uuid
+                description: 贺卡背景id
+              picture_id:
+                type: string
+                format: uuid
+                description: 照片id
+              blessing:
+                type: string
+                description: 贺卡祝福语
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: "#/definitions/Card"
+    delete:
+      tags:
+        - card
+        - admin
+      summary: 删除贺卡
+      description: 删除指定贺卡
+      parameters:
+        - name: id
+          in: path
+          description: 贺卡id
+          type: string
+          format: uuid
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Card'
+
+  /card_categories:
+    get:
+      tags:
+        - card_category
+        - pagination
+      summary: 贺卡分类列表
+      description: 获取贺卡分类列表
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              count:
+                type: integer
+              start:
+                type: integer
+              items:
+                type: array
+                items:
+                  $ref: '#/definitions/CardCategory'
+    post:
+      tags:
+        - card_category
+        - admin
+      summary: 添加贺卡分类
+      description: 添加贺卡分类
+      parameters:
+        - name: card_category
+          in: body
+          required: true
+          schema:
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: 商品类名
+              music_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                description: 背景音乐ids
+              background_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                description: 背景图
+              blessing:
+                type: array
+                items:
+                  type: string
+                description: 祝福语
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CardCategory'
+
+  /card_categories/{id}:
+    patch:
+      tags:
+       - card_category
+       - admin
+      description: 修改贺卡分类
+      summary: 修改贺卡分类
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: 贺卡分类id
+          format: uuid
+        - name: card_category
+          in: body
+          required: true
+          schema:
+            properties:
+              name:
+                type: string
+                description: 商品类名
+              music_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                description: 背景音乐ids
+              background_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                description: 背景图
+              blessing:
+                type: array
+                items:
+                  type: string
+                description: 祝福语
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CardCategory'
+
+    delete:
+      tags:
+        - card_category
+        - admin
+      description: 根据id删除贺卡分类
+      summary: 删除指定贺卡分类
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+          description: 贺卡分类id
+          format: uuid
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CardCategory'
+
 definitions:
-  Order:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      petId:
-        type: "integer"
-        format: "int64"
-      quantity:
-        type: "integer"
-        format: "int32"
-      shipDate:
-        type: "string"
-        format: "date-time"
-      status:
-        type: "string"
-        description: "Order Status"
-        enum:
-          - "placed"
-          - "approved"
-          - "delivered"
-      complete:
-        type: "boolean"
-        default: false
-    xml:
-      name: "Order"
-  Category:
-    type: "object"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      name:
-        type: "string"
-    xml:
-      name: "Category"
+
+  Commodity_Status:
+    type: string
+    description: 上/下架状态
+    enums: [
+      'ON',
+      'OFF',
+    ]
+
+  Card_Status:
+    type: string
+    description: 空/非空状态
+    enum: [
+      'BLANK',
+      'NONBLANK',
+    ]
+
   User:
-    type: "object"
     properties:
-      id:
-        type: "integer"
-        format: "int64"
-      username:
-        type: "string"
-      firstName:
-        type: "string"
-      lastName:
-        type: "string"
-      email:
-        type: "string"
-      password:
-        type: "string"
-      phone:
-        type: "string"
-      userStatus:
-        type: "integer"
-        format: "int32"
-        description: "User Status"
-    xml:
-      name: "User"
-  Tag:
-    type: "object"
+      role_id:
+        type: integer
+      role_type:
+        type: string
+        enum: [
+          'platform',
+          'factory',
+          'business',
+          'courier',
+          'salesman',
+          'unauthed',
+        ]
+      platform:
+        properties:
+          name:
+            type: string
+          email:
+            type: string
+          phone:
+            type: string
+      factory:
+        properties:
+          name:
+            type: string
+          public_account:
+            type: string
+          email:
+            type: string
+          contact:
+            type: string
+          phone:
+            type: string
+          license:
+            type: string
+            format: uuid
+          receiving_info:
+            properties:
+              name:
+                type: string
+              phone:
+                type: string
+              address:
+                type: string
+      business:
+        properties:
+          name:
+            type: string
+          address:
+            type: string
+          phone:
+            type: string
+          contact:
+            type: string
+          banner:
+            type: array
+            items:
+              type: string
+              format: uuid
+      courier:
+        properties:
+          company:
+            type: string
+          name:
+            type: string
+          phone:
+            type: string
+          employee_card:
+            type: string
+            format: uuid
+      salesman:
+        properties:
+          name:
+            type: string
+          phone:
+            type: string
+          address:
+            type: string
+          id_card:
+            type: string
+            format: uuid
+      unionId:
+        type: string
+      enable:
+        type: boolean
+      inviter:
+        type: string
+        format: uuid
+
+  File:
     properties:
-      id:
-        type: "integer"
-        format: "int64"
+      _id:
+        type: string
+        format: uuid
       name:
-        type: "string"
-    xml:
-      name: "Tag"
-  Pet:
-    type: "object"
-    required:
-      - "name"
-      - "photoUrls"
-    properties:
-      id:
-        type: "integer"
-        format: "int64"
-      category:
-        $ref: "#/definitions/Category"
-      name:
-        type: "string"
-        example: "doggie"
-      photoUrls:
-        type: "array"
-        xml:
-          name: "photoUrl"
-          wrapped: true
-        items:
-          type: "string"
-      tags:
-        type: "array"
-        xml:
-          name: "tag"
-          wrapped: true
-        items:
-          $ref: "#/definitions/Tag"
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-          - "available"
-          - "pending"
-          - "sold"
-    xml:
-      name: "Pet"
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
+        type: string
+        description: 文件名
       type:
-        type: "string"
-      message:
-        type: "string"
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+        type: string
+        description: 文件类型
+      size:
+        type: string
+        description: 文件大小
+
+  Commodity:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: 商品id
+      description:
+        type: string
+        description: 商品描述
+      price:
+        type: number
+        description: 商品价格
+      act_price:
+        type: number
+        description: 活动价格
+      total:
+        type: number
+        default: 0
+        description: 商品总数
+      sales:
+        type: number
+        default: 0
+        description: 已售出数量
+      recommended:
+        type: boolean
+        default: false
+        description: 是否推荐
+      status:
+        $ref: "#/definitions/Commodity_Status"
+      attr_ids:
+        type: array
+        description: 属性id
+        items:
+          type: string
+          format: uuid
+      category_id:
+        type: string
+        format: uuid
+        description: 商品所属类型id
+      picture_ids:
+        type: array
+        description: 商品图片id
+        items:
+          type: string
+          format: uuid
+
+  CommodityAttr:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+        description: 属性描述
+      values:
+        type: array
+        description: 属性值
+        items:
+          type: string
+      commodity_id:
+        type: string
+        format: uuid
+        description: 商品id
+
+  CommodityCategory:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      name:
+        type: string
+        description: 类型名
+      cover_id:
+        type: string
+        format: uuid
+        description: 产品类型封面id
+
+  Banner:
+    properties:
+      id:
+        type: string
+        format: uuid
+      cover_id:
+        type: string
+        format: uuid
+      video_url:
+        type: string
+        format: uuid
+
+  CardCategory:
+    properties:
+      id:
+        type: string
+        format: uuid
+      no:
+        type: number
+        description: 贺卡分类序号
+      name:
+        type: string
+        description: 分类名
+      background_ids:
+        type: array
+        description: 背景图
+        items:
+          type: string
+          format: uuid
+      music_ids:
+        type: array
+        description: 背景音乐
+        items:
+          type: string
+          format: uuid
+      blessings:
+        type: array
+        description: 祝福语
+        items:
+          type: string
+
+  Card:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: 贺卡id
+      no:
+        type: number
+        description: 贺卡序号
+      voice_id:
+        type: string
+        format: uuid
+        description: 录音文件id
+      video_url:
+        type: string
+        format: uuid
+        description: 录像文件id
+      cover_id:
+        type: string
+        format: uuid
+        description: 录像封面文件id
+      blessing:
+        type: string
+        description: 祝福语
+      background_id:
+        type: string
+        format: uuid
+        description: 背景图id
+      click:
+        type: number
+        default: 0
+        description: 点击量
+      status:
+        $ref: "#/definitions/Card_Status"
+      picture_id:
+        type: string
+        format: uuid
+        description: 照片id
+      union_id:
+        type: string
+        format: uuid
+        description: 贺卡编辑者id
+      user_id:
+        type: string
+        format: uuid
+        description: 商家id

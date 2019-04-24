@@ -15,20 +15,23 @@ module.exports = () =>
       this.app.logger.error('');
       if (e.name === 'AJV_ERROR') {
         this.body = {
-          message: e.jse_shortmsg,
+          code: 400,
+          msg: e.jse_shortmsg,
           errors: this.app.isProd ? undefined : e.jse_info,
         };
         this.status = 400;
       } else if (e instanceof VError) {
         this.body = {
-          message: e.message,
+          code: e.code,
+          msg: e.message,
           errors: this.app.isProd ? undefined : e.stack,
         };
-        this.status = e.status || 500;
+        this.status = e.status || 200;
       } else {
-        // http error caused by ctx.assert
+        // http error caused by ctx.assert || assert
         this.body = {
-          message: '服务器内部错误',
+          code: 10001,
+          msg: e.message || '服务器内部错误',
           errors: this.app.isProd ? undefined : e.stack,
         };
         this.status = e.status || 500;

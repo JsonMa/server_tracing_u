@@ -1,3 +1,5 @@
+'use strict';
+
 const TOKEN = 'access_token';
 const SESSION_RULE = {
   properties: {
@@ -15,7 +17,9 @@ const SESSION_RULE = {
 
 /* istanbul ignore next */
 module.exports = option => function* (next) {
-  const token = this.headers[TOKEN] || this.cookies.get(TOKEN, { signed: false });
+  const token = this.headers[TOKEN] || this.cookies.get(TOKEN, {
+    signed: false,
+  });
   const ret = yield this.app.redis.get(`${option.prefix}:${token}`);
   if (!ret) {
     this.state.auth = Object.assign({}, this.state.auth);
@@ -30,7 +34,7 @@ module.exports = option => function* (next) {
   } catch (e) {
     yield this.app.redis.set(`${option.prefix}:${token}`, null);
     this.cookies.set(TOKEN, null);
-    this.error('Session已失效, 请重新登录', 10001, 401);
+    this.error(10001, 'Session已失效, 请重新登录', 401);
   }
 
   const user = yield this.app.model.User.findById(session.id);

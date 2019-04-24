@@ -25,11 +25,11 @@ module.exports = () => {
 
   // 微信支付
   exports.wechat = {
-    appid: 'wx557ba9a6f91397ec', // 小程序appid
+    appid: 'wx88168e0c2c6b3bf2', // 小程序appid
     mch_id: 1495285102, // 微信支付mchid
     trade_type: 'JSAPI',
     key: 'huayanxiaochengxu9090ERWEIMAHEKA', // 微信支付key
-    secret: '9805b899521e50f413bf66cdd0484133', //小程序的 app secret
+    secret: '28556546aac6d2fd0669a9fdb1c54f7f', //小程序的 app secret
     grant_type: 'authorization_code', // token换取openid所需的
     openid_url: 'https://api.weixin.qq.com/sns/jscode2session', // openid获取地址
     unifiedorder_url: 'https://api.mch.weixin.qq.com/pay/unifiedorder' // 统一下单接口地址
@@ -81,6 +81,10 @@ module.exports = () => {
   exports.notfound = {
     pageUrl: '/error'
   };
+
+  exports.logger = {
+    disableConsoleAfterReady: false,
+  }
 
   exports.host = 'https://buildupstep.cn';
 
