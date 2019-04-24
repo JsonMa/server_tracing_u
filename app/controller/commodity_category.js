@@ -17,8 +17,27 @@ module.exports = app => {
     get indexRule() {
       return {
         properties: {
-          ...this.ctx.helper.rule.pagination,
+          ...this.ctx.helper.pagination.rule,
         },
+        $async: true,
+        additionalProperties: false,
+      };
+    }
+
+    /**
+     * 参数规则-商品分类详情
+     *
+     * @readonly
+     * @memberof CommodityCategoryController
+     */
+    get showRule() {
+      return {
+        properties: {
+          id: {
+            $ref: 'schema.definition#/oid',
+          },
+        },
+        required: ['id'],
         $async: true,
         additionalProperties: false,
       };
@@ -34,16 +53,16 @@ module.exports = app => {
       return {
         properties: {
           name: {
-            type: 'string',
-            maxLength: 10,
-            minLength: 1,
+            $ref: 'schema.definition#/name',
           },
-          cover_id: this.ctx.helper.rule.uuid,
-          auto_charge: {
-            type: 'boolean',
+          cover: {
+            $ref: 'schema.definition#/oid',
+          },
+          description: {
+            type: 'string',
           },
         },
-        required: ['name', 'cover_id'],
+        required: ['name', 'cover'],
         $async: true,
         additionalProperties: false,
       };
@@ -58,35 +77,17 @@ module.exports = app => {
     get updateRule() {
       return {
         properties: {
-          id: this.ctx.helper.rule.uuid,
-          name: {
-            type: 'string',
-            maxLength: 10,
-            minLength: 1,
+          id: {
+            $ref: 'schema.definition#/oid',
           },
-          cover_id: this.ctx.helper.rule.uuid,
+          name: {
+            $ref: 'schema.definition#/name',
+          },
+          cover: {
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 参数规则-批量删除商品分类
-     *
-     * @readonly
-     * @memberof CommodityCategoryController
-     */
-    get batchDestroyRule() {
-      return {
-        properties: {
-          ids: {
-            type: 'array',
-            items: this.ctx.helper.rule.uuid,
-          },
-        },
-        required: ['ids'],
         $async: true,
         additionalProperties: false,
       };
@@ -104,20 +105,52 @@ module.exports = app => {
         service,
         indexRule,
       } = this;
-
       const {
-        sort,
-        start,
-        count,
-      } = await ctx.validate(indexRule);
-      const commodityCategories = await service.commodityCategory.fetch(start, count, sort);
+        generateSortParam,
+      } = ctx.helper.pagination;
+      const {
+        limit = 10,
+        offset = 0,
+        sort = '-created_time',
+      } = await ctx.verify(indexRule, ctx.request.query);
+      const commodityCategories = await service.commodityCategory.findMany(null, null, {
+        limit: parseInt(limit),
+        skip: parseInt(offset),
+        sort: generateSortParam(sort),
+      });
+      const count = await service.commodityCategory.count();
 
       ctx.jsonBody = {
-        count: commodityCategories.count,
-        start,
-        items: commodityCategories.rows,
+        data: commodityCategories,
+        meta: {
+          limit,
+          offset,
+          sort,
+          count,
+        },
       };
     }
+
+    /**
+     * 获取详情
+     *
+     * @memberof CommodityCategoryController
+     * @return {promise} 商品分类详情
+     */
+    async show() {
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const commodityCategory = await service.commodityCategory.findById(id);
+      ctx.error(commodityCategory, 14000, '商品分类不存在');
+      ctx.jsonBody = commodityCategory;
+    }
+
 
     /**
      * 创建商品分类
@@ -131,18 +164,20 @@ module.exports = app => {
         service,
         createRule,
       } = this;
-      ctx.adminPermission();
-      await ctx.validate(createRule);
+      await ctx.verify(createRule, ctx.request.body);
 
-      // 验证封面图是否存在并创建分类
       const {
-        cover_id: coverId,
+        cover,
         name,
       } = ctx.request.body;
-      const file = await service.file.getByIdOrThrow(coverId);
-      ctx.error(!!~file.type.indexOf('image/'), '封面非图片类型文件', 14002, 400); // eslint-disable-line
-      await service.commodityCategory.isExisted(name);
-      const commodityCategory = await app.model.CommodityCategory.create(ctx.request.body);
+      const file = await service.file.findById(cover);
+      ctx.error(file, 16000, '封面文件不存在');
+      ctx.error(file.type.includes('image/'), 14002, '封面非图片类型文件');
+      const category = await service.commodityCategory.findOne({
+        name,
+      });
+      ctx.error(!category, 14001, '该分类名已存在');
+      const commodityCategory = await service.commodityCategory.create(ctx.request.body);
 
       ctx.jsonBody = commodityCategory;
     }
@@ -159,22 +194,34 @@ module.exports = app => {
         service,
         updateRule,
       } = this;
-      ctx.adminPermission();
-      await ctx.validate(updateRule);
-
       const {
-        cover_id: coverId,
-      } = ctx.request.body;
+        cover,
+        name,
+        id,
+      } = await ctx.verify(updateRule, Object.assign(ctx.request.body, ctx.params));
 
-      /* istanbul ignore else */
-      if (coverId) {
-        const file = await service.file.getByIdOrThrow(coverId);
-        ctx.error(!!~file.type.indexOf('image/'), '封面非图片类型文件', 14002, 400); // eslint-disable-line
+      if (cover) {
+        const file = await service.file.findById(cover);
+        ctx.error(file, 16000, '封面文件不存在');
+        ctx.error(file.type.includes('image/'), 14002, '封面非图片类型文件');
       }
-      const commodityCategory = await service.commodityCategory.getByIdOrThrow(ctx.params.id);
+      if (name) {
+        const category = await service.commodityCategory.findOne({
+          name,
+        });
+        ctx.error(!category, 14001, '商品分类名已存在');
+      }
+      const commodityCategory = await service.commodityCategory.findById(id);
+      ctx.error(commodityCategory, 14000, '商品分类不存在');
       Object.assign(commodityCategory, ctx.request.body);
-      await commodityCategory.save();
-
+      const {
+        nModified,
+      } = await service.commodityCategory.update({
+        _id: id,
+      },
+      ctx.request.body
+      );
+      ctx.error(nModified === 1, 14004, '商品分类修改失败');
       ctx.jsonBody = commodityCategory;
     }
 
@@ -184,35 +231,27 @@ module.exports = app => {
      * @memberof CommodityCategoryController
      * @return {promise} 删除的商品分类
      */
-    async batchDestroy() {
+    async destory() {
       const {
         ctx,
         service,
-        batchDestroyRule,
+        showRule,
       } = this;
-      ctx.adminPermission();
-      await ctx.validate(batchDestroyRule, reqData => {
-        ctx.assert(typeof reqData === 'object', '参数需为对象');
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
-        // ids预处理为数组
-        const data = Object.assign({}, reqData);
-        const {
-          ids,
-        } = data;
-        data.ids = ids.split(',');
-        return data;
+      // 查询商品分类
+      const category = await service.commodityCategory.findById(id);
+      ctx.error(category, 14000, '商品分类不存在');
+
+      const {
+        nModified,
+      } = await service.commodityCategory.destroy({
+        _id: id,
       });
-
-      // 查询并删除商品分类
-      const ids = ctx.query.ids.split(',');
-      const commodityCategories = await service.commodityCategory.getByIds(ids);
-      ctx.error(commodityCategories.length !== 0, '商品分类不存在', 14000);
-
-      // 验证分类是否存在关联商品
-      await service.commodityCategory.isEmpty(ids);
-      await service.commodityCategory.delete(ids);
-
-      ctx.jsonBody = commodityCategories;
+      ctx.error(nModified === 1, 14005, '商品分类删除失败');
+      ctx.jsonBody = category;
     }
   }
   return CommodityCategoryController;

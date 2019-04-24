@@ -20,30 +20,18 @@ module.exports = app => {
       return {
         properties: {
           name: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 1,
+            $ref: 'schema.definition#/name',
           },
-          category_id: this.ctx.helper.rule.uuid,
-          status: {
-            type: 'string',
-            enum: [
-              'ON',
-              'OFF',
-            ],
+          category: {
+            $ref: 'schema.definition#/oid',
           },
-          recommended: {
-            type: 'string',
-            enum: [
-              'true',
-              'false',
-            ],
+          enable: {
+            type: 'boolean',
           },
-          embed: {
-            type: 'string',
-            enum: ['category'],
+          recommend: {
+            type: 'boolean',
           },
-          ...this.ctx.helper.rule.pagination,
+          ...this.ctx.helper.pagination.rule,
         },
         $async: true,
         additionalProperties: false,
@@ -59,7 +47,9 @@ module.exports = app => {
     get showRule() {
       return {
         properties: {
-          id: this.ctx.helper.rule.uuid,
+          id: {
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
@@ -77,11 +67,11 @@ module.exports = app => {
       return {
         properties: {
           name: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 1,
+            $ref: 'schema.definition#/name',
           },
-          category_id: this.ctx.helper.rule.uuid,
+          category: {
+            $ref: 'schema.definition#/oid',
+          },
           price: {
             type: 'number',
           },
@@ -96,36 +86,20 @@ module.exports = app => {
             maxLength: 500,
             minLength: 1,
           },
-          recommended: {
+          recommend: {
             type: 'boolean',
           },
-          attr: {
+          pictures: {
             type: 'array',
             items: {
-              type: 'object',
-              properties: {
-                attr_name: {
-                  type: 'string',
-                  maxLength: 20,
-                  minLength: 1,
-                },
-                attr_value: {
-                  type: 'array',
-                  items: {
-                    type: 'string',
-                    maxLength: 20,
-                    minLength: 1,
-                  },
-                },
-              },
+              $ref: 'schema.definition#/oid',
             },
           },
-          picture_ids: {
-            type: 'array',
-            items: this.ctx.helper.rule.uuid,
+          brands: {
+            type: 'string',
           },
         },
-        required: ['name', 'category_id', 'description', 'price', 'picture_ids'],
+        required: ['name', 'category', 'description', 'price', 'pictures'],
         $async: true,
         additionalProperties: false,
       };
@@ -140,13 +114,15 @@ module.exports = app => {
     get updateRule() {
       return {
         properties: {
-          id: this.ctx.helper.rule.uuid,
-          name: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 1,
+          id: {
+            $ref: 'schema.definition#/oid',
           },
-          category_id: this.ctx.helper.rule.uuid,
+          name: {
+            $ref: 'schema.definition#/name',
+          },
+          category: {
+            $ref: 'schema.definition#/oid',
+          },
           price: {
             type: 'number',
           },
@@ -154,122 +130,22 @@ module.exports = app => {
             type: 'number',
           },
           act_price: {
-            oneOf: [{
-              type: 'null',
-            },
-            {
-              type: 'number',
-            },
-            ],
+            type: 'number',
           },
           description: {
             type: 'string',
             maxLength: 500,
             minLength: 1,
           },
-          recommended: {
+          recommend: {
             type: 'boolean',
           },
-          picture_ids: {
-            type: 'array',
-            items: this.ctx.helper.rule.uuid,
-          },
-        },
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 参数规则-批量修改商品
-     *
-     * @readonly
-     * @memberof CommodityController
-     */
-    get batchUpdateRule() {
-      return {
-        properties: {
-          ids: {
-            type: 'array',
-            items: this.ctx.helper.rule.uuid,
-          },
-          status: {
-            type: 'string',
-            enum: [
-              'ON',
-              'OFF',
-            ],
-          },
-          recommended: {
-            type: 'boolean',
-          },
-        },
-        required: ['ids'],
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 参数规则-批量删除商品
-     *
-     * @readonly
-     * @memberof CommodityController
-     */
-    get batchDestroyRule() {
-      return {
-        properties: {
-          ids: {
-            type: 'array',
-            items: this.ctx.helper.rule.uuid,
-          },
-        },
-        required: ['ids'],
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 参数规则-添加属性
-     *
-     * @readonly
-     * @memberof CommodityController
-     */
-    get attributeCreateRule() {
-      return {
-        properties: {
-          id: this.ctx.helper.rule.uuid,
-          attr_name: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 1,
-          },
-          attr_value: {
+          pictures: {
             type: 'array',
             items: {
-              type: 'string',
-              maxLength: 20,
-              minLength: 1,
+              $ref: 'schema.definition#/oid',
             },
           },
-        },
-        required: ['id', 'attr_name', 'attr_value'],
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 参数规则-获取商品属性列表
-     *
-     * @readonly
-     * @memberof CommodityController
-     */
-    get attributeIndexRule() {
-      return {
-        properties: {
-          id: this.ctx.helper.rule.uuid,
         },
         required: ['id'],
         $async: true,
@@ -278,49 +154,19 @@ module.exports = app => {
     }
 
     /**
-     * 参数规则-获取商品指定属性
+     * 参数规则-删除商品
      *
      * @readonly
      * @memberof CommodityController
      */
-    get attributeShowRule() {
+    get destroyRule() {
       return {
         properties: {
-          id: this.ctx.helper.rule.uuid,
-          attr_id: this.ctx.helper.rule.uuid,
-        },
-        required: ['id', 'attr_id'],
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 参数规则-修改商品指定属性
-     *
-     * @readonly
-     * @memberof CommodityController
-     */
-    get attributeUpdateRule() {
-      return {
-        properties: {
-          id: this.ctx.helper.rule.uuid,
-          attr_id: this.ctx.helper.rule.uuid,
-          attr_name: {
-            type: 'string',
-            maxLength: 20,
-            minLength: 1,
-          },
-          attr_value: {
-            type: 'array',
-            items: {
-              type: 'string',
-              maxLength: 20,
-              minLength: 1,
-            },
+          id: {
+            $ref: 'schema.definition#/oid',
           },
         },
-        required: ['id', 'attr_id', 'attr_name', 'attr_value'],
+        required: ['id'],
         $async: true,
         additionalProperties: false,
       };
@@ -337,45 +183,37 @@ module.exports = app => {
         ctx,
         indexRule,
       } = this;
-      const {
-        commodity,
-      } = ctx.service;
-      const {
-        name,
-        sort,
-        start,
-        count,
-        category_id: categoryId,
-        status,
-        recommended,
-        embed,
-      } = await ctx.validate(indexRule);
 
-      // 获取商品及商品分类
-      const commodities = await commodity.fetch(name, categoryId, status, recommended, start, count, sort); // eslint-disable-line
-      let categories;
-      /* istanbul ignore next */
-      if (embed === 'category' && !!commodities) {
-        const uniqIds = _.union(commodities.rows.map(row => row.category_id));
-        categories = await app.model.CommodityCategory.findAll({
-          where: {
-            id: {
-              $in: uniqIds,
-            },
-          },
-        });
-      }
-      /* istanbul ignore next */
-      categories = embed !== 'category' ? {} : {
-        categories,
-      };
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
+      const {
+        limit = 10,
+        offset = 0,
+        sort = '-created_time',
+      } = await ctx.verify(indexRule, ctx.request.query);
 
-      ctx.jsonBody = Object.assign({
-        start,
-        count: commodities.count,
-        items: commodities.rows,
-        ...categories,
+      const query = {};
+      ['name', 'category', 'enable', 'recommend'].forEach(key => {
+        const item = ctx.request.query[key];
+        if (item) query[key] = item;
       });
+      const commodities = await ctx.service.commodity.findMany(query, null, {
+        limit: parseInt(limit),
+        skip: parseInt(offset),
+        sort: generateSortParam(sort),
+      }, 'category pictures');
+      const count = await ctx.service.commodity.count(query);
+
+      ctx.jsonBody = {
+        data: commodities,
+        meta: {
+          limit,
+          offset,
+          sort,
+          count,
+        },
+      };
     }
 
     /**
@@ -390,13 +228,11 @@ module.exports = app => {
         service,
         showRule,
       } = this;
-      await ctx.validate(showRule);
-
       const {
         id,
-      } = ctx.params;
-      const commodity = await service.commodity.getByIdOrThrow(id);
+      } = await ctx.verify(showRule, ctx.params);
 
+      const commodity = await service.commodity.findById(id, 'category pictures');
       ctx.jsonBody = commodity;
     }
 
@@ -412,68 +248,32 @@ module.exports = app => {
         service,
         createRule,
       } = this;
-      ctx.adminPermission();
-      await ctx.validate(createRule);
-
       const {
-        picture_ids: pictureIds,
-        category_id: categoryId,
+        pictures,
+        category,
         name,
-        description,
-        recommended,
-        attr,
-        quata,
-      } = ctx.request.body;
-
-      let {
+        act_price,
         price,
-        act_price: actPrice,
-      } = ctx.request.body;
+      } = await ctx.verify(createRule, ctx.request.body);
 
       // 验证图片数量以及是否存在
-      ctx.error(pictureIds.length <= 5 && pictureIds.length >= 1, '商品图片数量需在1~5张范围内', 15001);
-      const files = await service.file.count(pictureIds, 'image');
-      ctx.error(files.count === pictureIds.length, '商品图片重复/丢失或包含非图片类型文件', 15002);
-
-
-      // 价格处理
-      price = _.floor(price, 2);
-      /* istanbul ignore next */
-      actPrice = !!actPrice ? _.floor(actPrice, 2) : undefined; // eslint-disable-line
-
-      // 验证分类是否存在
-      await service.commodityCategory.getByIdOrThrow(categoryId);
-
-      // 创建商品
-      const commodity = await service.commodity.create(
+      ctx.error(pictures.length <= 5 && pictures.length >= 1, 15001, '商品图片数量需在1~5张范围内');
+      const files = await service.file.findMany({
+        _id: {
+          $in: pictures,
+        },
+      });
+      ctx.error(files.length === pictures.length, 15002, '商品图片重复/丢失或包含非图片类型文件');
+      const commodityCategory = await service.commodityCategory.findById(category);
+      ctx.error(commodityCategory, 14000, '商品分类不存在');
+      const commodity = await service.commodity.findOne({
         name,
-        description,
-        price,
-        actPrice,
-        recommended,
-        categoryId,
-        pictureIds,
-        quata
-      );
-
-      // 为指定商品添加属性
-      /* istanbul ignore else */
-      if (attr && commodity) {
-        const records = attr.map(attribute => {
-          const {
-            attr_name: attrName,
-            attr_value: attrValues,
-          } = attribute;
-          return {
-            name: attrName,
-            values: attrValues,
-            commodity_id: commodity.id,
-          };
-        });
-        await app.model.CommodityAttr.bulkCreate(records);
-      }
-
-      ctx.jsonBody = commodity;
+        category,
+      });
+      ctx.error(!commodity, 15004, '商品名称已存在');
+      if (!act_price) ctx.request.body.act_price = price;
+      const createdCommodity = await service.commodity.create(ctx.request.body);
+      ctx.jsonBody = createdCommodity;
     }
 
     /**
@@ -488,257 +288,71 @@ module.exports = app => {
         service,
         updateRule,
       } = this;
-      ctx.adminPermission();
-      await ctx.validate(updateRule);
 
       const {
-        picture_ids: pictureIds,
-        category_id: categoryId,
-        price,
-        quata,
-        act_price: actPrice,
-      } = ctx.request.body;
-      const commodity = await service.commodity.getByIdOrThrow(ctx.params.id);
+        pictures,
+        category,
+        name,
+        id,
+      } = await ctx.verify(updateRule, Object.assign(ctx.request.body, ctx.params));
 
-      // 验证分类是否存在
-      /* istanbul ignore else */
-      if (categoryId) await service.commodityCategory.getByIdOrThrow(categoryId);
+      const commodity = await service.commodity.findById(id);
+      ctx.error(commodity, 15000, '商品不存在');
 
-      // 验证图片是否存在
-      /* istanbul ignore else */
-      if (pictureIds) {
-        ctx.error(pictureIds.length <= 5 && pictureIds.length >= 1, '商品图片数量需在1~5张范围内', 15001);
-        const files = await service.file.count(pictureIds, 'image');
-        ctx.error(files.count === pictureIds.length, '商品图片重复/丢失或包含非图片类型文件', 15002);
-      }
-
-      // 价格处理
-      /* istanbul ignore next */
-      if (price) ctx.request.body.price = _.floor(price, 2);
-      /* istanbul ignore next */
-      if (actPrice) ctx.request.body.act_price = _.floor(actPrice, 2); // eslint-disable-line
-      /* istanbul ignore next */
-      if (quata) ctx.request.body.quata = parseInt(quata, 10);
+      // 验证图片数量以及是否存在
+      ctx.error(pictures.length <= 5 && pictures.length >= 1, 15001, '商品图片数量需在1~5张范围内');
+      const files = await service.file.findMany({
+        _id: {
+          $in: pictures,
+        },
+      });
+      ctx.error(files.length === pictures.length, 15002, '商品图片重复/丢失或包含非图片类型文件');
+      const isCategoryExist = await service.commodityCategory.findById(category);
+      ctx.error(isCategoryExist, 14000, '商品分类不存在');
+      const isNameExist = await service.commodity.findOne({
+        name,
+        category,
+      });
+      ctx.error(!isNameExist, 15004, '商品名称已存在');
 
       // 商品更新
       Object.assign(commodity, ctx.request.body);
-      await commodity.save();
+      const {
+        nModified,
+      } = await ctx.service.commodity.update({
+        _id: id,
+      }, ctx.request.body);
+      ctx.error(nModified === 1, 15005, '商品修改失败');
 
       ctx.jsonBody = commodity;
     }
 
     /**
-     * 批量修改商品
+     * 删除商品
      *
      * @memberof CommodityController
-     * @return {array} 被修改商品列表
+     * @return {array} 删除的商品
      */
-    async batchUpdate() {
+    async destroy() {
       const {
         ctx,
         service,
-        batchUpdateRule,
+        destroyRule,
       } = this;
-      ctx.adminPermission();
-
-      // query参数验证
       const {
-        ids: queryIds,
-      } = ctx.query;
-      ctx.assert(queryIds && typeof queryIds === 'string', 'query中缺少必要的ids参数', 400);
-      await ctx.validate(batchUpdateRule, reqData => {
-        ctx.assert(typeof reqData === 'object', '参数需为对象');
-
-        // ids预处理为数组
-        const data = Object.assign({}, reqData);
-        const {
-          ids,
-        } = data;
-        /* istanbul ignore next */
-        data.ids = ids && typeof ids === 'string' ? ids.split(',') : ids;
-        return data;
-      });
-
-      const ids = queryIds.split(',');
-      const values = Object.assign({}, ctx.request.body);
-
-      // 批量修改并返回修改后的商品列表
-      const products = await service.commodity.count(ids);
-      ctx.error(products === ids.length, '参数中包含不存在的商品', 15003);
-      await service.commodity.update(values, ids);
-      const commodities = await service.commodity.getByIds(ids);
-
-      ctx.jsonBody = commodities;
-    }
-
-    /**
-     * 批量删除商品
-     *
-     * @memberof CommodityController
-     * @return {array} 删除的商品列表
-     */
-    async batchDestroy() {
-      const {
-        ctx,
-        service,
-        batchDestroyRule,
-      } = this;
-      ctx.adminPermission();
-
-      // query参数验证
-      const {
-        ids: queryIds,
-      } = ctx.query;
-      ctx.assert(queryIds && typeof queryIds === 'string', 'query中缺少必要的ids参数', 400);
-      await ctx.validate(batchDestroyRule, reqData => {
-        ctx.assert(typeof reqData === 'object', '参数需为对象');
-
-        // ids预处理为数组
-        const data = Object.assign({}, reqData);
-        const {
-          ids,
-        } = data;
-        /* istanbul ignore next */
-        data.ids = ids && typeof ids === 'string' ? ids.split(',') : ids;
-      });
+        id,
+      } = await ctx.verify(destroyRule, ctx.params);
 
       // 查询并删除商品
-      const ids = ctx.query.ids.split(',');
-      const commodities = await service.commodity.getByIds(ids);
-      ctx.error(commodities.length !== 0, '商品不存在', 15000);
-      await service.commodity.delete(ids);
-
-      ctx.jsonBody = commodities;
-    }
-
-    /**
-     * 创建属性
-     *
-     * @memberof CommodityController
-     * @return {object} 创建的属性
-     */
-    async createAttribute() {
+      const commodity = await service.commodity.findById(id);
+      ctx.error(commodity, '商品不存在', 15000);
       const {
-        ctx,
-        service,
-        attributeCreateRule,
-      } = this;
-      ctx.adminPermission();
-      await ctx.validate(attributeCreateRule);
-
-      // 获取参数并创建属性
-      const {
-        attr_name: attrName,
-        attr_value: attrValue,
-      } = ctx.request.body;
-      await service.commodityAttr.isExisted(attrName, ctx.params.id);
-      const attribute = await service.commodityAttr.create(ctx.params.id, attrName, attrValue);
-
-      ctx.jsonBody = attribute;
-    }
-
-    /**
-     * 返回指定商品的属性列表
-     *
-     * @memberof CommodityController
-     * @return {array} 返回属性列表
-     */
-    async attributeIndex() {
-      const {
-        ctx,
-        service,
-        attributeIndexRule,
-      } = this;
-      await ctx.validate(attributeIndexRule);
-
-      // 验证是否存在
-      await service.commodity.getByIdOrThrow(ctx.params.id);
-
-      // 获取属性列表
-      const attributes = await service.commodityAttr.fetch(ctx.params.id);
-
-      ctx.jsonBody = attributes;
-    }
-
-    /**
-     * 返回商品的指定属性
-     *
-     * @memberof CommodityController
-     * @return {array} 返回指定属性
-     */
-    async attributeShow() {
-      const {
-        ctx,
-        service,
-        attributeShowRule,
-      } = this;
-      await ctx.validate(attributeShowRule);
-
-      // 获取参数及查询指定商品属性
-      const {
-        attr_id: attrId,
-        id,
-      } = ctx.params;
-      const attribute = await service.commodityAttr.getByIdOrThrow(attrId, id);
-
-      ctx.jsonBody = attribute;
-    }
-
-    /**
-     * 修改商品指定属性
-     *
-     * @memberof CommodityController
-     * @return {object} 返回修改后的属性
-     */
-    async attributeUpdate() {
-      const {
-        ctx,
-        service,
-        attributeUpdateRule,
-      } = this;
-      ctx.adminPermission();
-      await ctx.validate(attributeUpdateRule);
-
-      // 获取参数并修改指定属性
-      const {
-        attr_id: attrId,
-        id,
-      } = ctx.params;
-      const attribute = await service.commodityAttr.getByIdOrThrow(attrId, id);
-      Object.assign(attribute, {
-        name: ctx.request.body.attr_name,
-        values: ctx.request.body.attr_value,
+        nModified,
+      } = await service.commodity.destroy({
+        _id: id,
       });
-      await attribute.save();
-
-      ctx.jsonBody = attribute;
-    }
-
-    /**
-     * 删除商品指定属性
-     *
-     * @memberof CommodityController
-     * @return {object} 返回被删除的属性值
-     */
-    async destoryAttribute() {
-      const {
-        ctx,
-        service,
-        attributeShowRule,
-      } = this;
-      ctx.adminPermission();
-      await ctx.validate(attributeShowRule);
-
-      const {
-        attr_id: attrId,
-        id,
-      } = ctx.params;
-      const attribute = await service.commodityAttr.getByIdOrThrow(attrId, id);
-      await attribute.destroy({
-        force: true,
-      });
-
-      ctx.jsonBody = attribute;
+      ctx.error(nModified === 1, 15006, '商品删除失败');
+      ctx.jsonBody = commodity;
     }
   }
 

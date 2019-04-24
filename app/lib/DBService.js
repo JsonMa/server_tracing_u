@@ -51,19 +51,23 @@ class DBService extends Service {
    * 通过ID查找
    *
    * @param {String} id - id
+   * @param {String}  populate - 附带的信息
    * @return {Object} result
    * @memberof DBService
    */
-  async findById(id) {
+  async findById(id, populate = '') {
     const query = Object.assign({
       deleted_at: null,
     }, {
       _id: id,
     });
 
-    const data = await this.ctx.model[this.type].findOne(query).catch(error => {
-      this.dbError(error, `${this.type}查询失败`, query);
-    });
+    const data = await this.ctx.model[this.type]
+      .findOne(query)
+      .populate(populate)
+      .catch(error => {
+        this.dbError(error, `${this.type}查询失败`, query);
+      });
 
     return data;
   }
@@ -72,18 +76,22 @@ class DBService extends Service {
    * find one
    *
    * @param {Object} conditions - 条件
+   * @param {String}  populate - 附带的信息
    * @return {Object} 查询结果
    * @memberof DBService
    */
-  async findOne(conditions) {
+  async findOne(conditions, populate = '') {
     const query = Object.assign({
       deleted_at: null,
     },
     conditions
     );
-    const data = await this.ctx.model[this.type].findOne(query).catch(error => {
-      this.dbError(error, `${this.type}查询失败`, query);
-    });
+    const data = await this.ctx.model[this.type]
+      .findOne(query)
+      .populate(populate)
+      .catch(error => {
+        this.dbError(error, `${this.type}查询失败`, query);
+      });
     return data;
   }
 
@@ -93,10 +101,11 @@ class DBService extends Service {
    * @param {Object} conditions      - 条件
    * @param {Array} [fields=null]    - 字段
    * @param {Object} [options=null]  - options
+   * @param {String}  populate - 附带的信息
    * @return {Array} results
    * @memberof DBService
    */
-  async findMany(conditions, fields = null, options = null) {
+  async findMany(conditions, fields = null, options = null, populate = '') {
     const query = Object.assign({
       deleted_at: null,
     },
@@ -104,6 +113,7 @@ class DBService extends Service {
     );
     const items = await this.ctx.model[this.type]
       .find(query, fields, options)
+      .populate(populate)
       .catch(error => {
         this.dbError(error, `${this.type}查询失败`, query);
       });
@@ -114,12 +124,13 @@ class DBService extends Service {
    * find all
    *
    * @param {Object}  conditions - 条件
+   * @param {String}  populate - 附带的信息
    * @return {Array}  results
    * @memberof DBService
    */
-  async findAll(conditions) {
+  async findAll(conditions, populate = '') {
     const query = Object.assign({}, conditions);
-    const date = await this.ctx.model[this.type].findOne(query).catch(error => {
+    const date = await this.ctx.model[this.type].findOne(query).populate(populate).catch(error => {
       this.dbError(error, `${this.type}查询失败`, query);
     });
     return date;

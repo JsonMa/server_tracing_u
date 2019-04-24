@@ -71,7 +71,6 @@ module.exports = app => {
       let isRegistered = false;
       const sessionData = {
         openid,
-        session_key,
         isRegistered,
       };
       if (user) {
@@ -84,7 +83,7 @@ module.exports = app => {
       app.redis.set(
         `${app.config.auth.prefix}:${token}`,
         JSON.stringify(sessionData)
-      );
+      ).expire(`${app.config.auth.prefix}:${token}`, session_key);
       ctx.cookies.set('access_token', token);
       ctx.jsonBody = {
         token,

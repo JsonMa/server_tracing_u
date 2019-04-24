@@ -1,7 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  const { formidable, compress } = app.middleware;
+  const {
+    formidable,
+    compress,
+  } = app.middleware;
   // const wechat = require('co-wechat-body');
 
   /* istanbul ignore next */
@@ -17,36 +20,19 @@ module.exports = app => {
   app.post(`${prefix}/users`, 'user.create');
   app.put(`${prefix}/users/:id`, 'user.update');
 
-  // // commodity
-  // app.get(`${prefix}/commodities`, 'commodity.index');
-  // app.get(`${prefix}/commodities/:id`, 'commodity.show');
-  // app.post(`${prefix}/commodities`, 'commodity.create');
-  // app.delete(`${prefix}/commodities`, 'commodity.batchDestroy');
-  // app.put(`${prefix}/commodities`, 'commodity.batchUpdate');
-  // app.put(`${prefix}/commodities/:id`, 'commodity.update');
-  // app.post(`${prefix}/commodities/:id/attributes`, 'commodity.createAttribute');
-  // app.get(`${prefix}/commodities/:id/attributes`, 'commodity.attributeIndex');
-  // app.get(
-  //   `${prefix}/commodities/:id/attributes/:attr_id`,
-  //   'commodity.attributeShow'
-  // );
-  // app.put(
-  //   `${prefix}/commodities/:id/attributes/:attr_id`,
-  //   'commodity.attributeUpdate'
-  // );
-  // app.delete(
-  //   `${prefix}/commodities/:id/attributes/:attr_id`,
-  //   'commodity.destoryAttribute'
-  // );
+  // commodity
+  app.get(`${prefix}/commodities`, 'commodity.index');
+  app.get(`${prefix}/commodities/:id`, 'commodity.show');
+  app.post(`${prefix}/commodities`, 'commodity.create');
+  app.delete(`${prefix}/commodities/:id`, 'commodity.destroy');
+  app.put(`${prefix}/commodities/:id`, 'commodity.update');
 
-  // // commodity category
-  // app.get(`${prefix}/commodity_categories`, 'commodityCategory.index');
-  // app.post(`${prefix}/commodity_categories`, 'commodityCategory.create');
-  // app.delete(
-  //   `${prefix}/commodity_categories`,
-  //   'commodityCategory.batchDestroy'
-  // );
-  // app.put(`${prefix}/commodity_categories/:id`, 'commodityCategory.update');
+  // commodity category
+  app.get(`${prefix}/commodity_categories`, 'commodityCategory.index');
+  app.get(`${prefix}/commodity_categories/:id`, 'commodityCategory.show');
+  app.post(`${prefix}/commodity_categories`, 'commodityCategory.create');
+  app.delete(`${prefix}/commodity_categories/:id`, 'commodityCategory.destory');
+  app.put(`${prefix}/commodity_categories/:id`, 'commodityCategory.update');
 
   // file
   app.get(`${prefix}/files/:id`, 'file.show');
@@ -65,8 +51,8 @@ module.exports = app => {
   // app.put(`${prefix}/banners/:id`, 'banner.update');
   // app.delete(`${prefix}/banners/:id`, 'banner.destroy');
 
-  // // error
-  // app.get('/error', 'error.index');
+  // error
+  app.get('/error', 'error.index');
 
   // // order 订单
   // app.get(`${prefix}/orders`, 'order.list');

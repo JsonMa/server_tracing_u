@@ -25,10 +25,7 @@ module.exports = {
       meta = {}, embed = {},
     } = obj;
 
-    if (
-      (_.isObject(obj) && !Reflect.has(obj, 'meta')) ||
-      !Reflect.has(obj, 'embed')
-    ) {
+    if (_.isObject(obj) && !Reflect.has(obj, 'meta') && !Reflect.has(obj, 'embed')) {
       data = obj;
     }
 
@@ -45,7 +42,7 @@ module.exports = {
     };
   },
 
-  error(expression, code = 10001, message, httpStatus = 200, stack) {
+  error(expression, code, message, httpStatus, stack) {
     if (typeof expression !== 'number' && expression) return;
     if (typeof expression === 'number') {
       stack = httpStatus;
@@ -57,7 +54,6 @@ module.exports = {
     this.assert(code && typeof code === 'number');
     if (stack) this.assert(stack instanceof Error, 'stack需为Error类型', 500);
 
-    this.type = 'json';
     const err = Object.assign(
       new VError({
         name: 'CONTEXT_ERROR',
@@ -66,7 +62,7 @@ module.exports = {
       message
       ), {
         code,
-        status: httpStatus,
+        status: httpStatus || 200,
       }
     );
 

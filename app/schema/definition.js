@@ -30,8 +30,8 @@ module.exports = {
   },
   name: {
     type: 'string',
-    maxLength: 5,
-    minLength: 2,
+    maxLength: 10,
+    minLength: 1,
   },
   company: {
     type: 'string',

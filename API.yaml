@@ -106,10 +106,15 @@ info:
     | 14001 | commodity category error | 商品分类名已存在          |
     | 14002 | commodity category error | 封面非图片类型文件        |
     | 14003 | commodity category error | 商品分类中存在关联商品    |
+    | 14004 | commodity category error | 商品分类修改失败    |
+    | 14005 | commodity category error | 商品分类删除失败    |
     | 15000 | commodity error     | 商品不存在                    |
     | 15001 | commodity error     | 商品图片数量需在1~5张范围内     |
     | 15002 | commodity error     | 商品图片重复/丢失或包含非图片类型文件 |
     | 15003 | commodity error     | 参数中包含不存在的商品          |
+    | 15004 | commodity error     | 商品名称已存在                |
+    | 15005 | commodity error | 商品修改失败    |
+    | 15006 | commodity error | 商品删除失败    |
     | 16000 | file error          | 文件丢失                      |
     | 16001 | file error          | 文件类型错误                   |
     | 16002 | file error          | 文件大小超出限制               |
