@@ -54,15 +54,12 @@ module.exports = app => {
   // error
   app.get('/error', 'error.index');
 
-  // // order 订单
-  // app.get(`${prefix}/orders`, 'order.list');
-  // app.get(`${prefix}/orders/:id`, 'order.fetch');
-  // app.put(`${prefix}/orders/:id`, 'order.patch');
-
-  // // trade 交易
-  // app.post(`${prefix}/trades`, 'trade.create');
-  // app.get(`${prefix}/trades/:id`, 'trade.fetch');
-  // app.post(`${prefix}/wechat_notify`, wechat(), 'trade.wechatNotify');
+  // order 订单
+  app.post(`${prefix}/orders`, 'order.create');
+  app.get(`${prefix}/orders`, 'order.index');
+  app.get(`${prefix}/orders/:id`, 'order.show');
+  app.delete(`${prefix}/orders/:id`, 'order.destroy');
+  app.put(`${prefix}/orders/:id`, 'order.update');
 
   // 小程序接口
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');

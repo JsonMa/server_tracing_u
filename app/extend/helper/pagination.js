@@ -19,16 +19,14 @@ module.exports = {
 
   rule: {
     limit: {
-      type: 'number',
-      defualt: 10,
+      type: 'string',
     },
     offset: {
-      type: 'number',
-      defualt: 0,
+      type: 'string',
     },
     sort: {
       type: 'string',
-      default: '-created_time',
+      default: '-created_at',
     },
   },
 };

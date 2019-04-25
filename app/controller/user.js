@@ -97,6 +97,15 @@ module.exports = app => {
           phone: {
             $ref: 'schema.definition#/mobile',
           },
+          state: {
+            type: 'string',
+            enum: ['passed', 'rejected', 'unreview'],
+          },
+          rejectReason: {
+            type: 'string',
+            maxLength: 50,
+            minLength: 1,
+          },
         },
         $async: true,
         additionalProperties: false,
@@ -123,7 +132,7 @@ module.exports = app => {
         role_type,
         limit = 10,
         offset = 0,
-        sort = '-created_time',
+        sort = '-created_at',
       } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
@@ -165,9 +174,30 @@ module.exports = app => {
         role_type,
         role_id,
       } = ctx.request.body;
+      switch (role_type) {
+        case 'salesman':
+          ctx.error(role_id >= 40 && role_id < 50, 11006, '用户类型与id不匹配');
+          break;
+        case 'courier':
+          ctx.error(role_id >= 50 && role_id < 60, 11006, '用户类型与id不匹配');
+          break;
+        case 'factory':
+          ctx.error(role_id >= 20 && role_id < 30, 11006, '用户类型与id不匹配');
+          break;
+        case 'business':
+          ctx.error(role_id >= 30 && role_id < 40, 11006, '用户类型与id不匹配');
+          break;
+        case 'platform':
+          ctx.error(role_id > 0 && role_id < 10, 11006, '用户类型与id不匹配');
+          break;
+        default:
+          ctx.error(role_id === 60, 11006, '用户类型与id不匹配');
+          break;
+      }
       // 验证用户是否存在
       const userData = ctx.request.body[role_type];
-      // 从登录信息中获取unionID并存入数据库
+      ctx.error(userData, 11007, '未找到属于该用户类型的数据');
+      // TODO 从登录信息中获取unionID并存入数据库
       const query = {};
       query[`${role_type}.name`] = userData.name;
       const user = await service.user.findOne(query);

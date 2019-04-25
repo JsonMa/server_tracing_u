@@ -97,17 +97,20 @@ info:
     | 11003 | user error          | 用户已存在                    |
     | 11004 | user error          | 用户不存在                    |
     | 11005 | user error          | wechat code失效或重复           |
+    | 11006 | user error          | 用户类型与id不匹配           |
+    | 11007 | user error          | 未找到属于该用户类型的数据           |
+
+
     | 12001 | banner error          | 视频封面非图片类型文件        |
     | 12002 | banner error          | 非视频类型文件               |
     | 12003 | banner error          | banner不存在                |
-    | 13000 | commodity attr error| 商品属性不存在                 |
-    | 13001 | commodity attr error| 商品属性已存在                 |
     | 14000 | commodity category error | 商品分类不存在            |
     | 14001 | commodity category error | 商品分类名已存在          |
     | 14002 | commodity category error | 封面非图片类型文件        |
     | 14003 | commodity category error | 商品分类中存在关联商品    |
     | 14004 | commodity category error | 商品分类修改失败    |
     | 14005 | commodity category error | 商品分类删除失败    |
+
     | 15000 | commodity error     | 商品不存在                    |
     | 15001 | commodity error     | 商品图片数量需在1~5张范围内     |
     | 15002 | commodity error     | 商品图片重复/丢失或包含非图片类型文件 |
@@ -115,31 +118,43 @@ info:
     | 15004 | commodity error     | 商品名称已存在                |
     | 15005 | commodity error | 商品修改失败    |
     | 15006 | commodity error | 商品删除失败    |
+
     | 16000 | file error          | 文件丢失                      |
     | 16001 | file error          | 文件类型错误                   |
     | 16002 | file error          | 文件大小超出限制               |
     | 16003 | file error          | 非图片类型文件，不存在缩略图    |
     | 16004 | file error          | 视频上传失败                  |
-    | 17001 | card error          | 贺卡不存在                    |
-    | 17002 | card error          | 贺卡已经被编辑过，不能再次编辑   |
-    | 17003 | card error          | 录音文件非音频类型              |
-    | 17004 | card error          | 贺卡照片数量需在1~5张范围内       |
-    | 17005 | card error          | 贺卡照片重复/丢失或包含非图片类型文件  |
-    | 17006 | card error          | 录像文件非视频类型              |
-    | 17007 | card error          | 录像封面非图片类型              |
-    | 17008 | card error          | 贺卡背景非图片类型              |
-    | 17009 | card error          | 创建贺卡失败，剩余数量小于1      |
-    | 17010 | card error          | 照片非图片类型文件              |
-    | 17011 | card error          | 贺卡用户信息非JSON格式          |
-    | 17012 | card error          | 贺卡用户信息不存在头像或昵称     |
-    | 17013 | card error          | 未完成支付，无法批量生成贺卡     |
-    | 17014 | card error          | 该商品类型无法批量生成贺卡       |
-    | 18001 | printer error       | printer权限认证相关错误         |
-    | 19001 | card category error       | 贺卡背景图片重复/丢失或包含非图片类型文件 |
-    | 19002 | card category error       | 贺卡背景音乐重复/丢失或包含非音频类型文件 |
-    | 19003 | card category error       | 贺卡分类已经存在 |
-    | 19004 | card category error       | 贺卡分类中存在关联贺卡 |
-    | 20001 | order error       | 订单不存在 |
+
+    | 17000 | order error       | 订单不存在 |
+    | 17001 | order error       | 订单涉及的商品不存在 |
+    | 17002 | order error       | 订单涉及的商品已下架 |
+    | 17003 | order error       | 商品购买者不存在 |
+    | 17004 | order error       | 报价人不存在 |
+    | 17005 | order error       | 该用户没有报价权限 |
+    | 17006 | order error       | 非订制商品，不可报价 |
+    | 17007 | order error       | 修改报价失败，订单已支付款项 |
+    | 17008 | order error       | 未找到打款凭据截图 |
+    | 17009 | order error       | 非定制商品只能全价支付订单 |
+    | 17010 | order error       | 修改订单状态失败,当前订单已支付完成 |
+    | 17011 | order error       | 支付只能分两期支付，请检查支付信息 |
+    | 17012 | order error       | 交易信息重复，请检查交易信息 |
+    | 17013 | order error       | 订单状态与交易信息不匹配 |
+    | 17014 | order error       | 首付款只能包含单条交易内容 |
+    | 17015 | order error       | 订单删除失败，已支付订单款项 |
+    | 17016 | order error       | 订单删除失败 |
+
+
+
+
+
+
+
+
+
+
+
+
+
     | 21001 | trade error       | openid获取失败 |
     | 22001 | tencent api error       | 腾讯API认证失败 |
     | 23001 | miniProgram api error       | 小程序token获取失败 |

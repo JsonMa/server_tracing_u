@@ -43,6 +43,9 @@ module.exports = ({
    * @param {Boolean}  enable                          - 是否启用该账户
    * @param {Date}     last_login                      - 上次登录时间
    * @param {Object}   inviter                         - 邀请者
+   * @param {Object}   state                           - 商家状态[passed, rejected, unreview]
+   * @param {Object}   inviter                         - 邀请者
+   *
    *
    */
 
@@ -170,6 +173,16 @@ module.exports = ({
     inviter: {
       type: Schema.Types.ObjectId,
       ref: 'user',
+    },
+    state: {
+      type: String,
+      enum: [
+        'passed', 'rejected', 'unreview',
+      ],
+      default: 'unreview',
+    },
+    rejectReason: {
+      type: String,
     },
     last_login: Date,
     deleted_at: Date,

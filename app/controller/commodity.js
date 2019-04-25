@@ -98,6 +98,9 @@ module.exports = app => {
           brands: {
             type: 'string',
           },
+          isCustom: {
+            type: 'boolean',
+          },
         },
         required: ['name', 'category', 'description', 'price', 'pictures'],
         $async: true,
@@ -190,7 +193,7 @@ module.exports = app => {
       const {
         limit = 10,
         offset = 0,
-        sort = '-created_time',
+        sort = '-created_at',
       } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
@@ -233,6 +236,7 @@ module.exports = app => {
       } = await ctx.verify(showRule, ctx.params);
 
       const commodity = await service.commodity.findById(id, 'category pictures');
+      ctx.error(commodity, 15000, '商品不存在');
       ctx.jsonBody = commodity;
     }
 

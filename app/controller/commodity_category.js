@@ -111,7 +111,7 @@ module.exports = app => {
       const {
         limit = 10,
         offset = 0,
-        sort = '-created_time',
+        sort = '-created_at',
       } = await ctx.verify(indexRule, ctx.request.query);
       const commodityCategories = await service.commodityCategory.findMany(null, null, {
         limit: parseInt(limit),

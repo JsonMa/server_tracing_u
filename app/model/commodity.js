@@ -24,11 +24,12 @@ module.exports = ({
    * @property {number}  act_price      - 活动价格
    * @property {int}     sales          - 已卖出数量
    * @property {boolean} recommend      - 推荐
-   * @property {enum}    status         - 上/下架状态['ON', 'OFF']
-   * @property {uuid}    category_id    - 分类ID
-   * @property {array}   picture_ids    - 商品图片ID
+   * @property {boolean} enable         - 是否禁用
+   * @property {uuid}    category       - 分类ID
+   * @property {array}   pictures       - 商品图片ID
    * @property {int}     quata          - 二维码额度
    * @property {Array}   brands         - 标签
+   * @property {Boolean} isCustom       - 是否为定制商品
    */
   const schema = new Schema({
     name: {
@@ -70,6 +71,10 @@ module.exports = ({
       type: Number,
       default: 0,
       required: true,
+    },
+    isCustom: {
+      type: Boolean,
+      default: false,
     },
     brands: String,
     deleted_at: Date,
