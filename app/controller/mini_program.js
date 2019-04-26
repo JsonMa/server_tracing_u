@@ -17,7 +17,9 @@ module.exports = app => {
     get indexRule() {
       return {
         properties: {
-          id: this.ctx.helper.rule.uuid,
+          id: {
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
@@ -50,32 +52,28 @@ module.exports = app => {
       } = ctx.service.wechat;
       const {
         id,
-      } = await ctx.validate(indexRule);
+      } = await ctx.verify(indexRule, ctx.params);
 
-      const token = await app.curl(
-        tokenUrl, {
-          dataType: 'json',
-          data: {
-            grant_type: grantType,
-            appid,
-            secret,
-          },
-        }
-      );
-      ctx.error(token.data.access_token, '小程序token获取失败', 23001);
+      const token = await app.curl(tokenUrl, {
+        dataType: 'json',
+        data: {
+          grant_type: grantType,
+          appid,
+          secret,
+        },
+      });
+      ctx.error(token.data.access_token, 23001, '小程序token获取失败');
 
       const url = `${codeUrl}?access_token=${token.data.access_token}`;
-      const code = await app.curl(
-        url, {
-          method: 'POST',
-          contentType: 'json',
-          data: {
-            page: 'pages/greetingcard/greetingcard',
-            scene: uuid2tn(id),
-          },
-        }
-      );
-      ctx.error(token.data.access_token, '小程序码获取失败', 23002);
+      const code = await app.curl(url, {
+        method: 'POST',
+        contentType: 'json',
+        data: {
+          page: 'pages/greetingcard/greetingcard',
+          scene: uuid2tn(id),
+        },
+      });
+      ctx.error(token.data.access_token, 23002, '小程序码获取失败');
 
       ctx.body = code.data;
       ctx.set({
