@@ -339,8 +339,8 @@ module.exports = app => {
           '上传支付凭据失败，订单已生成鉴权码或已发货'
         );
         if (isOrderExit.status === 'ALL_PAYED') {
-          ctx.error(status === 'FIRST_PAYED', 17010, '修改订单状态失败,当前订单已支付完成')
-        };
+          ctx.error(status === 'FIRST_PAYED', 17010, '修改订单状态失败,当前订单已支付完成');
+        }
 
         // 过滤输入trade数据
         for (let i = 0; i < trade.length; i++) {
@@ -354,9 +354,8 @@ module.exports = app => {
             ctx.error(trade.length === 2, 17011, '支付只能分两期支付，请检查支付信息');
             trade.forEach(item => {
               if (Reflect.has(tradeFilter, item.type)) {
-                ctx.error(false, 17012, '交易信息重复，请检查交易信息')
-              };
-              else tradeFilter[item.type] = true;
+                ctx.error(false, 17012, '交易信息重复，请检查交易信息');
+              } else tradeFilter[item.type] = true;
             });
             ctx.error(Object.keys(tradeFilter).includes(status), 17013, '订单状态与交易信息不匹配');
           } else {
@@ -388,8 +387,8 @@ module.exports = app => {
       } else {
         // 收货
         if (status === 'PRINTED') {
-          ctx.error(['FIRST_PAYED', 'ALL_PAYED'].includes(status), 17008, '打印失败，订单未支付')
-        };
+          ctx.error(['FIRST_PAYED', 'ALL_PAYED'].includes(status), 17008, '打印失败，订单未支付');
+        }
         if (status === 'FINISHED') {
           ctx.error(isOrderExit.status === 'SHIPPED', 17008, '收货失败，订单未发货');
 
@@ -415,9 +414,9 @@ module.exports = app => {
       const {
         nModified,
       } = await ctx.service.order.update({
-          _id: id,
-        },
-        modifiedData
+        _id: id,
+      },
+      modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 
