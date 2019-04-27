@@ -182,30 +182,29 @@ module.exports = app => {
      * @return {array} 商品列表
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
+      const { ctx, indexRule } = this;
 
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
-      const {
-        limit = 10,
-        offset = 0,
-        sort = '-created_at',
-      } = await ctx.verify(indexRule, ctx.request.query);
+      const { generateSortParam } = ctx.helper.pagination;
+      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
+        indexRule,
+        ctx.request.query
+      );
 
       const query = {};
       ['name', 'category', 'enable', 'recommend'].forEach(key => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
       });
-      const commodities = await ctx.service.commodity.findMany(query, null, {
-        limit: parseInt(limit),
-        skip: parseInt(offset),
-        sort: generateSortParam(sort),
-      }, 'category pictures');
+      const commodities = await ctx.service.commodity.findMany(
+        query,
+        null,
+        {
+          limit: parseInt(limit),
+          skip: parseInt(offset),
+          sort: generateSortParam(sort),
+        },
+        'category pictures'
+      );
       const count = await ctx.service.commodity.count(query);
 
       ctx.jsonBody = {
@@ -226,16 +225,13 @@ module.exports = app => {
      * @return {object} 商品详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
 
-      const commodity = await service.commodity.findById(id, 'category pictures');
+      const commodity = await service.commodity.findById(
+        id,
+        'category pictures'
+      );
       ctx.error(commodity, 15000, '商品不存在');
       ctx.jsonBody = commodity;
     }
@@ -247,28 +243,31 @@ module.exports = app => {
      * @return {object} 新建的商品
      */
     async create() {
-      const {
-        ctx,
-        service,
+      const { ctx, service, createRule } = this;
+      const { pictures, category, name, act_price, price } = await ctx.verify(
         createRule,
-      } = this;
-      const {
-        pictures,
-        category,
-        name,
-        act_price,
-        price,
-      } = await ctx.verify(createRule, ctx.request.body);
+        ctx.request.body
+      );
 
       // 验证图片数量以及是否存在
-      ctx.error(pictures.length <= 5 && pictures.length >= 1, 15001, '商品图片数量需在1~5张范围内');
+      ctx.error(
+        pictures.length <= 5 && pictures.length >= 1,
+        15001,
+        '商品图片数量需在1~5张范围内'
+      );
       const files = await service.file.findMany({
         _id: {
           $in: pictures,
         },
       });
-      ctx.error(files.length === pictures.length, 15002, '商品图片重复/丢失或包含非图片类型文件');
-      const commodityCategory = await service.commodityCategory.findById(category);
+      ctx.error(
+        files.length === pictures.length,
+        15002,
+        '商品图片重复/丢失或包含非图片类型文件'
+      );
+      const commodityCategory = await service.commodityCategory.findById(
+        category
+      );
       ctx.error(commodityCategory, 14000, '商品分类不存在');
       const commodity = await service.commodity.findOne({
         name,
@@ -287,31 +286,35 @@ module.exports = app => {
      * @return {promise} 被修改商品
      */
     async update() {
-      const {
-        ctx,
-        service,
-        updateRule,
-      } = this;
+      const { ctx, service, updateRule } = this;
 
-      const {
-        pictures,
-        category,
-        name,
-        id,
-      } = await ctx.verify(updateRule, Object.assign(ctx.request.body, ctx.params));
+      const { pictures, category, name, id } = await ctx.verify(
+        updateRule,
+        Object.assign(ctx.request.body, ctx.params)
+      );
 
       const commodity = await service.commodity.findById(id);
       ctx.error(commodity, 15000, '商品不存在');
 
       // 验证图片数量以及是否存在
-      ctx.error(pictures.length <= 5 && pictures.length >= 1, 15001, '商品图片数量需在1~5张范围内');
+      ctx.error(
+        pictures.length <= 5 && pictures.length >= 1,
+        15001,
+        '商品图片数量需在1~5张范围内'
+      );
       const files = await service.file.findMany({
         _id: {
           $in: pictures,
         },
       });
-      ctx.error(files.length === pictures.length, 15002, '商品图片重复/丢失或包含非图片类型文件');
-      const isCategoryExist = await service.commodityCategory.findById(category);
+      ctx.error(
+        files.length === pictures.length,
+        15002,
+        '商品图片重复/丢失或包含非图片类型文件'
+      );
+      const isCategoryExist = await service.commodityCategory.findById(
+        category
+      );
       ctx.error(isCategoryExist, 14000, '商品分类不存在');
       const isNameExist = await service.commodity.findOne({
         name,
@@ -321,11 +324,12 @@ module.exports = app => {
 
       // 商品更新
       Object.assign(commodity, ctx.request.body);
-      const {
-        nModified,
-      } = await ctx.service.commodity.update({
-        _id: id,
-      }, ctx.request.body);
+      const { nModified } = await ctx.service.commodity.update(
+        {
+          _id: id,
+        },
+        ctx.request.body
+      );
       ctx.error(nModified === 1, 15005, '商品修改失败');
 
       ctx.jsonBody = commodity;
@@ -338,21 +342,13 @@ module.exports = app => {
      * @return {array} 删除的商品
      */
     async destroy() {
-      const {
-        ctx,
-        service,
-        destroyRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(destroyRule, ctx.params);
+      const { ctx, service, destroyRule } = this;
+      const { id } = await ctx.verify(destroyRule, ctx.params);
 
       // 查询并删除商品
       const commodity = await service.commodity.findById(id);
       ctx.error(commodity, '商品不存在', 15000);
-      const {
-        nModified,
-      } = await service.commodity.destroy({
+      const { nModified } = await service.commodity.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 15006, '商品删除失败');

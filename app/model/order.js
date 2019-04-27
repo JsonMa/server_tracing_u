@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
   /**
    * 订单Model
    *
@@ -26,6 +20,7 @@ module.exports = ({
    * @property {Object}   express                - 快递信息
    * @property {String}   express.id             - 快递单号
    * @property {String}   express.name           - 快递公司名称
+   * @property {String}   express.sennd_at       - 发货时间
    * @property {Boolean}  needPrint              - 是否需要打印生成溯源码
    * @property {Boolean}  isStagePay             - 是否分期付款
    * @property {Object}   trade                  - 交易信息
@@ -34,86 +29,100 @@ module.exports = ({
    * @property {Object}   trade.receiver         - 收款人账号
    * @property {Object}   trade.voucher          - 交易凭证
    * @property {Object}   trade.number           - 交易单号
+   * @property {Date}     trade.pay_at           - 付款时间
+   * @property {Boolean}  needRemind             - 是否需要提醒
+   * @property {String}   reason                 - 删除原因
    */
-  const schema = new Schema({
-    buyer: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-    },
-    salesman: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-    },
-    quoter: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-    },
-    commodity: {
-      type: Schema.Types.ObjectId,
-      ref: 'commodity',
-    },
-    count: {
-      type: Number,
-      required: true,
-      default: 1,
-    },
-    price: {
-      type: Number,
-      required: true,
-    },
-    status: {
-      type: String,
-      values: [
-        'CREATED',
-        'QUOTED',
-        'FIRST_PAYED',
-        'ALL_PAYED',
-        'PRINTED',
-        'SHIPPED',
-        'FINISHED',
-      ],
-      default: 'CREATED',
-    },
-    no: String,
-    express: {
-      id: String,
-      name: String,
-    },
-    needPrint: {
-      type: Boolean,
-      default: false,
-    },
-    isStagePay: {
-      type: Boolean,
-      default: false,
-    },
-    trade: [{
-      type: {
+  const schema = new Schema(
+    {
+      buyer: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      salesman: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      quoter: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      commodity: {
+        type: Schema.Types.ObjectId,
+        ref: 'commodity',
+      },
+      count: {
+        type: Number,
+        required: true,
+        default: 1,
+      },
+      price: {
+        type: Number,
+        required: true,
+      },
+      status: {
         type: String,
         values: [
+          'CREATED',
+          'QUOTED',
           'FIRST_PAYED',
           'ALL_PAYED',
+          'PRINTED',
+          'SHIPPED',
+          'FINISHED',
         ],
+        default: 'CREATED',
       },
-      sponsor: {
-        type: 'string',
+      no: String,
+      express: {
+        id: String,
+        name: String,
+        sennd_at: Date,
       },
-      number: {
-        type: 'string',
+      needPrint: {
+        type: Boolean,
+        default: false,
       },
-      receiver: {
-        type: 'string',
+      isStagePay: {
+        type: Boolean,
+        default: false,
       },
-      voucher: {
-        type: Schema.Types.ObjectId,
-        ref: 'file',
+      needRemind: {
+        type: Boolean,
+        default: false,
       },
-    }],
-    deleted_at: Date,
-  },
-  Object.assign({}, {
-    timestamps,
-  })
+      trade: [
+        {
+          type: {
+            type: String,
+            values: ['FIRST_PAYED', 'ALL_PAYED'],
+          },
+          sponsor: {
+            type: 'string',
+          },
+          number: {
+            type: 'string',
+          },
+          receiver: {
+            type: 'string',
+          },
+          voucher: {
+            type: Schema.Types.ObjectId,
+            ref: 'file',
+          },
+        },
+      ],
+      quote_at: Date,
+
+      deleted_at: Date,
+      reason: String,
+    },
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
   );
 
   return mongoose.model('order', schema);
