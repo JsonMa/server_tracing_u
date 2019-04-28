@@ -141,6 +141,7 @@ module.exports = ({
         phone: {
           type: String,
         },
+        email: String,
         employee_card: {
           type: Schema.Types.ObjectId,
           ref: 'file',

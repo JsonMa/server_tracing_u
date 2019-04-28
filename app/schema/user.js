@@ -6,15 +6,19 @@ module.exports = {
       $ref: 'schema.definition#/role_id',
     },
     platform: {
-      name: {
-        $ref: 'schema.definition#/name',
+      type: 'object',
+      properties: {
+        name: {
+          $ref: 'schema.definition#/name',
+        },
+        email: {
+          $ref: 'schema.definition#/email',
+        },
+        phone: {
+          $ref: 'schema.definition#/mobile',
+        },
       },
-      email: {
-        $ref: 'schema.definition#/email',
-      },
-      phone: {
-        $ref: 'schema.definition#/mobile',
-      },
+      additionalProperties: false,
     },
     factory: {
       type: 'object',
@@ -38,17 +42,24 @@ module.exports = {
           $ref: 'schema.definition#/oid',
         },
         receiving_info: {
-          name: {
-            $ref: 'schema.definition#/name',
+          type: 'object',
+          properties: {
+            name: {
+              $ref: 'schema.definition#/name',
+            },
+            phone: {
+              $ref: 'schema.definition#/mobile',
+            },
+            address: {
+              $ref: 'schema.definition#/address',
+            },
           },
-          phone: {
-            $ref: 'schema.definition#/mobile',
-          },
-          address: {
-            $ref: 'schema.definition#/address',
-          },
+          required: ['name', 'phone', 'address'],
+          additionalProperties: false,
         },
       },
+      required: ['email', 'name', 'public_account', 'contact', 'phone', 'license'],
+      additionalProperties: false,
     },
     business: {
       type: 'object',
@@ -72,6 +83,7 @@ module.exports = {
           },
         },
       },
+      required: ['address', 'name', 'phone', 'contact'],
       additionalProperties: false,
     },
     courier: {
@@ -86,10 +98,14 @@ module.exports = {
         phone: {
           $ref: 'schema.definition#/mobile',
         },
+        email: {
+          $ref: 'schema.definition#/email',
+        },
         employee_card: {
           $ref: 'schema.definition#/oid',
         },
       },
+      required: ['company', 'name', 'phone', 'email', 'employee_card'],
       additionalProperties: false,
     },
     salesman: {
@@ -108,6 +124,7 @@ module.exports = {
           $ref: 'schema.definition#/oid',
         },
       },
+      required: ['address', 'name', 'phone', 'id_card'],
       additionalProperties: false,
     },
     unionId: {
