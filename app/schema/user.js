@@ -77,10 +77,10 @@ module.exports = {
           $ref: 'schema.definition#/name',
         },
         banner: {
-          type: 'array',
-          items: {
-            type: 'string',
-          },
+          $ref: 'schema.definition#/oid',
+        },
+        product: {
+          $ref: 'schema.definition#/oid',
         },
       },
       required: ['address', 'name', 'phone', 'contact'],

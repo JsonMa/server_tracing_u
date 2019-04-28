@@ -21,29 +21,39 @@ module.exports = ({
    * @param {Object}   platform                        - 平台用户
    * @param {string}   platform.name                   - 平台用户【名称】
    * @param {string}   platform.email                  - 平台用户【邮箱】
-   * @param {string}   platform.password               - 平台用户【密码】
    * @param {string}   platform.avatar                 - 平台用户【密码】
+   *
    * @param {Object}   business                        - 商家
    * @param {string}   business.name                   - 商家【名称】
-   * @param {string}   business.public_account         - 商家【对公账户】
-   * @param {string}   business.email                  - 商家【邮箱】
+   * @param {string}   business.address                - 商家【地址】
+   * @param {string}   business.phone                  - 商家【电话】
    * @param {string}   business.contact                - 商家【联系人】
-   * @param {string}   business.phone                  - 商家【联系电话】
-   * @param {string}   business.license                - 商家【营业执照】
-   * @param {string}   business.receiving_info         - 商家【收获信息】
-   * @param {String}   business.receiving_info.name    - 商家【收获信息】【收货人名称】
-   * @param {String}   business.receiving_info.phone   - 商家【收获信息】【收货人手机号】
-   * @param {String}   business.receiving_info.address - 商家【收获信息】【收货人地址】
+   * @param {string}   business.contact                - 商家【联系人】
+   * @param {string}   business.banner                 - 商家【banner广告图片ID】
+   * @param {string}   business.product                - 商家【产品信息图片ID】
+   *
+   * @param {string}   factory.name                    - 厂家【名称】
+   * @param {string}   factory.public_account          - 厂家【对公账户】
+   * @param {string}   factory.email                   - 厂家【邮箱】
+   * @param {string}   factory.contact                 - 厂家【联系人】
+   * @param {string}   factory.phone                   - 厂家【联系电话】
+   * @param {string}   factory.license                 - 厂家【营业执照】
+   * @param {Object}   factory.receiving_info          - 厂家【收货信息】
+   * @param {String}   factory.receiving_info.name     - 厂家【收货信息】【收货人名称】
+   * @param {String}   factory.receiving_info.phone    - 厂家【收货信息】【收货人手机号】
+   * @param {String}   factory.receiving_info.address  - 厂家【收货信息】【收货人地址】
+   *
    * @param {Object}   courier                         - 快递员
    * @param {String}   courier.company                 - 快递员【所属公司】
    * @param {String}   courier.name                    - 快递员【名称】
    * @param {String}   courier.phone                   - 快递员【电话】
-   * @param {String}   courier.id_card                 - 快递员【身份证正面】
+   * @param {String}   courier.email                   - 快递员【邮箱】
+   * @param {String}   courier.employee_card           - 快递员【身份证正面】
    * @param {String}   openid                          - 微信用户唯一识别号
    * @param {Boolean}  enable                          - 是否启用该账户
    * @param {Date}     last_login                      - 上次登录时间
    * @param {Object}   inviter                         - 邀请者
-   * @param {Object}   state                           - 商家状态[passed, rejected, unreview]
+   * @param {Object}   state                           - 用户状态[passed, rejected, unreview]
    * @param {Object}   inviter                         - 邀请者
    *
    *
@@ -125,10 +135,14 @@ module.exports = ({
         contact: {
           type: String,
         },
-        banner: [{
+        banner: {
           type: Schema.Types.ObjectId,
           ref: 'file',
-        }],
+        },
+        product: {
+          type: Schema.Types.ObjectId,
+          ref: 'file',
+        }
       },
       // 快递员
       courier: {
