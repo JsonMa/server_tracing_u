@@ -1,9 +1,15 @@
 'use strict';
 
-const { timestamps } = require('../lib/model_common');
+const {
+  timestamps
+} = require('../lib/model_common');
 
-module.exports = ({ mongoose }) => {
-  const { Schema } = mongoose;
+module.exports = ({
+  mongoose
+}) => {
+  const {
+    Schema
+  } = mongoose;
   /**
    * 订单Model
    *
@@ -13,6 +19,7 @@ module.exports = ({ mongoose }) => {
    * @property {Object}   buyer                  - 用户信息
    * @property {Object}   salesman               - 销售信息
    * @property {Object}   quoter                 - 报价人
+   * @property {Date}     quote_at               - 报价时间
    * @property {Object}   commodity              - 商品信息
    * @property {int}      price                  - 商品总价格
    * @property {int}      count                  - 商品数量
@@ -20,21 +27,21 @@ module.exports = ({ mongoose }) => {
    * @property {Object}   express                - 快递信息
    * @property {String}   express.id             - 快递单号
    * @property {String}   express.name           - 快递公司名称
-   * @property {String}   express.sennd_at       - 发货时间
+   * @property {String}   express.send_at       - 发货时间
    * @property {Boolean}  needPrint              - 是否需要打印生成溯源码
    * @property {Boolean}  isStagePay             - 是否分期付款
    * @property {Object}   trade                  - 交易信息
-   * @property {Object}   trade.type             - 付款类型【'FIRST_PAYED','LAST_PAYED','ALL_PAYED',】首付款/尾款/全款
+   * @property {Object}   trade.type             - 付款类型【'FIRST_PAYED','ALL_PAYED',】首付款/全款
    * @property {Object}   trade.sponsor          - 发起人账号
    * @property {Object}   trade.receiver         - 收款人账号
    * @property {Object}   trade.voucher          - 交易凭证
    * @property {Object}   trade.number           - 交易单号
    * @property {Date}     trade.pay_at           - 付款时间
-   * @property {Boolean}  needRemind             - 是否需要提醒
+   * @property {Boolean}  needRemind             - 是否需要提醒买方已报价/已发货
+   * @property {Date}     finish_at              - 订单结束时间
    * @property {String}   reason                 - 删除原因
    */
-  const schema = new Schema(
-    {
+  const schema = new Schema({
       buyer: {
         type: Schema.Types.ObjectId,
         ref: 'user',
@@ -47,6 +54,7 @@ module.exports = ({ mongoose }) => {
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
+      quote_at: Date,
       commodity: {
         type: Schema.Types.ObjectId,
         ref: 'commodity',
@@ -77,7 +85,7 @@ module.exports = ({ mongoose }) => {
       express: {
         id: String,
         name: String,
-        sennd_at: Date,
+        send_at: Date,
       },
       needPrint: {
         type: Boolean,
@@ -91,38 +99,33 @@ module.exports = ({ mongoose }) => {
         type: Boolean,
         default: false,
       },
-      trade: [
-        {
-          type: {
-            type: String,
-            values: ['FIRST_PAYED', 'ALL_PAYED'],
-          },
-          sponsor: {
-            type: 'string',
-          },
-          number: {
-            type: 'string',
-          },
-          receiver: {
-            type: 'string',
-          },
-          voucher: {
-            type: Schema.Types.ObjectId,
-            ref: 'file',
-          },
+      trade: [{
+        type: {
+          type: String,
+          values: ['FIRST_PAYED', 'ALL_PAYED'],
         },
-      ],
-      quote_at: Date,
-
+        sponsor: {
+          type: 'string',
+        },
+        number: {
+          type: 'string',
+        },
+        receiver: {
+          type: 'string',
+        },
+        voucher: {
+          type: Schema.Types.ObjectId,
+          ref: 'file',
+        },
+        pay_at: Date
+      }],
+      finish_at: Date,
       deleted_at: Date,
       reason: String,
     },
-    Object.assign(
-      {},
-      {
-        timestamps,
-      }
-    )
+    Object.assign({}, {
+      timestamps,
+    })
   );
 
   return mongoose.model('order', schema);
