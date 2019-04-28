@@ -28,7 +28,7 @@ module.exports = {
     if (_.isObject(obj) && !Reflect.has(obj, 'meta') && !Reflect.has(obj, 'embed')) {
       data = obj;
     }
-
+    this.set('Content-Type', 'application/json')
     this.body = {
       code: 0,
       msg: 'success',
@@ -56,10 +56,10 @@ module.exports = {
 
     const err = Object.assign(
       new VError({
-        name: 'CONTEXT_ERROR',
-        ...stack ? stack : {},
-      },
-      message
+          name: 'CONTEXT_ERROR',
+          ...stack ? stack : {},
+        },
+        message
       ), {
         code,
         status: httpStatus || 200,
@@ -70,17 +70,17 @@ module.exports = {
   },
 
   async verify(rule, params) {
-    const ret = await this.validate(rule, params).catch(function(e) {
+    const ret = await this.validate(rule, params).catch(function (e) {
       throw new VError({
-        name: 'AJV_ERROR',
-        cause: e,
-        info: e.errors ?
-          e.errors.reduce((map, e) => {
-            map[e.keyword] = e.message;
-            return map;
-          }) : e.message,
-      },
-      '错误的请求参数'
+          name: 'AJV_ERROR',
+          cause: e,
+          info: e.errors ?
+            e.errors.reduce((map, e) => {
+              map[e.keyword] = e.message;
+              return map;
+            }) : e.message,
+        },
+        '错误的请求参数'
       );
     });
     return ret;
