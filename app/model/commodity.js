@@ -17,19 +17,19 @@ module.exports = ({
    * @model Commodity
    * @namespace Model
    *
-   * @property {uuid}    id
-   * @property {string}  name           - 商品名
-   * @property {string}  description    - 商品描述
-   * @property {number}  price          - 商品价格
-   * @property {number}  act_price      - 活动价格
-   * @property {int}     sales          - 已卖出数量
-   * @property {boolean} recommend      - 推荐
-   * @property {boolean} enable         - 是否禁用
-   * @property {uuid}    category       - 分类ID
-   * @property {array}   pictures       - 商品图片ID
-   * @property {int}     quata          - 二维码额度
-   * @property {Array}   brands         - 标签
-   * @property {Boolean} isCustom       - 是否为定制商品
+   * @property {String}  name           - 商品名
+   * @property {String}  description    - 商品描述
+   * @property {Number}  price          - 商品价格
+   * @property {Number}  act_price      - 活动价格
+   * @property {Number}  sales          - 已卖出数量
+   * @property {Boolean} recommend      - 是否推荐【默认不推荐】
+   * @property {Boolean} enable         - 是否启用【默认启用】
+   * @property {String}  category       - 分类ID
+   * @property {Array}   pictures       - 商品图片ID
+   * @property {Number}  quata          - 溯源码额度
+   * @property {String}  brands         - 标签
+   * @property {String}  standard       - 规格
+   * @property {Boolean} isCustom       - 是否为定制商品【默认为非定制商品】
    */
   const schema = new Schema({
     name: {
@@ -77,6 +77,7 @@ module.exports = ({
       default: false,
     },
     brands: String,
+    standard: String,
     deleted_at: Date,
   },
   Object.assign({}, {

@@ -5,7 +5,6 @@ module.exports = app => {
     formidable,
     compress,
   } = app.middleware;
-  // const wechat = require('co-wechat-body');
 
   /* istanbul ignore next */
   const prefix = app.config.noPrefix ? '' : '/api';
@@ -45,22 +44,22 @@ module.exports = app => {
     'file.upload'
   );
 
-  // // banner
-  // app.get(`${prefix}/banners`, 'banner.index');
-  // app.post(`${prefix}/banners`, 'banner.create');
-  // app.put(`${prefix}/banners/:id`, 'banner.update');
-  // app.delete(`${prefix}/banners/:id`, 'banner.destroy');
-
-  // error
-  app.get('/error', 'error.index');
-
-  // order 订单
+  // order
   app.post(`${prefix}/orders`, 'order.create');
   app.get(`${prefix}/orders`, 'order.index');
   app.get(`${prefix}/orders/:id`, 'order.show');
   app.delete(`${prefix}/orders/:id`, 'order.destroy');
   app.put(`${prefix}/orders/:id`, 'order.update');
 
-  // 小程序接口
+  // barcode
+  app.post(`${prefix}/barcodes`, 'barcode.create');
+  app.get(`${prefix}/barcodes/:barcode`, 'barcode.show');
+  app.delete(`${prefix}/barcodes/:id`, 'barcode.destroy');
+  app.put(`${prefix}/barcodes/:barcode`, 'barcode.update');
+
+  // miniprogram
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');
+
+  // error
+  app.get('/error', 'error.index');
 };

@@ -3,7 +3,6 @@
 const fs = require('fs');
 const gm = require('gm');
 const path = require('path');
-const assert = require('assert');
 module.exports = app => {
   /**
    * file相关Controller

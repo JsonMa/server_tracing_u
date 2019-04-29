@@ -1,47 +1,52 @@
 'use strict';
 
 const {
-  timestamps
+  timestamps,
 } = require('../lib/model_common');
 
 module.exports = ({
-  mongoose
+  mongoose,
 }) => {
   const {
-    Schema
+    Schema,
   } = mongoose;
   /**
    * 条形码
    *
    * @model Barcode
    * @namespace Model
-   * @property {String} name - 文件名称
-   * @property {String} path - 文件路径
-   * @property {String} type - 文件类型
-   * @property {Number} size - 文件大小
+   * @property {String} barcode      - 条形码
+   * @property {String} name         - 商品名称
+   * @property {String} description  - 商品描述
+   * @property {Array}  attributes   - 商品属性
+   * @property {Number} manufacturer - 制造商
    */
   const schema = new Schema({
-      name: {
-        type: String,
-        required: true,
-      },
-      path: {
-        type: String,
-        required: true,
-      },
-      type: {
-        type: String,
-        required: true,
-      },
-      size: {
-        type: Number,
-        required: true,
-      },
-      deleted_at: Date,
+    barcode: {
+      type: String,
+      required: true,
     },
-    Object.assign({}, {
-      timestamps,
-    })
+    name: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    manufacturer: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    attributes: [{
+      name: String,
+      value: String,
+    }],
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('barcode', schema);

@@ -182,10 +182,17 @@ module.exports = app => {
      * @return {array} 商品列表
      */
     async index() {
-      const { ctx, indexRule } = this;
+      const {
+        ctx,
+        indexRule,
+      } = this;
 
-      const { generateSortParam } = ctx.helper.pagination;
-      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
+      const {
+        limit = 10, offset = 0, sort = '-created_at',
+      } = await ctx.verify(
         indexRule,
         ctx.request.query
       );
@@ -197,8 +204,7 @@ module.exports = app => {
       });
       const commodities = await ctx.service.commodity.findMany(
         query,
-        null,
-        {
+        null, {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -225,8 +231,14 @@ module.exports = app => {
      * @return {object} 商品详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
       const commodity = await service.commodity.findById(
         id,
@@ -243,8 +255,18 @@ module.exports = app => {
      * @return {object} 新建的商品
      */
     async create() {
-      const { ctx, service, createRule } = this;
-      const { pictures, category, name, act_price, price } = await ctx.verify(
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
+      const {
+        pictures,
+        category,
+        name,
+        act_price,
+        price,
+      } = await ctx.verify(
         createRule,
         ctx.request.body
       );
@@ -286,9 +308,18 @@ module.exports = app => {
      * @return {promise} 被修改商品
      */
     async update() {
-      const { ctx, service, updateRule } = this;
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
 
-      const { pictures, category, name, id } = await ctx.verify(
+      const {
+        pictures,
+        category,
+        name,
+        id,
+      } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
@@ -324,11 +355,12 @@ module.exports = app => {
 
       // 商品更新
       Object.assign(commodity, ctx.request.body);
-      const { nModified } = await ctx.service.commodity.update(
-        {
-          _id: id,
-        },
-        ctx.request.body
+      const {
+        nModified,
+      } = await ctx.service.commodity.update({
+        _id: id,
+      },
+      ctx.request.body
       );
       ctx.error(nModified === 1, 15005, '商品修改失败');
 
@@ -342,13 +374,21 @@ module.exports = app => {
      * @return {array} 删除的商品
      */
     async destroy() {
-      const { ctx, service, destroyRule } = this;
-      const { id } = await ctx.verify(destroyRule, ctx.params);
+      const {
+        ctx,
+        service,
+        destroyRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(destroyRule, ctx.params);
 
       // 查询并删除商品
       const commodity = await service.commodity.findById(id);
       ctx.error(commodity, '商品不存在', 15000);
-      const { nModified } = await service.commodity.destroy({
+      const {
+        nModified,
+      } = await service.commodity.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 15006, '商品删除失败');

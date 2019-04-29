@@ -104,6 +104,14 @@ info:
     | 12001 | banner error          | 视频封面非图片类型文件        |
     | 12002 | banner error          | 非视频类型文件               |
     | 12003 | banner error          | banner不存在                |
+
+    | 13000 | barcode error | 新增条形码失败，该条形码已存在    |
+    | 13001 | barcode error | 该条形码不存在    |
+    | 13002 | barcode error | 条形码删除失败    |
+    | 13003 | barcode error | 修改条形码失败    |
+
+
+
     | 14000 | commodity category error | 商品分类不存在            |
     | 14001 | commodity category error | 商品分类名已存在          |
     | 14002 | commodity category error | 封面非图片类型文件        |

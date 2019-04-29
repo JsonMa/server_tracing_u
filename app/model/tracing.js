@@ -1,14 +1,14 @@
 'use strict';
 
 const {
-  timestamps
+  timestamps,
 } = require('../lib/model_common');
 
 module.exports = ({
-  mongoose
+  mongoose,
 }) => {
   const {
-    Schema
+    Schema,
   } = mongoose;
   /**
    * Tracing
@@ -31,52 +31,48 @@ module.exports = ({
    *
    */
   const schema = new Schema({
-      no: {
-        type: String,
-        required: true,
-      },
-      sender: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      reciver: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      owner: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      courier: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      order: {
-        type: Schema.Types.ObjectId,
-        ref: 'order',
-      },
-      product: [{
-
-      }],
-      tracing_products: [{
-
-      }],
-      private_key: String,
-      public_key: String,
-      factroy_key: String,
-      isToConsumer: {
-        type: Boolean,
-        default: true
-      },
-      enable: {
-        type: Boolean,
-        default: true
-      },
-      deleted_at: Date,
+    no: {
+      type: String,
+      required: true,
     },
-    Object.assign({}, {
-      timestamps,
-    })
+    sender: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    reciver: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    courier: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    order: {
+      type: Schema.Types.ObjectId,
+      ref: 'order',
+    },
+    product: [{}],
+    tracing_products: [{}],
+    private_key: String,
+    public_key: String,
+    factroy_key: String,
+    isToConsumer: {
+      type: Boolean,
+      default: true,
+    },
+    enable: {
+      type: Boolean,
+      default: true,
+    },
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('tracing', schema);
