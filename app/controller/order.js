@@ -60,6 +60,7 @@ module.exports = app => {
 
       const isUserExited = await ctx.service.user.findById(buyer);
       ctx.error(isUserExited, 17003, '商品购买者不存在');
+      ctx.error(isUserExited.role_type === 'factroy', 17017, '该用户类型不具备购买权限');
 
       const order = await ctx.service.order.create(
         Object.assign(ctx.request.body, {
@@ -105,6 +106,12 @@ module.exports = app => {
           quoter: {
             $ref: 'schema.definition#/oid',
           },
+          embed: {
+            type: 'string',
+            enum: [
+              'category'
+            ]
+          },
           ...this.ctx.helper.pagination.rule,
         },
         $async: true,
@@ -127,8 +134,12 @@ module.exports = app => {
       const {
         generateSortParam,
       } = ctx.helper.pagination;
+      let respOrders = {
+        unpayed: [], // 待付款
+        unquote:[], // 待报价
+      };
       const {
-        limit = 10, offset = 0, sort = '-created_at',
+        limit = 10, offset = 0, sort = '-created_at', embed
       } = await ctx.verify(
         indexRule,
         ctx.request.query
@@ -148,10 +159,15 @@ module.exports = app => {
         },
         'commodity buyer salesman quoter'
       );
+      if (embed === 'category') {
+        orders.forEach(order => {
+          respOrders.created = 
+        })
+      } else respOrders = orders
       const count = await ctx.service.order.count(query);
 
       ctx.jsonBody = {
-        data: orders,
+        data: respOrders,
         meta: {
           limit,
           offset,
@@ -307,7 +323,9 @@ module.exports = app => {
 
       const isOrderExit = await ctx.service.order.findById(id, 'commodity');
       ctx.error(isOrderExit, 17000, '订单不存在');
-      const modifiedData = {};
+      const modifiedData = {
+        needRemind: false
+      };
 
       // 报价
       if (status === 'QUOTED') {
@@ -330,6 +348,8 @@ module.exports = app => {
           price,
           quoter,
           status,
+          needRemind: true,
+          quote_at: new Date()
         });
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
@@ -371,7 +391,7 @@ module.exports = app => {
           );
           ctx.error(trade[0].type === 'ALL_PAYED', 17009, '非定制商品只能全价支付订单');
         }
-
+        trade.pay_at = new Date()
         Object.assign(modifiedData, {
           trade,
           status,
@@ -380,10 +400,27 @@ module.exports = app => {
         // 发货
         ctx.error(express, 400, '未携带快递信息', 400);
         ctx.error(isOrderExit.status === 'ALL_PAYED', 17008, '发货失败，订单未支付');
+        express.send_at = new Date()
         Object.assign(modifiedData, {
           express,
           status,
+          needRemind: true
         });
+
+        // 修改商品已出售数量
+        const {
+          sales,
+          _id: commodityId,
+        } = isOrderExit.commodity;
+        const {
+          nModified,
+        } = await ctx.service.commodity.update({
+          _id: commodityId,
+        }, {
+          sales: sales + isOrderExit.count,
+          payers: payers + 1
+        });
+        ctx.error(nModified === 1, 15005, '商品修改失败');
       } else {
         // 收货
         if (status === 'PRINTED') {
@@ -391,32 +428,19 @@ module.exports = app => {
         }
         if (status === 'FINISHED') {
           ctx.error(isOrderExit.status === 'SHIPPED', 17008, '收货失败，订单未发货');
-
-          // 修改商品已出售数量
-          const {
-            sales,
-            _id: commodityId,
-          } = isOrderExit.commodity;
-          const {
-            nModified,
-          } = await ctx.service.commodity.update({
-            _id: commodityId,
-          }, {
-            sales: sales + isOrderExit.count,
-          });
-          ctx.error(nModified === 1, 15005, '商品修改失败');
         }
         Object.assign(modifiedData, {
           status,
+          finish_at: new Date()
         });
       }
 
       const {
         nModified,
       } = await ctx.service.order.update({
-        _id: id,
-      },
-      modifiedData
+          _id: id,
+        },
+        modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 

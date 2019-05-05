@@ -150,18 +150,7 @@ info:
     | 17014 | order error       | 首付款只能包含单条交易内容 |
     | 17015 | order error       | 订单删除失败，已支付订单款项 |
     | 17016 | order error       | 订单删除失败 |
-
-
-
-
-
-
-
-
-
-
-
-
+    | 17017 | order error       | 该用户类型不具备购买权限 |
 
     | 21001 | trade error       | openid获取失败 |
     | 22001 | tencent api error       | 腾讯API认证失败 |
