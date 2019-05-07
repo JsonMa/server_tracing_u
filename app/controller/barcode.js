@@ -75,7 +75,7 @@ module.exports = app => {
      * @readonly
      * @memberof barcodeController
      */
-    get deleteRule() {
+    get destroyRule() {
       return {
         properties: {
           id: {
@@ -170,15 +170,15 @@ module.exports = app => {
      * @return {promise} deleted barcode
      * @memberof fileController
      */
-    async delete() {
+    async destroy() {
       const {
         ctx,
         service,
-        deleteRule,
+        destroyRule,
       } = this;
       const {
         id,
-      } = await ctx.verify(deleteRule, ctx.params);
+      } = await ctx.verify(destroyRule, ctx.params);
       const isExit = await service.file.findById(id);
       ctx.assert(isExit, 13001, '该条形码不存在');
 
