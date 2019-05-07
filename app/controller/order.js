@@ -109,8 +109,8 @@ module.exports = app => {
           embed: {
             type: 'string',
             enum: [
-              'category'
-            ]
+              'category',
+            ],
           },
           ...this.ctx.helper.pagination.rule,
         },
@@ -135,11 +135,14 @@ module.exports = app => {
         generateSortParam,
       } = ctx.helper.pagination;
       let respOrders = {
-        unpayed: [], // 待付款
-        unquote:[], // 待报价
+        unQuoted: [], // 待报价
+        unPaid: [], // 待付款
+        unSent: [], // 待发货
+        unReceived: [], // 待收货
+        all: [], // 所有订单
       };
       const {
-        limit = 10, offset = 0, sort = '-created_at', embed
+        limit = 10, offset = 0, sort = '-created_at', embed,
       } = await ctx.verify(
         indexRule,
         ctx.request.query
@@ -160,10 +163,34 @@ module.exports = app => {
         'commodity buyer salesman quoter'
       );
       if (embed === 'category') {
+        respOrders.all = orders;
         orders.forEach(order => {
-          respOrders.created = 
-        })
-      } else respOrders = orders
+          const {
+            status,
+            isStagePay,
+          } = order;
+          switch (status) {
+            case 'CREATED':
+              if (isStagePay) respOrders.unQuoted.push(order);
+              else respOrders.unPaid.push(order);
+              break;
+            case 'QUOTED':
+              respOrders.unPaid.push(order);
+              break;
+            case 'HALF_PAYED':
+              respOrders.unSent.push(order);
+              break;
+            case 'ALL_PAYED':
+              respOrders.unSent.push(order);
+              break;
+            case 'SHIPMENT':
+              respOrders.unReceived.push(order);
+              break;
+            default:
+              break;
+          }
+        });
+      } else respOrders = orders;
       const count = await ctx.service.order.count(query);
 
       ctx.jsonBody = {
@@ -324,7 +351,7 @@ module.exports = app => {
       const isOrderExit = await ctx.service.order.findById(id, 'commodity');
       ctx.error(isOrderExit, 17000, '订单不存在');
       const modifiedData = {
-        needRemind: false
+        needRemind: false,
       };
 
       // 报价
@@ -349,7 +376,7 @@ module.exports = app => {
           quoter,
           status,
           needRemind: true,
-          quote_at: new Date()
+          quote_at: new Date(),
         });
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
@@ -391,7 +418,7 @@ module.exports = app => {
           );
           ctx.error(trade[0].type === 'ALL_PAYED', 17009, '非定制商品只能全价支付订单');
         }
-        trade.pay_at = new Date()
+        trade.pay_at = new Date();
         Object.assign(modifiedData, {
           trade,
           status,
@@ -400,11 +427,11 @@ module.exports = app => {
         // 发货
         ctx.error(express, 400, '未携带快递信息', 400);
         ctx.error(isOrderExit.status === 'ALL_PAYED', 17008, '发货失败，订单未支付');
-        express.send_at = new Date()
+        express.send_at = new Date();
         Object.assign(modifiedData, {
           express,
           status,
-          needRemind: true
+          needRemind: true,
         });
 
         // 修改商品已出售数量
@@ -418,7 +445,7 @@ module.exports = app => {
           _id: commodityId,
         }, {
           sales: sales + isOrderExit.count,
-          payers: payers + 1
+          payers: payers + 1,
         });
         ctx.error(nModified === 1, 15005, '商品修改失败');
       } else {
@@ -431,16 +458,16 @@ module.exports = app => {
         }
         Object.assign(modifiedData, {
           status,
-          finish_at: new Date()
+          finish_at: new Date(),
         });
       }
 
       const {
         nModified,
       } = await ctx.service.order.update({
-          _id: id,
-        },
-        modifiedData
+        _id: id,
+      },
+      modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 
