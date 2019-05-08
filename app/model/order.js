@@ -42,90 +42,90 @@ module.exports = ({
    * @property {String}   reason                 - 删除原因
    */
   const schema = new Schema({
-      buyer: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      salesman: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      quoter: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      quote_at: Date,
-      commodity: {
-        type: Schema.Types.ObjectId,
-        ref: 'commodity',
-      },
-      count: {
-        type: Number,
-        required: true,
-        default: 1,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
-      status: {
-        type: String,
-        values: [
-          'CREATED',
-          'QUOTED',
-          'FIRST_PAYED',
-          'ALL_PAYED',
-          'PRINTED',
-          'SHIPPED',
-          'FINISHED',
-        ],
-        default: 'CREATED',
-      },
-      no: String,
-      express: {
-        id: String,
-        name: String,
-        send_at: Date,
-      },
-      needPrint: {
-        type: Boolean,
-        default: false,
-      },
-      isStagePay: {
-        type: Boolean,
-        default: false,
-      },
-      needRemind: {
-        type: Boolean,
-        default: false,
-      },
-      trade: [{
-        type: {
-          type: String,
-          values: ['FIRST_PAYED', 'ALL_PAYED'],
-        },
-        sponsor: {
-          type: 'string',
-        },
-        number: {
-          type: 'string',
-        },
-        receiver: {
-          type: 'string',
-        },
-        voucher: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        pay_at: Date,
-      }],
-      finish_at: Date,
-      deleted_at: Date,
-      reason: String,
+    buyer: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
     },
-    Object.assign({}, {
-      timestamps,
-    })
+    salesman: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    quoter: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    quote_at: Date,
+    commodity: {
+      type: Schema.Types.ObjectId,
+      ref: 'commodity',
+    },
+    count: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    status: {
+      type: String,
+      values: [
+        'CREATED',
+        'QUOTED',
+        'FIRST_PAYED',
+        'ALL_PAYED',
+        'PRINTED',
+        'SHIPPED',
+        'FINISHED',
+      ],
+      default: 'CREATED',
+    },
+    no: String,
+    express: {
+      id: String,
+      name: String,
+      send_at: Date,
+    },
+    needPrint: {
+      type: Boolean,
+      default: false,
+    },
+    isStagePay: {
+      type: Boolean,
+      default: false,
+    },
+    needRemind: {
+      type: Boolean,
+      default: false,
+    },
+    trade: [{
+      type: {
+        type: String,
+        values: ['FIRST_PAYED', 'ALL_PAYED'],
+      },
+      sponsor: {
+        type: 'string',
+      },
+      number: {
+        type: 'string',
+      },
+      receiver: {
+        type: 'string',
+      },
+      voucher: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      pay_at: Date,
+    }],
+    finish_at: Date,
+    deleted_at: Date,
+    reason: String,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('order', schema);

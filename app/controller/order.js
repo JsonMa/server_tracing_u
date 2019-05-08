@@ -67,6 +67,7 @@ module.exports = app => {
           price: isCommodityExited.price * count,
           no: uuid(),
           needPrint: !!isCommodityExited.quata,
+          status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
           ...(isUserExited.inviter ? {
             salesman: isUserExited.inviter,
