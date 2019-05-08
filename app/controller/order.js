@@ -60,7 +60,7 @@ module.exports = app => {
 
       const isUserExited = await ctx.service.user.findById(buyer);
       ctx.error(isUserExited, 17003, '商品购买者不存在');
-      ctx.error(isUserExited.role_type === 'factroy', 17017, '该用户类型不具备购买权限');
+      ctx.error(isUserExited.role_type === 'factory', 17017, '该用户类型不具备购买权限');
 
       const order = await ctx.service.order.create(
         Object.assign(ctx.request.body, {
