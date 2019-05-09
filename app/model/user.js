@@ -54,157 +54,154 @@ module.exports = ({
    * @param {Date}     last_login                      - 上次登录时间
    * @param {Object}   inviter                         - 邀请者
    * @param {Object}   state                           - 用户状态[passed, rejected, unreview]
-   * @param {Object}   inviter                         - 邀请者
-   *
-   *
    */
 
   const schema = new Schema({
-      role_type: {
-        type: String,
-        enum: [
-          'platform',
-          'factory',
-          'business',
-          'courier',
-          'salesman',
-          'unauthed',
-        ],
-        default: 'unauthed',
-      },
-      role_id: {
-        type: Number,
-        default: 60,
-      },
-      // 平台用户
-      platform: {
-        name: {
-          type: String,
-        },
-        email: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-      },
-      // 厂家
-      factory: {
-        name: {
-          type: String,
-        },
-        public_account: {
-          type: String,
-        },
-        email: {
-          type: String,
-        },
-        contact: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        license: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        receiving_info: {
-          name: {
-            type: String,
-          },
-          phone: {
-            type: String,
-          },
-          address: {
-            type: String,
-          },
-        },
-      },
-      // 商家
-      business: {
-        name: {
-          type: String,
-        },
-        address: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        contact: {
-          type: String,
-        },
-        banner: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        product: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        }
-      },
-      // 快递员
-      courier: {
-        company: {
-          type: String,
-        },
-        name: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        email: String,
-        employee_card: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-
-      // 销售
-      salesman: {
-        name: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        address: {
-          type: String,
-        },
-        id_card: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-      openid: {
-        type: String,
-      },
-      enable: {
-        type: Boolean,
-        default: true,
-      },
-      inviter: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      state: {
-        type: String,
-        enum: [
-          'passed', 'rejected', 'unreview',
-        ],
-        default: 'unreview',
-      },
-      rejectReason: {
-        type: String,
-      },
-      last_login: Date,
-      deleted_at: Date,
+    role_type: {
+      type: String,
+      enum: [
+        'platform',
+        'factory',
+        'business',
+        'courier',
+        'salesman',
+        'unauthed',
+      ],
+      default: 'unauthed',
     },
-    Object.assign({}, {
-      timestamps,
-    })
+    role_id: {
+      type: Number,
+      default: 60,
+    },
+    // 平台用户
+    platform: {
+      name: {
+        type: String,
+      },
+      email: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+    },
+    // 厂家
+    factory: {
+      name: {
+        type: String,
+      },
+      public_account: {
+        type: String,
+      },
+      email: {
+        type: String,
+      },
+      contact: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      license: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      receiving_info: {
+        name: {
+          type: String,
+        },
+        phone: {
+          type: String,
+        },
+        address: {
+          type: String,
+        },
+      },
+    },
+    // 商家
+    business: {
+      name: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      contact: {
+        type: String,
+      },
+      banner: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      product: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+    // 快递员
+    courier: {
+      company: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      email: String,
+      employee_card: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+
+    // 销售
+    salesman: {
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      id_card: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+    openid: {
+      type: String,
+    },
+    enable: {
+      type: Boolean,
+      default: true,
+    },
+    inviter: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    state: {
+      type: String,
+      enum: [
+        'passed', 'rejected', 'unreview',
+      ],
+      default: 'unreview',
+    },
+    rejectReason: {
+      type: String,
+    },
+    last_login: Date,
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('user', schema);

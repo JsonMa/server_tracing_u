@@ -30,10 +30,14 @@ module.exports = ({
    * @property {String}   express.send_at        - 发货时间
    * @property {Boolean}  needPrint              - 是否需要打印生成溯源码
    * @property {Boolean}  isStagePay             - 是否分期付款
+   * @property {Number}   stageProportion        - 分期比例
+   * @property {Object}   payee                  - 收款人信息
+   * @property {String}   payee.account          - 收款人银行账号
+   * @property {String}   payee.bank             - 收款人银行名称
+   * @property {String}   payee.name             - 收款人名称
    * @property {Object}   trade                  - 交易信息
    * @property {Object}   trade.type             - 付款类型【'FIRST_PAYED','ALL_PAYED',】首付款/全款
    * @property {Object}   trade.sponsor          - 发起人账号
-   * @property {Object}   trade.receiver         - 收款人账号
    * @property {Object}   trade.voucher          - 交易凭证
    * @property {Object}   trade.number           - 交易单号
    * @property {Date}     trade.pay_at           - 付款时间
@@ -95,6 +99,24 @@ module.exports = ({
       type: Boolean,
       default: false,
     },
+    stageProportion: {
+      type: Number,
+      default: 0.5,
+    },
+    payee: {
+      account: {
+        type: String,
+        default: '755942248610701',
+      },
+      bank: {
+        type: String,
+        default: '招商银行',
+      },
+      name: {
+        type: String,
+        default: '溯源科技',
+      },
+    },
     needRemind: {
       type: Boolean,
       default: false,
@@ -105,13 +127,10 @@ module.exports = ({
         values: ['FIRST_PAYED', 'ALL_PAYED'],
       },
       sponsor: {
-        type: 'string',
+        type: String,
       },
       number: {
-        type: 'string',
-      },
-      receiver: {
-        type: 'string',
+        type: String,
       },
       voucher: {
         type: Schema.Types.ObjectId,

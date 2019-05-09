@@ -307,14 +307,11 @@ module.exports = app => {
                 number: {
                   type: 'string',
                 },
-                receiver: {
-                  type: 'string',
-                },
                 voucher: {
                   $ref: 'schema.definition#/oid',
                 },
               },
-              required: ['type', 'sponsor', 'number', 'receiver', 'voucher'],
+              required: ['type', 'sponsor', 'number', 'voucher'],
               additionalProperties: false,
               $async: true,
             },
