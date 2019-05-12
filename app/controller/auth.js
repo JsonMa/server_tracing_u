@@ -53,18 +53,10 @@ module.exports = app => {
      * @return {Object} user & token
      */
     async login() {
-      const {
-        ctx,
-        loginRule,
-      } = this;
+      const { ctx, loginRule } = this;
 
-      const {
-        code,
-      } = await ctx.verify(loginRule, ctx.request.body);
-      const {
-        openid,
-        session_key,
-      } = await this.code2Session(code);
+      const { code } = await ctx.verify(loginRule, ctx.request.body);
+      const { openid, session_key } = await this.code2Session(code);
       const user = await ctx.service.user.findOne({
         openid,
       });
@@ -80,10 +72,9 @@ module.exports = app => {
         sessionData.isRegistered = true;
       }
       const token = uuid();
-      app.redis.set(
-        `${app.config.auth.prefix}:${token}`,
-        JSON.stringify(sessionData)
-      ).expire(`${app.config.auth.prefix}:${token}`, session_key);
+      app.redis
+        .set(`${app.config.auth.prefix}:${token}`, JSON.stringify(sessionData))
+        .expire(`${app.config.auth.prefix}:${token}`, session_key);
       ctx.cookies.set('access_token', token);
       ctx.jsonBody = {
         token,
@@ -99,12 +90,8 @@ module.exports = app => {
      * @return {object} 返回登出结果
      */
     async logout() {
-      const {
-        ctx,
-      } = this;
-      const {
-        access_token: token,
-      } = ctx.header;
+      const { ctx } = this;
+      const { access_token: token } = ctx.header;
 
       const ret = await app.redis.del(`${app.config.auth.prefix}:${token}`);
       ctx.assert(ret === 1, '退出登录失败', 500);
@@ -119,28 +106,24 @@ module.exports = app => {
      * @memberof AuthController
      */
     async code2Session(code) {
-      const {
-        ctx,
-      } = this;
+      const { ctx } = this;
       const config = ctx.app.config.wechat;
       ctx.assert(typeof code === 'string', 'code需为字符串', 400);
 
-      const {
-        data,
-      } = await ctx.curl('https://api.weixin.qq.com/sns/jscode2session', {
-        method: 'GET',
-        data: {
-          appid: config.appid,
-          secret: config.secret,
-          js_code: code,
-          grant_type: config.grant_type,
-        },
-        dataType: 'json',
-      });
-      const {
-        errcode,
-        errmsg,
-      } = data;
+      const { data } = await ctx.curl(
+        'https://api.weixin.qq.com/sns/jscode2session',
+        {
+          method: 'GET',
+          data: {
+            appid: config.appid,
+            secret: config.secret,
+            js_code: code,
+            grant_type: config.grant_type,
+          },
+          dataType: 'json',
+        }
+      );
+      const { errcode, errmsg } = data;
       if (errcode) {
         this.logger.error(`[code2Session] - code: ${errcode}, msg: ${errmsg}`);
         ctx.error(11005, 'wechat code错误');

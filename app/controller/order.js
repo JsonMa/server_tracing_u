@@ -43,16 +43,12 @@ module.exports = app => {
      * @return {promise} Order
      */
     async create() {
-      const {
-        createRule,
-        ctx,
-      } = this;
+      const { createRule, ctx } = this;
 
-      const {
-        commodity,
-        count,
-        buyer,
-      } = await ctx.verify(createRule, ctx.request.body);
+      const { commodity, count, buyer } = await ctx.verify(
+        createRule,
+        ctx.request.body
+      );
 
       const isCommodityExited = await ctx.service.commodity.findById(commodity);
       ctx.error(isCommodityExited, 17001, '订单涉及的商品不存在');
@@ -60,7 +56,11 @@ module.exports = app => {
 
       const isUserExited = await ctx.service.user.findById(buyer);
       ctx.error(isUserExited, 17003, '商品购买者不存在');
-      ctx.error(isUserExited.role_type === 'factory', 17017, '该用户类型不具备购买权限');
+      ctx.error(
+        isUserExited.role_type === 'factory',
+        17017,
+        '该用户类型不具备购买权限'
+      );
 
       const order = await ctx.service.order.create(
         Object.assign(ctx.request.body, {
@@ -69,9 +69,11 @@ module.exports = app => {
           needPrint: !!isCommodityExited.quata,
           status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
-          ...(isUserExited.inviter ? {
-            salesman: isUserExited.inviter,
-          } : {}),
+          ...(isUserExited.inviter
+            ? {
+              salesman: isUserExited.inviter,
+            }
+            : {}),
         })
       );
       ctx.jsonBody = order;
@@ -109,9 +111,7 @@ module.exports = app => {
           },
           embed: {
             type: 'string',
-            enum: [
-              'category',
-            ],
+            enum: ['category'],
           },
           ...this.ctx.helper.pagination.rule,
         },
@@ -127,14 +127,9 @@ module.exports = app => {
      * @return {promise} Order List
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
+      const { ctx, indexRule } = this;
 
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
+      const { generateSortParam } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
         unPaid: [], // 待付款
@@ -143,11 +138,11 @@ module.exports = app => {
         all: [], // 所有订单
       };
       const {
-        limit = 10, offset = 0, sort = '-created_at', embed,
-      } = await ctx.verify(
-        indexRule,
-        ctx.request.query
-      );
+        limit = 10,
+        offset = 0,
+        sort = '-created_at',
+        embed,
+      } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
       ['status', 'buyer', 'salesman', 'quoter'].forEach(key => {
@@ -156,7 +151,8 @@ module.exports = app => {
       });
       const orders = await ctx.service.order.findMany(
         query,
-        null, {
+        null,
+        {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -166,10 +162,7 @@ module.exports = app => {
       if (embed === 'category') {
         respOrders.all = orders;
         orders.forEach(order => {
-          const {
-            status,
-            isStagePay,
-          } = order;
+          const { status, isStagePay } = order;
           switch (status) {
             case 'CREATED':
               if (isStagePay) respOrders.unQuoted.push(order);
@@ -231,15 +224,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async show() {
-      const {
-        ctx,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
 
-      const order = await ctx.service.order.findById(id, 'commodity buyer salesman quoter');
+      const order = await ctx.service.order.findById(
+        id,
+        'commodity buyer salesman quoter'
+      );
       ctx.error(order, 17000, '订单不存在');
       ctx.jsonBody = order;
     }
@@ -330,18 +321,8 @@ module.exports = app => {
      * @return {promise} Order
      */
     async update() {
-      const {
-        ctx,
-        updateRule,
-      } = this;
-      const {
-        id,
-        trade,
-        price,
-        quoter,
-        express,
-        status,
-      } = await ctx.verify(
+      const { ctx, updateRule } = this;
+      const { id, trade, price, quoter, express, status } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
@@ -355,9 +336,14 @@ module.exports = app => {
       // 报价
       if (status === 'QUOTED') {
         ctx.error(!!price, 400, '未携带报价信息', 400);
-        ctx.error(!!isOrderExit.commodity.isCustom, 17006, '非订制商品，不可报价');
+        ctx.error(
+          !!isOrderExit.commodity.isCustom,
+          17006,
+          '非订制商品，不可报价'
+        );
         ctx.error(quoter, 400, '报价人为必填项', 400);
         const isQuoterExit = await ctx.service.user.findById(quoter);
+        // TODO判断用户类型为salesman或者platform
         ctx.error(isQuoterExit, 17004, '报价人不存在');
         ctx.error(
           ['salesman', 'platform'].includes(isQuoterExit.role_type),
@@ -377,6 +363,7 @@ module.exports = app => {
           quote_at: new Date(),
         });
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
+        // TODO 操作权限，用户必须为buyer且类型为factory
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
         ctx.error(
           ['QUOTED', 'FIRST_PAYED', 'ALL_PAYED'].includes(isOrderExit.status),
@@ -384,28 +371,46 @@ module.exports = app => {
           '上传支付凭据失败，订单已生成鉴权码或已发货'
         );
         if (isOrderExit.status === 'ALL_PAYED') {
-          ctx.error(status === 'FIRST_PAYED', 17010, '修改订单状态失败,当前订单已支付完成');
+          ctx.error(
+            status === 'FIRST_PAYED',
+            17010,
+            '修改订单状态失败,当前订单已支付完成'
+          );
         }
 
         // 过滤输入trade数据
         for (let i = 0; i < trade.length; i++) {
-          const isVoucherExit = await ctx.service.file.findById(trade[i].voucher);
+          const isVoucherExit = await ctx.service.file.findById(
+            trade[i].voucher
+          );
           ctx.error(isVoucherExit, 17008, '未找到打款凭据截图');
         }
         const tradeFilter = {};
         if (isOrderExit.isStagePay) {
           // 分期支付
           if (status === 'ALL_PAYED') {
-            ctx.error(trade.length === 2, 17011, '支付只能分两期支付，请检查支付信息');
+            ctx.error(
+              trade.length === 2,
+              17011,
+              '支付只能分两期支付，请检查支付信息'
+            );
             trade.forEach(item => {
               if (Reflect.has(tradeFilter, item.type)) {
                 ctx.error(false, 17012, '交易信息重复，请检查交易信息');
               } else tradeFilter[item.type] = true;
             });
-            ctx.error(Object.keys(tradeFilter).includes(status), 17013, '订单状态与交易信息不匹配');
+            ctx.error(
+              Object.keys(tradeFilter).includes(status),
+              17013,
+              '订单状态与交易信息不匹配'
+            );
           } else {
             ctx.error(trade.length === 1, 17014, '首付款只能包含单条交易内容');
-            ctx.error(trade[0].type === 'FIRST_PAYED', 17013, '订单状态与交易信息不匹配');
+            ctx.error(
+              trade[0].type === 'FIRST_PAYED',
+              17013,
+              '订单状态与交易信息不匹配'
+            );
           }
         } else {
           // 全款支付
@@ -414,7 +419,11 @@ module.exports = app => {
             17009,
             '非定制商品只能全价支付订单'
           );
-          ctx.error(trade[0].type === 'ALL_PAYED', 17009, '非定制商品只能全价支付订单');
+          ctx.error(
+            trade[0].type === 'ALL_PAYED',
+            17009,
+            '非定制商品只能全价支付订单'
+          );
         }
         trade.pay_at = new Date();
         Object.assign(modifiedData, {
@@ -422,9 +431,14 @@ module.exports = app => {
           status,
         });
       } else if (status === 'SHIPPED') {
+        // TODO 操作权限，用户类型必须为platform
         // 发货
         ctx.error(express, 400, '未携带快递信息', 400);
-        ctx.error(isOrderExit.status === 'ALL_PAYED', 17008, '发货失败，订单未支付');
+        ctx.error(
+          isOrderExit.status === 'ALL_PAYED',
+          17008,
+          '发货失败，订单未支付'
+        );
         express.send_at = new Date();
         Object.assign(modifiedData, {
           express,
@@ -433,26 +447,32 @@ module.exports = app => {
         });
 
         // 修改商品已出售数量
-        const {
-          sales,
-          _id: commodityId,
-        } = isOrderExit.commodity;
-        const {
-          nModified,
-        } = await ctx.service.commodity.update({
-          _id: commodityId,
-        }, {
-          sales: sales + isOrderExit.count,
-          payers: payers + 1,
-        });
+        const { sales, _id: commodityId, payers } = isOrderExit.commodity;
+        const { nModified } = await ctx.service.commodity.update(
+          {
+            _id: commodityId,
+          },
+          {
+            sales: sales + isOrderExit.count,
+            payers: payers + 1,
+          }
+        );
         ctx.error(nModified === 1, 15005, '商品修改失败');
       } else {
         // 收货
         if (status === 'PRINTED') {
-          ctx.error(['FIRST_PAYED', 'ALL_PAYED'].includes(status), 17008, '打印失败，订单未支付');
+          ctx.error(
+            ['FIRST_PAYED', 'ALL_PAYED'].includes(status),
+            17008,
+            '打印失败，订单未支付'
+          );
         }
         if (status === 'FINISHED') {
-          ctx.error(isOrderExit.status === 'SHIPPED', 17008, '收货失败，订单未发货');
+          ctx.error(
+            isOrderExit.status === 'SHIPPED',
+            17008,
+            '收货失败，订单未发货'
+          );
         }
         Object.assign(modifiedData, {
           status,
@@ -460,12 +480,11 @@ module.exports = app => {
         });
       }
 
-      const {
-        nModified,
-      } = await ctx.service.order.update({
-        _id: id,
-      },
-      modifiedData
+      const { nModified } = await ctx.service.order.update(
+        {
+          _id: id,
+        },
+        modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 
@@ -480,20 +499,17 @@ module.exports = app => {
      * @return {promise} Order
      */
     async destroy() {
-      const {
-        ctx,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
 
       const order = await ctx.service.order.findById(id);
       ctx.error(order, 17000, '订单不存在');
-      ctx.error(['CREATED', 'QUOTED'].includes(order.status), 17015, '订单删除失败，已支付订单款项');
-      const {
-        nModified,
-      } = await ctx.service.order.destroy({
+      ctx.error(
+        ['CREATED', 'QUOTED'].includes(order.status),
+        17015,
+        '订单删除失败，已支付订单款项'
+      );
+      const { nModified } = await ctx.service.order.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 17016, '订单删除失败');
