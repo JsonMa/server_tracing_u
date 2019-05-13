@@ -43,9 +43,16 @@ module.exports = app => {
      * @return {promise} Order
      */
     async create() {
-      const { createRule, ctx } = this;
+      const {
+        createRule,
+        ctx,
+      } = this;
 
-      const { commodity, count, buyer } = await ctx.verify(
+      const {
+        commodity,
+        count,
+        buyer,
+      } = await ctx.verify(
         createRule,
         ctx.request.body
       );
@@ -69,11 +76,9 @@ module.exports = app => {
           needPrint: !!isCommodityExited.quata,
           status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
-          ...(isUserExited.inviter
-            ? {
-              salesman: isUserExited.inviter,
-            }
-            : {}),
+          ...(isUserExited.inviter ? {
+            salesman: isUserExited.inviter,
+          } : {}),
         })
       );
       ctx.jsonBody = order;
@@ -127,9 +132,14 @@ module.exports = app => {
      * @return {promise} Order List
      */
     async index() {
-      const { ctx, indexRule } = this;
+      const {
+        ctx,
+        indexRule,
+      } = this;
 
-      const { generateSortParam } = ctx.helper.pagination;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
         unPaid: [], // 待付款
@@ -151,8 +161,7 @@ module.exports = app => {
       });
       const orders = await ctx.service.order.findMany(
         query,
-        null,
-        {
+        null, {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -162,7 +171,10 @@ module.exports = app => {
       if (embed === 'category') {
         respOrders.all = orders;
         orders.forEach(order => {
-          const { status, isStagePay } = order;
+          const {
+            status,
+            isStagePay,
+          } = order;
           switch (status) {
             case 'CREATED':
               if (isStagePay) respOrders.unQuoted.push(order);
@@ -224,8 +236,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async show() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
       const order = await ctx.service.order.findById(
         id,
@@ -321,8 +338,18 @@ module.exports = app => {
      * @return {promise} Order
      */
     async update() {
-      const { ctx, updateRule } = this;
-      const { id, trade, price, quoter, express, status } = await ctx.verify(
+      const {
+        ctx,
+        updateRule,
+      } = this;
+      const {
+        id,
+        trade,
+        price,
+        quoter,
+        express,
+        status,
+      } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
@@ -404,6 +431,7 @@ module.exports = app => {
               17013,
               '订单状态与交易信息不匹配'
             );
+            trade[1].pay_at = new Date();
           } else {
             ctx.error(trade.length === 1, 17014, '首付款只能包含单条交易内容');
             ctx.error(
@@ -411,6 +439,7 @@ module.exports = app => {
               17013,
               '订单状态与交易信息不匹配'
             );
+            trade[0].pay_at = new Date();
           }
         } else {
           // 全款支付
@@ -424,8 +453,8 @@ module.exports = app => {
             17009,
             '非定制商品只能全价支付订单'
           );
+          trade[0].pay_at = new Date();
         }
-        trade.pay_at = new Date();
         Object.assign(modifiedData, {
           trade,
           status,
@@ -447,16 +476,19 @@ module.exports = app => {
         });
 
         // 修改商品已出售数量
-        const { sales, _id: commodityId, payers } = isOrderExit.commodity;
-        const { nModified } = await ctx.service.commodity.update(
-          {
-            _id: commodityId,
-          },
-          {
-            sales: sales + isOrderExit.count,
-            payers: payers + 1,
-          }
-        );
+        const {
+          sales,
+          _id: commodityId,
+          payers,
+        } = isOrderExit.commodity;
+        const {
+          nModified,
+        } = await ctx.service.commodity.update({
+          _id: commodityId,
+        }, {
+          sales: sales + isOrderExit.count,
+          payers: payers + 1,
+        });
         ctx.error(nModified === 1, 15005, '商品修改失败');
       } else {
         // 收货
@@ -480,11 +512,12 @@ module.exports = app => {
         });
       }
 
-      const { nModified } = await ctx.service.order.update(
-        {
-          _id: id,
-        },
-        modifiedData
+      const {
+        nModified,
+      } = await ctx.service.order.update({
+        _id: id,
+      },
+      modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 
@@ -499,8 +532,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async destroy() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
       const order = await ctx.service.order.findById(id);
       ctx.error(order, 17000, '订单不存在');
@@ -509,7 +547,9 @@ module.exports = app => {
         17015,
         '订单删除失败，已支付订单款项'
       );
-      const { nModified } = await ctx.service.order.destroy({
+      const {
+        nModified,
+      } = await ctx.service.order.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 17016, '订单删除失败');
