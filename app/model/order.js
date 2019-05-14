@@ -46,6 +46,7 @@ module.exports = ({ mongoose }) => {
    * @property {Boolean}  print_at               - 溯源码打印时间
    * @property {Date}     finish_at              - 订单结束时间
    * @property {String}   reason                 - 删除原因
+   * @property {String}   remarks                - 订单备注[定制商品需要备注长宽高及厚度]
    */
   const schema = new Schema(
     {
