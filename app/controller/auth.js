@@ -1,7 +1,5 @@
 'use strict';
 
-const uuid = require('uuid/v4');
-
 module.exports = app => {
   /**
    * Auth 相关路由
@@ -54,9 +52,8 @@ module.exports = app => {
      */
     async login() {
       const { ctx, loginRule } = this;
-
       const { code } = await ctx.verify(loginRule, ctx.request.body);
-      const { openid, session_key } = await this.code2Session(code);
+      const { openid, session_key, expires_in } = await this.code2Session(code);
       const user = await ctx.service.user.findOne({
         openid,
       });
@@ -69,15 +66,25 @@ module.exports = app => {
         isRegistered = true;
         sessionData.role_type = user.role_type;
         sessionData.role_id = user.role_id;
+        sessionData.user_id = user._id;
         sessionData.isRegistered = true;
+        const { nModified } = await ctx.service.user.update(
+          {
+            _id: user._id,
+          },
+          { last_login: new Date() }
+        );
+        ctx.error(nModified === 1, 11008, '修改登录时间失败');
       }
-      const token = uuid();
-      app.redis
-        .set(`${app.config.auth.prefix}:${token}`, JSON.stringify(sessionData))
-        .expire(`${app.config.auth.prefix}:${token}`, session_key);
-      ctx.cookies.set('access_token', token);
+      ctx.app.redis.set(
+        `${app.config.auth.prefix}:${session_key}`,
+        JSON.stringify(sessionData),
+        'EX',
+        expires_in
+      );
+      ctx.cookies.set('access_token', session_key);
       ctx.jsonBody = {
-        token,
+        token: session_key,
         user,
         isRegistered,
       };
@@ -93,8 +100,8 @@ module.exports = app => {
       const { ctx } = this;
       const { access_token: token } = ctx.header;
 
-      const ret = await app.redis.del(`${app.config.auth.prefix}:${token}`);
-      ctx.assert(ret === 1, '退出登录失败', 500);
+      const ret = await ctx.app.redis.del(`${app.config.auth.prefix}:${token}`);
+      ctx.error(ret === 1, 11009, '退出登录失败');
       ctx.jsonBody = null;
     }
 

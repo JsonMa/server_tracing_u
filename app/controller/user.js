@@ -119,13 +119,8 @@ module.exports = app => {
      * @return {promise} 用户列表
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
+      const { ctx, indexRule } = this;
+      const { generateSortParam } = ctx.helper.pagination;
 
       const {
         enable,
@@ -163,17 +158,10 @@ module.exports = app => {
      * @return {promise} 新建的用户
      */
     async create() {
-      const {
-        ctx,
-        service,
-        createRule,
-      } = this;
+      const { ctx, service, createRule } = this;
       await ctx.verify(createRule, ctx.request.body);
 
-      const {
-        role_type,
-        role_id,
-      } = ctx.request.body;
+      const { role_type, role_id } = ctx.request.body;
       switch (role_type) {
         case 'salesman':
           ctx.error(role_id >= 40 && role_id < 50, 11006, '用户类型与id不匹配');
@@ -221,14 +209,8 @@ module.exports = app => {
      * @return {promise} 用户详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
       const user = await service.user.findById(id);
       ctx.jsonBody = user;
     }
@@ -240,16 +222,8 @@ module.exports = app => {
      * @return {promise} 被修改用户信息
      */
     async update() {
-      const {
-        ctx,
-        service,
-        updateRule,
-      } = this;
-      const {
-        id,
-        enable,
-        inviter,
-      } = await ctx.verify(
+      const { ctx, service, updateRule } = this;
+      const { id, enable, inviter } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
@@ -259,10 +233,11 @@ module.exports = app => {
       const updateData = {};
       if (enable) updateData.enable = enable;
       if (inviter) updateData.inviter = inviter;
-      await service.user.update({
-        _id: id,
-      },
-      updateData
+      await service.user.update(
+        {
+          _id: id,
+        },
+        updateData
       );
 
       ctx.jsonBody = Object.assign(user, updateData);

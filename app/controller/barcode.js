@@ -95,13 +95,8 @@ module.exports = app => {
      * @return {promise} created barcode info
      */
     async create() {
-      const {
-        ctx,
-        createRule,
-      } = this;
-      const {
-        barcode,
-      } = await ctx.verify(createRule, ctx.request.body);
+      const { ctx, createRule } = this;
+      const { barcode } = await ctx.verify(createRule, ctx.request.body);
 
       const isExit = await ctx.service.barcode.findOne({
         barcode,
@@ -118,14 +113,8 @@ module.exports = app => {
      * @return {promise} code detail
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        barcode,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { barcode } = await ctx.verify(showRule, ctx.params);
       const isExit = await service.barcode.findOne({
         barcode,
       });
@@ -140,26 +129,19 @@ module.exports = app => {
      * @return {promise} updated barcode
      */
     async update() {
-      const {
-        ctx,
-        service,
-        createRule,
-      } = this;
-      const {
-        barcode,
-      } = await ctx.verify(createRule, ctx.request.body);
+      const { ctx, service, createRule } = this;
+      const { barcode } = await ctx.verify(createRule, ctx.request.body);
 
       const isExit = service.barcode.findOne({
         barcode,
       });
       ctx.assert(isExit, 13001, '该条形码不存在');
 
-      const {
-        nModified,
-      } = await ctx.service.barcode.update({
-        barcode,
-      },
-      ctx.request.body
+      const { nModified } = await ctx.service.barcode.update(
+        {
+          barcode,
+        },
+        ctx.request.body
       );
       ctx.error(nModified === 1, 13003, '修改条形码失败');
     }
@@ -171,20 +153,18 @@ module.exports = app => {
      * @memberof fileController
      */
     async destroy() {
-      const {
-        ctx,
-        service,
-        destroyRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(destroyRule, ctx.params);
+      const { ctx, service, destroyRule } = this;
+      const { id } = await ctx.verify(destroyRule, ctx.params);
       const isExit = await service.file.findById(id);
       ctx.assert(isExit, 13001, '该条形码不存在');
 
-      const result = await service.file.destroy({
-        _id: id,
-      }, false, true);
+      const result = await service.file.destroy(
+        {
+          _id: id,
+        },
+        false,
+        true
+      );
       ctx.error(result.ok === 1, 13002, '条形码删除失败');
       ctx.jsonBody = isExit;
     }
