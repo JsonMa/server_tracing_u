@@ -272,9 +272,6 @@ module.exports = app => {
               name: {
                 $ref: 'schema.definition#/name',
               },
-              courier: {
-                $ref: 'schema.definition#/oid',
-              },
             },
             required: ['id', 'name'],
             additionalProperties: false,

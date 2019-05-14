@@ -9,7 +9,7 @@ module.exports = ({ mongoose }) => {
    *
    * @model Order
    * @namespace Model
-   * @property {Enum}     status                 - 订单状态 ['CREATED-创建成功，待报价', 'QUOTED-已报价，待支付','FIRST_PAYED-已支付首款，待支付尾款', 'ALL_PAYED-已支付，待确认', 'PAYMENT_CONFIRMED'-已确认，待发货，'CLOSED','PRINTED', SHIPMENT-已发货，待签收', 'FINISHED-已签收']
+   * @property {Enum}     status                 - 订单状态 ['CREATED-创建成功，待报价', 'QUOTED-已报价，待支付','FIRST_PAYED-已支付首款，待支付尾款', 'ALL_PAYED-已支付，待确认', 'PAYMENT_CONFIRMED'-已确认，待发货，'CLOSED','PRINTED', SHIPPED-已发货，待签收', 'FINISHED-已签收']
    * @property {Object}   buyer                  - 购买者信息
    * @property {Object}   salesman               - 销售信息
    * @property {Object}   quoter                 - 报价人
