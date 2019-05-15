@@ -1,8 +1,6 @@
 'use strict';
 
-const {
-  VError,
-} = require('verror');
+const { VError } = require('verror');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -20,10 +18,9 @@ module.exports = {
    *
    */
   set jsonBody(obj) {
-    let data = obj.data;
-    const {
-      meta = {}, embed = {},
-    } = obj;
+    let data = obj ? obj.data : {};
+    obj = obj || {};
+    const { meta = {}, embed = {} } = obj;
 
     if (
       _.isObject(obj) &&
@@ -36,13 +33,15 @@ module.exports = {
     this.body = {
       code: 0,
       msg: 'success',
-      ...(obj ? {
-        data: {
-          meta,
-          embed,
-          data,
-        },
-      } : {}),
+      ...(obj
+        ? {
+          data: {
+            meta,
+            embed,
+            data,
+          },
+        }
+        : {}),
     };
   },
 
@@ -59,12 +58,14 @@ module.exports = {
     if (stack) this.assert(stack instanceof Error, 'stack需为Error类型', 500);
 
     const err = Object.assign(
-      new VError({
-        name: 'CONTEXT_ERROR',
-        ...(stack ? stack : {}),
-      },
-      message
-      ), {
+      new VError(
+        {
+          name: 'CONTEXT_ERROR',
+          ...(stack ? stack : {}),
+        },
+        message
+      ),
+      {
         code,
         status: httpStatus || 200,
       }
@@ -75,16 +76,18 @@ module.exports = {
 
   async verify(rule, params) {
     const ret = await this.validate(rule, params).catch(function(e) {
-      throw new VError({
-        name: 'AJV_ERROR',
-        cause: e,
-        info: e.errors ?
-          e.errors.reduce((map, e) => {
-            map[e.keyword] = e.message;
-            return map;
-          }) : e.message,
-      },
-      '错误的请求参数'
+      throw new VError(
+        {
+          name: 'AJV_ERROR',
+          cause: e,
+          info: e.errors
+            ? e.errors.reduce((map, e) => {
+              map[e.keyword] = e.message;
+              return map;
+            })
+            : e.message,
+        },
+        '错误的请求参数'
       );
     });
     return ret;
@@ -93,72 +96,54 @@ module.exports = {
   /**
    * 检查用户权限, 检查失败直接抛出403异常
    *
-   * @param {uuid} userId 如果当前用户为admin, 则不检查；如果user为普通用户，检测当前用户id是否为user_id
+   * @param {string} roles 角色类型
    * @return {undefined}
    */
-  checkPermission(userId) {
-    assert(userId, 'userId is required');
-    this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
-
-    /* istanbul ignore next */
-    if (this.state.auth.role === '1') {
-      return;
-    }
-
-    const {
-      user,
-    } = this.state.auth;
-    this.assert(user, 403);
-    this.assert.equal(user.id, userId, 403);
+  checkPermission(roles) {
+    this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
+    const { role_type, user_id } = this.state.auth;
+    this.error(
+      roles.includes(role_type) || roles.includes(user_id),
+      10003,
+      '该用户类型无权访问该接口',
+      403
+    );
+    return this.state.auth;
   },
 
   /**
-   * 检查当前用户是否是普通用户
-   * @param {uuid} userId 可为空，不为空时检查是否是当前登录用户
-   * @return {undefined}
-   */
-  userPermission(userId) {
-    this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
-
-    this.assert.equal(this.state.auth.role, '32', 403);
-    if (userId) {
-      const {
-        user,
-      } = this.state.auth;
-      this.assert(user, 403);
-      this.assert.equal(user.id, userId, 403);
-    }
-  },
-
-  /**
-   * 检查当前用户是否是管理员
+   * 检查用户是否注册
    *
-   * @param {integer} roleIds 合法的角色id数组
-   * @return {undefined}
+   * @return {object} - auth对象
    */
-  adminPermission(roleIds) {
-    this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
-    this.assert.equal(this.state.auth.role, '1', 403);
-
-    /* istanbul ignore if */
-    if (roleIds) {
-      assert(roleIds instanceof Array);
-      this.assert(roleIds.indexOf(this.state.auth.user.role_id) >= 0, 403);
-    }
+  registerPermission() {
+    this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
+    const { isRegistered } = this.state.auth;
+    this.error(isRegistered, 10004, '该用户未注册，无权访问该接口', 403);
+    return this.state.auth;
   },
 
   /**
-   * 检查用户是否登录, 检查失败直接抛出403异常
+   * 检查登陆的用户是否是被请求的用户
    *
-   * @return {undefined}
+   * @param {String} userId - 用户ID
+   * @return {object} - auth对象
    */
-  authPermission() {
-    this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
+  oneselfPermission(userId) {
+    this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
+    const { user_id } = this.state.auth;
+    this.error(user_id === userId, 10005, '只能操作自身权限相关的接口', 403);
+    return this.state.auth;
+  },
 
-    const {
-      user,
-    } = this.state.auth;
-    this.assert(user, 403);
+  /**
+   * 检查用户是否登陆
+   *
+   * @return {object} - auth对象
+   */
+  loginPermission() {
+    this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
+    return this.state.auth;
   },
 
   /**
@@ -180,27 +165,11 @@ module.exports = {
    * @return {Buffer} error buffer
    */
   renderError(err) {
-    const {
-      message = '服务器内部错误', status = 500,
-    } = err;
+    const { message = '服务器内部错误', status = 500 } = err;
     const errorView = this.app.errorTemplate
       .replace(/{{ error_status }}/gi, status)
       .replace(/{{ error_message }}/gi, message);
     return Buffer.from(errorView);
-  },
-
-  /**
-   * 验证用户是否为管理员
-   *
-   * @return {boolean} 返回验证结果
-   */
-  isAdmin() {
-    this.assert(this.state.auth, '使用了用户认证，但未开启auth中间件', 500);
-
-    const {
-      role,
-    } = this.state.auth;
-    return role === '1';
   },
 
   get errors() {

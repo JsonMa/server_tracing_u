@@ -1,13 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  const {
-    formidable,
-    compress,
-  } = app.middleware;
+  const { formidable, compress } = app.middleware;
 
   /* istanbul ignore next */
-  const prefix = app.config.noPrefix ? '' : '/api';
+  const prefix = '/api';
 
   // auth
   app.post(`${prefix}/auth/login`, 'auth.login');

@@ -121,6 +121,7 @@ module.exports = app => {
     async index() {
       const { ctx, indexRule } = this;
       const { generateSortParam } = ctx.helper.pagination;
+      ctx.checkPermission(['platform']);
 
       const {
         enable,
@@ -159,6 +160,7 @@ module.exports = app => {
      */
     async create() {
       const { ctx, service, createRule } = this;
+      const { openid, token } = ctx.loginPermission();
       await ctx.verify(createRule, ctx.request.body);
 
       const { role_type, role_id } = ctx.request.body;
@@ -185,7 +187,6 @@ module.exports = app => {
       // 验证用户是否存在
       const userData = ctx.request.body[role_type];
       ctx.error(userData, 11007, '未找到属于该用户类型的数据');
-      // TODO 从登录信息中获取unionID并存入数据库
       const query = {};
       query[`${role_type}.name`] = userData.name;
       const user = await service.user.findOne(query);
@@ -195,10 +196,27 @@ module.exports = app => {
       targetData = Object.assign(targetData, {
         role_type,
         role_id,
+        openid,
       });
 
       // 创建用户
-      const createdUser = await service.user.create(ctx.request.body);
+      const createdUser = await service.user.create(targetData);
+      if (createdUser) {
+        const { role_type, _id, role_id } = createdUser;
+        const isRegistered = true;
+        const sessionData = Object.assign(ctx.state.auth, {
+          isRegistered,
+          role_type,
+          role_id,
+          user_id: _id,
+        });
+        await ctx.app.redis.set(
+          `token:${token}`,
+          JSON.stringify(sessionData),
+          'EX',
+          7200
+        );
+      }
       ctx.jsonBody = createdUser;
     }
 
@@ -211,6 +229,7 @@ module.exports = app => {
     async show() {
       const { ctx, service, showRule } = this;
       const { id } = await ctx.verify(showRule, ctx.params);
+      ctx.checkPermission(['platform', id]);
       const user = await service.user.findById(id);
       ctx.jsonBody = user;
     }
@@ -223,24 +242,22 @@ module.exports = app => {
      */
     async update() {
       const { ctx, service, updateRule } = this;
-      const { id, enable, inviter } = await ctx.verify(
+      const { id } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
+      ctx.checkPermission(['platform']);
 
       const user = await service.user.findById(id);
       ctx.assert(user, '不存在该用户', 404);
-      const updateData = {};
-      if (enable) updateData.enable = enable;
-      if (inviter) updateData.inviter = inviter;
       await service.user.update(
         {
           _id: id,
         },
-        updateData
+        ctx.request.body
       );
 
-      ctx.jsonBody = Object.assign(user, updateData);
+      ctx.jsonBody = Object.assign(user, ctx.request.body);
     }
   }
   return UserController;
