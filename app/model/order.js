@@ -25,7 +25,6 @@ module.exports = ({ mongoose }) => {
    * @property {Boolean}  needPrint              - 是否需要打印生成溯源码
    * @property {Boolean}  isStagePay             - 是否分期付款
    * @property {Number}   stageProportion        - 分期比例
-   * @property {String}   tailPayment_at         - 尾款时间['BEFORE_EXPRESS', 'AFTER_EXPRESS']
    * @property {Number}   commisionProportion    - 佣金比例
    * @property {Object}   payee                  - 收款人信息
    * @property {String}   payee.account          - 收款人银行账号
@@ -107,10 +106,6 @@ module.exports = ({ mongoose }) => {
       stageProportion: {
         type: Number,
         default: 0.5,
-      },
-      tailPayment_at: {
-        type: String,
-        enum: ['BEFORE_EXPRESS', 'AFTER_EXPRESS'],
       },
       commisionProportion: {
         type: Number,
