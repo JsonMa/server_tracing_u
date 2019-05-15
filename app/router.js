@@ -1,7 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  const { formidable, compress } = app.middleware;
+  const {
+    formidable,
+    compress,
+  } = app.middleware;
 
   /* istanbul ignore next */
   const prefix = app.config.noPrefix ? '' : '/api';
@@ -56,7 +59,4 @@ module.exports = app => {
 
   // miniprogram
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');
-
-  // error
-  app.get('/error', 'error.index');
 };

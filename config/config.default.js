@@ -76,10 +76,6 @@ module.exports = () => {
     }
   };
 
-  exports.notfound = {
-    pageUrl: '/error'
-  };
-
   exports.logger = {
     disableConsoleAfterReady: false,
   }
