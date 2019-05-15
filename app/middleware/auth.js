@@ -5,6 +5,9 @@ const TOKEN = 'access_token';
 /* istanbul ignore next */
 module.exports = option =>
   function* (next) {
+    // 设置接口白名单
+    const whiteUrlLists = ['/api/auth/login'];
+    if (whiteUrlLists.includes(this.request.url)) yield next;
     const token =
       this.headers[TOKEN] ||
       this.cookies.get(TOKEN, {
