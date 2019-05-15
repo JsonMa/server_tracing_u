@@ -14,6 +14,7 @@ module.exports = option =>
         signed: false,
       });
     const ret = yield this.app.redis.get(`${option.prefix}:${token}`);
+    if (token && !ret) this.cookies.set(TOKEN, null);
     this.error(ret, 10001, '未登录或access_token已过期', 403);
     try {
       this.state.auth = JSON.parse(ret);
