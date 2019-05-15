@@ -51,9 +51,21 @@ module.exports = app => {
      * @return {Object} user & token
      */
     async login() {
-      const { ctx, loginRule } = this;
-      const { code } = await ctx.verify(loginRule, ctx.request.body);
-      const { openid, session_key, expires_in } = await this.code2Session(code);
+      const {
+        ctx,
+        loginRule,
+      } = this;
+      const {
+        code,
+      } = await ctx.verify(loginRule, ctx.request.body);
+      const {
+        openid,
+        session_key,
+        expires_in,
+        errcode,
+        errmsg,
+      } = await this.code2Session(code);
+      ctx.error(!errcode, 10002, errmsg);
       const user = await ctx.service.user.findOne({
         openid,
       });
@@ -68,12 +80,13 @@ module.exports = app => {
         sessionData.role_id = user.role_id;
         sessionData.user_id = user._id;
         sessionData.isRegistered = true;
-        const { nModified } = await ctx.service.user.update(
-          {
-            _id: user._id,
-          },
-          { last_login: new Date() }
-        );
+        const {
+          nModified,
+        } = await ctx.service.user.update({
+          _id: user._id,
+        }, {
+          last_login: new Date(),
+        });
         ctx.error(nModified === 1, 11008, '修改登录时间失败');
       }
       ctx.app.redis.set(
@@ -82,7 +95,10 @@ module.exports = app => {
         'EX',
         expires_in
       );
-      ctx.cookies.set('access_token', session_key);
+      ctx.cookies.set('access_token', session_key, {
+        signed: true,
+        maxAge: expires_in,
+      });
       ctx.jsonBody = {
         token: session_key,
         user,
@@ -97,11 +113,19 @@ module.exports = app => {
      * @return {object} 返回登出结果
      */
     async logout() {
-      const { ctx } = this;
-      const { access_token: token } = ctx.header;
+      const {
+        ctx,
+      } = this;
+      const {
+        access_token: token,
+      } = ctx.header;
 
       const ret = await ctx.app.redis.del(`${app.config.auth.prefix}:${token}`);
       ctx.error(ret === 1, 11009, '退出登录失败');
+      ctx.cookies.set('access_token', '', {
+        signed: false,
+        maxAge: 0,
+      }); // 清除access_token
       ctx.jsonBody = null;
     }
 
@@ -113,13 +137,16 @@ module.exports = app => {
      * @memberof AuthController
      */
     async code2Session(code) {
-      const { ctx } = this;
+      const {
+        ctx,
+      } = this;
       const config = ctx.app.config.wechat;
       ctx.assert(typeof code === 'string', 'code需为字符串', 400);
 
-      const { data } = await ctx.curl(
-        'https://api.weixin.qq.com/sns/jscode2session',
-        {
+      const {
+        data,
+      } = await ctx.curl(
+        'https://api.weixin.qq.com/sns/jscode2session', {
           method: 'GET',
           data: {
             appid: config.appid,
@@ -130,7 +157,10 @@ module.exports = app => {
           dataType: 'json',
         }
       );
-      const { errcode, errmsg } = data;
+      const {
+        errcode,
+        errmsg,
+      } = data;
       if (errcode) {
         this.logger.error(`[code2Session] - code: ${errcode}, msg: ${errmsg}`);
         ctx.error(11005, 'wechat code错误');
