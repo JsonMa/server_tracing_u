@@ -99,7 +99,6 @@ module.exports = app => {
         signed: false,
         maxAge: expires_in,
         httponly: false,
-        domain: 'buildupstep.cn',
       });
       ctx.jsonBody = {
         token: session_key,
