@@ -263,10 +263,6 @@ module.exports = app => {
           stageProportion: {
             type: 'number',
           },
-          tailPayment_at: {
-            type: 'string',
-            enum: ['BEFORE_EXPRESS', 'AFTER_EXPRESS'],
-          },
           commisionProportion: {
             type: 'number',
           },
@@ -351,7 +347,6 @@ module.exports = app => {
         express,
         status,
         stageProportion,
-        tailPayment_at,
         commisionProportion,
         isFirstPaymentConfirmed,
         isAllPaymentConfirmed,
@@ -370,7 +365,6 @@ module.exports = app => {
       if (status === 'QUOTED') {
         ctx.error(!!price, 400, '参数错误，未上传报价信息', 400);
         ctx.error(!!stageProportion, 400, '参数错误，未上传分期比例', 400);
-        ctx.error(!!tailPayment_at, 400, '参数错误，未上传尾款时间', 400);
         ctx.error(!!commisionProportion, 400, '参数错误，未携带佣金比例', 400);
         ctx.error(
           !!isOrderExit.commodity.isCustom,
@@ -394,7 +388,6 @@ module.exports = app => {
         Object.assign(modifiedData, {
           price,
           stageProportion,
-          tailPayment_at,
           commisionProportion,
           quoter,
           status,
@@ -499,19 +492,11 @@ module.exports = app => {
         // TODO 操作权限，用户类型必须为platform
         // 验证当前是否为已支付状态，是则进入发货流程
         if (isOrderExit.isStagePay) {
-          if (isOrderExit.tailPayment_at === 'BEFORE_EXPRESS') {
-            ctx.error(
-              isOrderExit.isAllPaymentConfirmed,
-              17018,
-              '未确认尾款信息，不能发货'
-            );
-          } else {
-            ctx.error(
-              isOrderExit.isFirstPaymentConfirmed,
-              17019,
-              '未确认首付款信息，不能发货'
-            );
-          }
+          ctx.error(
+            isOrderExit.isFirstPaymentConfirmed,
+            17019,
+            '未确认首付款信息，不能发货'
+          );
         } else {
           ctx.error(
             isOrderExit.isAllPaymentConfirmed,

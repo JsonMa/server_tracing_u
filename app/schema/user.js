@@ -19,6 +19,7 @@ module.exports = {
         },
       },
       additionalProperties: false,
+      required: ['name', 'phone'],
     },
     factory: {
       type: 'object',
@@ -58,7 +59,14 @@ module.exports = {
           additionalProperties: false,
         },
       },
-      required: ['email', 'name', 'public_account', 'contact', 'phone', 'license'],
+      required: [
+        'email',
+        'name',
+        'public_account',
+        'contact',
+        'phone',
+        'license',
+      ],
       additionalProperties: false,
     },
     business: {

@@ -6,10 +6,6 @@ module.exports = () => {
 
   exports.middleware = ['error', 'auth'];
 
-  exports.auth = {
-    prefix: 'prefix'
-  };
-
   exports.formidable = {
     uploadDir: 'files',
     multiples: true
@@ -77,8 +73,8 @@ module.exports = () => {
   };
 
   exports.logger = {
-    disableConsoleAfterReady: false,
-  }
+    disableConsoleAfterReady: false
+  };
 
   exports.host = 'https://buildupstep.cn';
 
