@@ -5,7 +5,7 @@ const TOKEN = 'access_token';
 module.exports = () =>
   function* (next) {
     // 设置接口白名单
-    const whiteUrlLists = ['/api/auth/login'];
+    const whiteUrlLists = ['/api/auth/login', '/api/files'];
     if (whiteUrlLists.includes(this.request.url)) {
       yield next;
       return;
@@ -19,7 +19,9 @@ module.exports = () =>
     const ret = yield this.app.redis.get(`token:${token}`);
     if (ret) {
       try {
-        this.state.auth = Object.assign(JSON.parse(ret), { token });
+        this.state.auth = Object.assign(JSON.parse(ret), {
+          token,
+        });
       } catch (e) {
         yield this.app.redis.set(`token:${token}`, null);
         this.cookies.set(TOKEN, null);
