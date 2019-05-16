@@ -1,7 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  const { formidable, compress } = app.middleware;
+  const {
+    formidable,
+    compress,
+  } = app.middleware;
 
   /* istanbul ignore next */
   const prefix = '/api';

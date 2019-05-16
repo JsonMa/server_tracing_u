@@ -4,12 +4,15 @@ const TOKEN = 'access_token';
 /* istanbul ignore next */
 module.exports = () =>
   function* (next) {
-    // 设置接口白名单
-    const whiteUrlLists = ['/api/auth/login', '/api/files'];
-    if (whiteUrlLists.includes(this.request.url)) {
-      yield next;
-      return;
+    // 接口白名单
+    const whiteUrlLists = ['/api/auth', '/api/files'];
+    for (let i = 0; i < whiteUrlLists.length; i++) {
+      if (this.request.url.includes(whiteUrlLists[i])) {
+        yield next;
+        return;
+      }
     }
+
     const token =
       this.headers[TOKEN] ||
       this.cookies.get(TOKEN, {
