@@ -53,10 +53,10 @@ module.exports = app => {
     async login() {
       const {
         ctx,
-        loginRule
+        loginRule,
       } = this;
       const {
-        code
+        code,
       } = await ctx.verify(loginRule, ctx.request.body);
       const {
         openid,
@@ -81,7 +81,7 @@ module.exports = app => {
         sessionData.user_id = user._id;
         sessionData.isRegistered = true;
         const {
-          nModified
+          nModified,
         } = await ctx.service.user.update({
           _id: user._id,
         }, {
@@ -116,10 +116,10 @@ module.exports = app => {
      */
     async logout() {
       const {
-        ctx
+        ctx,
       } = this;
       const {
-        access_token: token
+        access_token: token,
       } = ctx.header;
 
       const ret = await ctx.app.redis.del(`token:${token}`);
@@ -140,28 +140,12 @@ module.exports = app => {
      */
     async code2Session(code) {
       const {
-        ctx
+        ctx,
       } = this;
       const config = ctx.app.config.wechat;
       ctx.assert(typeof code === 'string', 'code需为字符串', 400);
-
-      <<
-      << << < HEAD
       const {
-        data
-      } = await ctx.curl('https://api.weixin.qq.com/sns/jscode2session', {
-        method: 'GET',
-        data: {
-          appid: config.appid,
-          secret: config.secret,
-          js_code: code,
-          grant_type: config.grant_type,
-        },
-        dataType: 'json',
-      }); ===
-      === =
-      const {
-        data
+        data,
       } = await ctx.curl(
         'https://api.weixin.qq.com/sns/jscode2session', {
           method: 'GET',
@@ -173,11 +157,10 @@ module.exports = app => {
           },
           dataType: 'json',
         }
-      ); >>>
-      >>> > 29275843 bc64a845728c1cf9a681a1f27aef72d8
+      );
       const {
         errcode,
-        errmsg
+        errmsg,
       } = data;
       if (errcode) {
         this.logger.error(`[code2Session] - code: ${errcode}, msg: ${errmsg}`);
