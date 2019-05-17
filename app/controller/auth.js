@@ -93,7 +93,7 @@ module.exports = app => {
       );
       ctx.cookies.set('access_token', session_key, {
         signed: false,
-        httponly: true,
+        httponly: false,
         domain: '.buildupstep.cn',
         path: '/',
       });
