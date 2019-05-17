@@ -93,7 +93,6 @@ module.exports = app => {
       );
       ctx.cookies.set('access_token', session_key, {
         signed: false,
-        maxAge: expires_in,
         httponly: true,
         domain: '.buildupstep.cn',
         path: '/',
