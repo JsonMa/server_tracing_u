@@ -27,7 +27,7 @@ module.exports = app => {
           owner: {
             $ref: 'schema.definition#/oid',
           },
-          enable: {
+          isActive: {
             type: 'boolean',
           },
           isConsumerReceived: {
@@ -95,40 +95,96 @@ module.exports = app => {
     get updateRule() {
       return {
         properties: {
-          id: {
-            $ref: 'schema.definition#/oid',
-          },
-          name: {
-            $ref: 'schema.definition#/name',
-          },
-          category: {
-            $ref: 'schema.definition#/oid',
-          },
-          price: {
-            type: 'number',
-          },
-          quata: {
-            type: 'number',
-          },
-          act_price: {
-            type: 'number',
-          },
-          description: {
+          operation: {
             type: 'string',
-            maxLength: 500,
-            minLength: 1,
+            enum: ['send', 'receive', 'express', 'bind'],
           },
-          recommend: {
-            type: 'boolean',
+          private_key: {
+            type: 'string',
           },
-          pictures: {
+          public_key: {
+            type: 'string',
+          },
+          record: {
+            properties: {
+              courier: {
+                type: 'string',
+              },
+              express_name: {
+                type: 'string',
+              },
+              express_no: {
+                type: 'string',
+              },
+              reciver: {
+                $ref: 'schema.definition#/oid',
+              },
+              reciver_type: {
+                type: 'string',
+                enum: ['consumer', 'business'],
+              },
+              reciver_name: {
+                $ref: 'schema.definition#/name',
+              },
+              reciver_phone: {
+                $ref: 'schema.definition#/name',
+              },
+              reciver_address: {
+                type: 'string',
+              },
+              sender: {
+                $ref: 'schema.definition#/oid',
+              },
+            },
+            required: ['id'],
+            $async: true,
+            additionalProperties: false,
+          },
+          products: {
+            type: 'array',
+            items: {
+              properties: {
+                name: {
+                  type: 'string',
+                },
+                description: {
+                  type: 'string',
+                },
+                manufacturer: {
+                  type: 'string',
+                },
+                attributes: {
+                  type: 'array',
+                  items: {
+                    properties: {
+                      name: {
+                        type: 'string',
+                      },
+                      value: {
+                        type: 'string',
+                      },
+                    },
+                    required: ['name', 'value'],
+                    $async: true,
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ['name', 'description', 'manufacturer', 'attributes'],
+              $async: true,
+              additionalProperties: false,
+            },
+          },
+          tracing_products: {
             type: 'array',
             items: {
               $ref: 'schema.definition#/oid',
             },
           },
+          isFactoryTracing: {
+            type: 'boolean',
+          },
         },
-        required: ['id'],
         $async: true,
         additionalProperties: false,
       };
@@ -161,7 +217,7 @@ module.exports = app => {
      */
     async index() {
       const { ctx, indexRule } = this;
-
+      ctx.checkPermission('platform'); // 是否是平台用户权限
       const { generateSortParam } = ctx.helper.pagination;
       const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
         indexRule,
@@ -173,7 +229,7 @@ module.exports = app => {
         'order',
         'owner',
         'factory',
-        'enable',
+        'isActive',
         'isConsumerReceived',
         'isFactoryTracing',
       ].forEach(key => {
@@ -211,6 +267,7 @@ module.exports = app => {
      */
     async show() {
       const { ctx, service, showRule } = this;
+      ctx.loginPermission(); // 是否已登录
       const { id, public_key, private_key } = await ctx.verify(
         showRule,
         ctx.params
@@ -232,6 +289,7 @@ module.exports = app => {
      */
     async create() {
       const { ctx, service, createRule } = this;
+      ctx.checkPermission('platform'); // 是否是平台用户权限
       const { order } = await ctx.verify(createRule, ctx.request.body);
 
       // 验证订单是否存在
@@ -271,52 +329,144 @@ module.exports = app => {
      */
     async update() {
       const { ctx, service, updateRule } = this;
-
-      const { pictures, category, name, id } = await ctx.verify(
+      const {
+        private_key,
+        public_key,
+        record,
+        products,
+        tracing_products,
+        operation,
+        isFactoryTracing,
+      } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
 
-      const commodity = await service.commodity.findById(id);
-      ctx.error(commodity, 15000, '溯源码不存在');
-
-      // 验证图片数量以及是否存在
+      ctx.error(public_key || private_key, 18004, '溯源密匙为必填项', 400);
+      const isTracingExist = await service.tracing.findById(
+        private_key || public_key
+      );
       ctx.error(
-        pictures.length <= 5 && pictures.length >= 1,
-        15001,
-        '溯源码图片数量需在1~5张范围内'
+        !isTracingExist.isEnd,
+        18005,
+        '溯源码已被签收，不能再进行任何修改操作'
       );
-      const files = await service.file.findMany({
-        _id: {
-          $in: pictures,
-        },
-      });
-      ctx.error(
-        files.length === pictures.length,
-        15002,
-        '溯源码图片重复/丢失或包含非图片类型文件'
-      );
-      const isCategoryExist = await service.commodityCategory.findById(
-        category
-      );
-      ctx.error(isCategoryExist, 14000, '溯源码分类不存在');
-      const isNameExist = await service.commodity.findOne({
-        name,
-        category,
-      });
-      ctx.error(!isNameExist, 15004, '溯源码名称已存在');
+      const targetData = {
+        isActive: true,
+      };
 
+      // 绑定溯源码商品
+      if (operation === 'bind') {
+        if (isFactoryTracing) {
+          const tracing_count = tracing_products.length;
+          ctx.error(
+            tracing_count,
+            18006,
+            '溯源码绑定溯源商品失败，溯源商品列表为空'
+          );
+          targetData.isFactoryTracing = isFactoryTracing;
+          // 验证tracing_products包含的tracing都存在
+          const tracingProductsCount = await ctx.service.tracing.count({
+            _id: {
+              $in: tracing_products,
+            },
+          });
+          ctx.error(
+            tracing_count === tracingProductsCount,
+            18007,
+            '溯源码列表中存在错误的码'
+          );
+          targetData.tracing_products = tracing_products;
+        } else if (products && products.length) {
+          // 绑定普通商品
+          targetData.products = products;
+        }
+      } else {
+        ctx.error(record, 18011, '溯源记录为必填项', 400);
+        const { records: currentRecords } = isTracingExist;
+        const recordCount = currentRecords.length;
+        const latestRecord = currentRecords.unshift();
+        // 设置溯源记录
+        const {
+          courier,
+          sender,
+          express_no,
+          express_name,
+          reciver,
+          reciver_type,
+          reciver_name,
+          reciver_phone,
+          reciver_address,
+        } = record;
+        if (operation === 'send') {
+          // 经销商或厂家发货
+          ctx.error(
+            isTracingExist.isReceived,
+            18012,
+            '上次溯源记录未处于完结状态，不能新增发货记录'
+          );
+          const isSenderExist = await ctx.service.user.findById(sender);
+          ctx.error(isSenderExist, 18009, '溯源记录包含的发货人不存在');
+          if (reciver_type === 'business') {
+            const isReciverExist = await ctx.service.user.findById(reciver);
+            ctx.error(isReciverExist, 18009, '溯源记录包含的收货人不存在');
+          } else {
+            ctx.error(
+              reciver_name && reciver_phone && reciver_address,
+              18010,
+              '溯源记录包含的收货人信息缺失'
+            );
+          }
+          currentRecords.push({ sender, send_at: new Date(), reciver });
+          targetData.records = currentRecords;
+        } else if (operation === 'express') {
+          // 绑定快递信息
+          ctx.error(
+            !latestRecord.courier,
+            18013,
+            '溯源记录已存在快递信息，不能重复添加'
+          );
+          const isCourierExist = await ctx.service.user.findById(courier);
+          ctx.error(isCourierExist, 18008, '溯源记录包含的快递员不存在');
+          ctx.error(
+            express_no && express_name,
+            18010,
+            '溯源记录包含的快递信息缺失'
+          );
+          // 默认修改最后一条溯源记录
+          Object.assign(latestRecord, { courier, express_no, express_name });
+          currentRecords.splice(recordCount - 1, 1, latestRecord);
+          targetData.records = currentRecords;
+        } else if (operation === 'receive') {
+          // 验货
+          const { reciver_type, sender, express_no, reciver } = latestRecord;
+          ctx.error(
+            express_no && reciver && sender,
+            18014,
+            '验货失败，该溯源记录未到达验货阶段'
+          );
+          if (reciver_type === 'consumer') {
+            // 修改owner为receive
+            Object.assign(targetData, {
+              owner: reciver,
+              isEnd: true,
+              isReceived: true,
+            });
+          }
+        }
+      }
       // 溯源码更新
-      Object.assign(commodity, ctx.request.body);
-      const { nModified } = await ctx.service.commodity.update(
+      Object.assign(isTracingExist, targetData);
+      const { nModified } = await ctx.service.tracing.update(
         {
-          _id: id,
+          ...(private_key ? { private_key } : {}),
+          ...(public_key ? { public_key } : {}),
         },
-        ctx.request.body
+        targetData
       );
-      ctx.error(nModified === 1, 15005, '溯源码修改失败');
+      ctx.error(nModified === 1, 18006, '溯源码修改失败');
 
-      ctx.jsonBody = commodity;
+      ctx.jsonBody = isTracingExist;
     }
 
     /**

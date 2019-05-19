@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
 
   /**
    * 商品Model
@@ -31,7 +25,8 @@ module.exports = ({
    * @property {String}  brands         - 标签
    * @property {Boolean} isCustom       - 是否为定制商品【默认为非定制商品】
    */
-  const schema = new Schema({
+  const schema = new Schema(
+    {
       name: {
         type: String,
         required: true,
@@ -68,10 +63,12 @@ module.exports = ({
         type: Schema.Types.ObjectId,
         ref: 'commodity_category',
       },
-      pictures: [{
-        type: Schema.Types.ObjectId,
-        ref: 'file',
-      }],
+      pictures: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'file',
+        },
+      ],
       quata: {
         type: Number,
         default: 0,
@@ -84,9 +81,12 @@ module.exports = ({
       brands: String,
       deleted_at: Date,
     },
-    Object.assign({}, {
-      timestamps,
-    })
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
   );
 
   return mongoose.model('commodity', schema);
