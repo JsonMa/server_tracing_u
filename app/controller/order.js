@@ -32,6 +32,9 @@ module.exports = app => {
           remarks: {
             type: 'string',
           },
+          logo: {
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['commodity', 'count', 'buyer'],
         $async: true,
@@ -46,9 +49,10 @@ module.exports = app => {
      * @return {promise} Order
      */
     async create() {
+      // 若为非注册过的用户，则先邀请注册为企业账户
       const { createRule, ctx } = this;
-
-      const { commodity, count, buyer, remarks } = await ctx.verify(
+      const { user_type, user_id } = ctx.checkPermission('salseman', 'factory');
+      const { commodity, count, buyer, remarks, logo } = await ctx.verify(
         createRule,
         ctx.request.body
       );
@@ -67,6 +71,13 @@ module.exports = app => {
         17017,
         '该用户类型不具备购买权限'
       );
+      if (user_type === 'salseman') {
+        ctx.error(
+          isUserExited.inviter === user_id,
+          17022,
+          '购买者非通过该账号邀请注册，请核对购买人信息'
+        );
+      }
 
       const order = await ctx.service.order.create(
         Object.assign(ctx.request.body, {
@@ -75,6 +86,7 @@ module.exports = app => {
           needPrint: !!isCommodityExited.quata,
           status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
+          logo,
           remarks,
           ...(isUserExited.inviter
             ? {
@@ -135,7 +147,6 @@ module.exports = app => {
      */
     async index() {
       const { ctx, indexRule } = this;
-
       const { generateSortParam } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
