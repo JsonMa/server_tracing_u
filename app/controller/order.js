@@ -51,7 +51,7 @@ module.exports = app => {
     async create() {
       // 若为非注册过的用户，则先邀请注册为企业账户
       const { createRule, ctx } = this;
-      const { user_type, user_id } = ctx.checkPermission('salseman', 'factory');
+      const { user_type, user_id } = ctx.checkPermission('salesman', 'factory');
       const { commodity, count, buyer, remarks, logo } = await ctx.verify(
         createRule,
         ctx.request.body
@@ -74,7 +74,7 @@ module.exports = app => {
         17017,
         '该用户类型不具备购买权限'
       );
-      if (user_type === 'salseman') {
+      if (user_type === 'salesman') {
         ctx.error(
           isUserExited.inviter === user_id,
           17022,
@@ -150,11 +150,17 @@ module.exports = app => {
      */
     async index() {
       const { ctx, indexRule } = this;
+      const { user_id, user_type } = ctx.checkPermission(
+        'salesman',
+        'factory',
+        'platform'
+      );
       const { generateSortParam } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
         unPaid: [], // 待付款
         unSent: [], // 待发货
+        unCheck: [], // 待验收
         unReceived: [], // 待收货
         all: [], // 所有订单
       };
@@ -170,6 +176,9 @@ module.exports = app => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
       });
+      // 过滤订单
+      if (user_type === 'salesman') query.salesman = user_id;
+      else if (user_type === 'factory') query.buyer = user_id;
       const orders = await ctx.service.order.findMany(
         query,
         null,
@@ -193,9 +202,12 @@ module.exports = app => {
               respOrders.unPaid.push(order);
               break;
             case 'HALF_PAYED':
-              respOrders.unSent.push(order);
+              respOrders.unCheck.push(order);
               break;
             case 'ALL_PAYED':
+              respOrders.unCheck.push(order);
+              break;
+            case 'PAYMENT_CONFIRMED':
               respOrders.unSent.push(order);
               break;
             case 'SHIPMENT':
@@ -247,17 +259,38 @@ module.exports = app => {
     async show() {
       const { ctx, showRule } = this;
       const { id } = await ctx.verify(showRule, ctx.params);
-
+      const { user_id, user_type } = ctx.checkPermission(
+        'salesman',
+        'factory',
+        'platform'
+      );
       const order = await ctx.service.order.findById(
         id,
         'commodity buyer salesman quoter'
       );
+      if (['salesman', 'factory'].includes(user_type)) {
+        if (user_type === 'factory') {
+          ctx.error(
+            order.buyer._id === user_id,
+            17024,
+            '该用户无权查看该订单详情'
+          );
+        } else {
+          if (order.salesman) {
+            ctx.error(
+              order.salesman._id === user_id,
+              17024,
+              '该用户无权查看该订单详情'
+            );
+          }
+        }
+      }
       ctx.error(order, 17000, '订单不存在');
       ctx.jsonBody = order;
     }
 
     /**
-     * 修改 order 的参数规则
+     * 修改order的参数规则
      *
      * @readonly
      * @memberof OrderController
@@ -353,6 +386,7 @@ module.exports = app => {
      */
     async update() {
       const { ctx, updateRule } = this;
+      const { user_id, user_type } = ctx.checkPermission('factory', 'platform');
       const {
         id,
         trade,
@@ -371,12 +405,17 @@ module.exports = app => {
 
       const isOrderExit = await ctx.service.order.findById(id, 'commodity');
       ctx.error(isOrderExit, 17000, '订单不存在');
+      // 买家修改订单
+      if (user_type === 'factory') {
+        ctx.oneselfPermission(isOrderExit.buyer);
+      }
       const modifiedData = {
         needRemind: false,
       };
 
       // 报价
       if (status === 'QUOTED') {
+        ctx.checkPermission('platform');
         ctx.error(!!price, 400, '参数错误，未上传报价信息', 400);
         ctx.error(!!stageProportion, 400, '参数错误，未上传分期比例', 400);
         ctx.error(!!commisionProportion, 400, '参数错误，未携带佣金比例', 400);
@@ -479,6 +518,7 @@ module.exports = app => {
           status,
         });
       } else if (status === 'PAYMENT_CONFIRMED') {
+        ctx.checkPermission('platform');
         ctx.error(
           ['FIRST_PAYED', 'ALL_PAYED'].includes(isOrderExit.status),
           17018,
@@ -503,7 +543,7 @@ module.exports = app => {
           });
         }
       } else if (status === 'SHIPPED') {
-        // TODO 操作权限，用户类型必须为platform
+        ctx.checkPermission('platform');
         // 验证当前是否为已支付状态，是则进入发货流程
         if (isOrderExit.isStagePay) {
           ctx.error(
@@ -530,7 +570,6 @@ module.exports = app => {
           status,
           needRemind: true,
         });
-
         // 修改商品已出售数量
         const { sales, _id: commodityId, payers } = isOrderExit.commodity;
         const { nModified } = await ctx.service.commodity.update(
