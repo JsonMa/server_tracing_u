@@ -1,9 +1,7 @@
 'use strict';
 
 const VError = require('verror');
-const {
-  Service,
-} = require('egg');
+const { Service } = require('egg');
 
 /**
  * db base service
@@ -33,18 +31,22 @@ class DBService extends Service {
    * @return {null} - null
    */
   dbError(error, msg, query) {
-    const {
-      EMONGODB,
-    } = this.ctx.errors;
+    const { EMONGODB } = this.ctx.errors;
 
-    throw Object.assign(new VError({
-      name: EMONGODB,
-      cause: error,
-      info: query,
-    }, msg), {
-      code: 10002,
-      status: 500,
-    });
+    throw Object.assign(
+      new VError(
+        {
+          name: EMONGODB,
+          cause: error,
+          info: query,
+        },
+        msg
+      ),
+      {
+        code: 10002,
+        status: 500,
+      }
+    );
   }
 
   /**
@@ -56,11 +58,14 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findById(id, populate = '') {
-    const query = Object.assign({
-      deleted_at: null,
-    }, {
-      _id: id,
-    });
+    const query = Object.assign(
+      {
+        deleted_at: null,
+      },
+      {
+        _id: id,
+      }
+    );
 
     const data = await this.ctx.model[this.type]
       .findOne(query)
@@ -81,10 +86,11 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findOne(conditions, populate = '') {
-    const query = Object.assign({
-      deleted_at: null,
-    },
-    conditions
+    const query = Object.assign(
+      {
+        deleted_at: null,
+      },
+      conditions
     );
     const data = await this.ctx.model[this.type]
       .findOne(query)
@@ -106,10 +112,11 @@ class DBService extends Service {
    * @memberof DBService
    */
   async findMany(conditions, fields = null, options = null, populate = '') {
-    const query = Object.assign({
-      deleted_at: null,
-    },
-    conditions
+    const query = Object.assign(
+      {
+        deleted_at: null,
+      },
+      conditions
     );
     const items = await this.ctx.model[this.type]
       .find(query, fields, options)
@@ -130,9 +137,12 @@ class DBService extends Service {
    */
   async findAll(conditions, populate = '') {
     const query = Object.assign({}, conditions);
-    const date = await this.ctx.model[this.type].findOne(query).populate(populate).catch(error => {
-      this.dbError(error, `${this.type}查询失败`, query);
-    });
+    const date = await this.ctx.model[this.type]
+      .findOne(query)
+      .populate(populate)
+      .catch(error => {
+        this.dbError(error, `${this.type}查询失败`, query);
+      });
     return date;
   }
 
@@ -144,10 +154,11 @@ class DBService extends Service {
    * @memberof DBService
    */
   async count(options) {
-    const query = Object.assign({
-      deleted_at: null,
-    },
-    options
+    const query = Object.assign(
+      {
+        deleted_at: null,
+      },
+      options
     );
     const count = await this.ctx.model[this.type]
       .find(query)
@@ -201,9 +212,11 @@ class DBService extends Service {
   async update(options, values, multiple = false, upsert = false) {
     const items = await this.ctx.model[this.type]
       [multiple ? 'updateOne' : 'updateMany'](
-        options, {
+        options,
+        {
           $set: values,
-        }, {
+        },
+        {
           upsert,
         }
       )
@@ -233,9 +246,11 @@ class DBService extends Service {
     } else {
       ret = await this.ctx.model[this.type]
         [multiple ? 'updateOne' : 'updateMany'](
-          options, {
+          options,
+          {
             deleted_at: new Date(),
-          }, {
+          },
+          {
             multiple: true,
           }
         )

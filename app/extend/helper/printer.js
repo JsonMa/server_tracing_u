@@ -1,15 +1,18 @@
 // const qs = require('querystring');
+'use strict';
 const time = require('moment')().format('X');
 const uuid = require('uuid/v4');
 const crypto = require('crypto');
 const { yLink } = require('../../../config/config.default')();
 
 module.exports = {
-
   // 接口签名
   singnature(timestamp) {
     const sign = yLink.client_id + timestamp + yLink.api_key;
-    return crypto.createHash('md5').update(sign).digest('hex');
+    return crypto
+      .createHash('md5')
+      .update(sign)
+      .digest('hex');
   },
 
   // 获取stringfy后的sign

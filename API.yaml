@@ -151,6 +151,12 @@ info:
     | 17016 | order error       | 订单删除失败 |
     | 17017 | order error       | 该用户类型不具备购买权限 |
 
+
+    | 18000 | tracing error       | 生成溯源吗失败，该订单不存在 |
+    | 18001 | tracing error       | 订单未支付，无法生成溯源码 |
+    | 18002 | tracing error       | 获取溯源码信息失败，该溯源码不存在 |
+    | 18003 | tracing error       | 溯源码删除失败|
+
     | 21001 | trade error       | openid获取失败 |
     | 22001 | tencent api error       | 腾讯API认证失败 |
     | 23001 | miniProgram api error       | 小程序token获取失败 |
