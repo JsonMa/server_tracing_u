@@ -1,15 +1,9 @@
 'use strict';
 
-const {
-  timestamps,
-} = require('../lib/model_common');
+const { timestamps } = require('../lib/model_common');
 
-module.exports = ({
-  mongoose,
-}) => {
-  const {
-    Schema,
-  } = mongoose;
+module.exports = ({ mongoose }) => {
+  const { Schema } = mongoose;
   /**
    * 条形码
    *
@@ -19,34 +13,45 @@ module.exports = ({
    * @property {String} name         - 商品名称
    * @property {String} description  - 商品描述
    * @property {Array}  attributes   - 商品属性
-   * @property {Number} manufacturer - 制造商
+   * @property {String} manufacturer - 制造商
+   * @property {String} creator      - 创建人
    */
-  const schema = new Schema({
-    barcode: {
-      type: String,
-      required: true,
+  const schema = new Schema(
+    {
+      barcode: {
+        type: String,
+        required: true,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+      manufacturer: {
+        type: String,
+        ref: 'user',
+      },
+      creator: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      attributes: [
+        {
+          name: String,
+          value: String,
+        },
+      ],
+      deleted_at: Date,
     },
-    name: {
-      type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    manufacturer: {
-      type: Schema.Types.ObjectId,
-      ref: 'user',
-    },
-    attributes: [{
-      name: String,
-      value: String,
-    }],
-    deleted_at: Date,
-  },
-  Object.assign({}, {
-    timestamps,
-  })
+    Object.assign(
+      {},
+      {
+        timestamps,
+      }
+    )
   );
 
   return mongoose.model('barcode', schema);

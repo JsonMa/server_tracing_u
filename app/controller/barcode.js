@@ -27,7 +27,7 @@ module.exports = app => {
             type: 'string',
           },
           manufacturer: {
-            $ref: 'schema.definition#/oid',
+            $ref: 'string',
           },
           attributes: {
             type: 'array',
@@ -96,13 +96,16 @@ module.exports = app => {
      */
     async create() {
       const { ctx, createRule } = this;
+      const { user_id } = ctx.registerPermission(); // 是否为已注册且登录的用户
       const { barcode } = await ctx.verify(createRule, ctx.request.body);
-
-      const isExit = await ctx.service.barcode.findOne({
+      const isExist = await ctx.service.barcode.findOne({
         barcode,
       });
-      ctx.error(isExit, 13000, ' 新增条形码失败，该条形码已存在');
-      const createdBar = await ctx.service.barcode.create(ctx.request.body);
+      ctx.error(isExist, 13000, ' 新增条形码失败，该条形码已存在');
+      const createdBar = await ctx.service.barcode.create(
+        Object.assign(ctx.request.body),
+        { creator: user_id }
+      );
       ctx.jsonBody = createdBar;
     }
 
@@ -114,6 +117,7 @@ module.exports = app => {
      */
     async show() {
       const { ctx, service, showRule } = this;
+      ctx.registerPermission();
       const { barcode } = await ctx.verify(showRule, ctx.params);
       const isExit = await service.barcode.findOne({
         barcode,
@@ -130,12 +134,13 @@ module.exports = app => {
      */
     async update() {
       const { ctx, service, createRule } = this;
+      ctx.registerPermission(); // 是否已经登录
       const { barcode } = await ctx.verify(createRule, ctx.request.body);
-
       const isExit = service.barcode.findOne({
         barcode,
       });
       ctx.assert(isExit, 13001, '该条形码不存在');
+      ctx.oneselfPermission(isExit.creator); // 被修改的条形码是否是自己创建的
 
       const { nModified } = await ctx.service.barcode.update(
         {
@@ -154,10 +159,11 @@ module.exports = app => {
      */
     async destroy() {
       const { ctx, service, destroyRule } = this;
+      ctx.registerPermission(); // 是否已经登录
       const { id } = await ctx.verify(destroyRule, ctx.params);
-      const isExit = await service.file.findById(id);
-      ctx.assert(isExit, 13001, '该条形码不存在');
-
+      const isExist = await service.file.findById(id);
+      ctx.assert(isExist, 13001, '该条形码不存在');
+      ctx.oneselfPermission(isExist.creator); // 被删除的条形码是否是自己创建的
       const result = await service.file.destroy(
         {
           _id: id,
