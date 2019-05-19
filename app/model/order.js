@@ -11,6 +11,7 @@ module.exports = ({ mongoose }) => {
    * @namespace Model
    * @property {Enum}     status                 - 订单状态 ['CREATED-创建成功，待报价', 'QUOTED-已报价，待支付','FIRST_PAYED-已支付首款，待支付尾款', 'ALL_PAYED-已支付，待确认', 'PAYMENT_CONFIRMED'-已确认，待发货，'CLOSED','PRINTED', SHIPPED-已发货，待签收', 'FINISHED-已签收']
    * @property {Object}   buyer                  - 购买者信息
+   * @property {Object}   logo                   - 购买者logo
    * @property {Object}   salesman               - 销售信息
    * @property {Object}   quoter                 - 报价人
    * @property {Date}     quote_at               - 报价时间
@@ -52,6 +53,10 @@ module.exports = ({ mongoose }) => {
       buyer: {
         type: Schema.Types.ObjectId,
         ref: 'user',
+      },
+      logo: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
       },
       salesman: {
         type: Schema.Types.ObjectId,

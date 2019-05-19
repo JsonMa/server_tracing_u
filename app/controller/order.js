@@ -5,7 +5,7 @@ const uuid = require('uuid/v4');
 
 module.exports = app => {
   /**
-   * Order 相关路由
+   * Order相关路由
    *
    * @class OrderController
    * @extends {app.Controller}
@@ -63,7 +63,10 @@ module.exports = app => {
       if (isCommodityExited.isCustom) {
         ctx.error(remarks, 17021, '定制商品需携带订单备注，注明尺寸信息');
       }
-
+      if (logo) {
+        const isLogoExist = await ctx.service.file.findById(logo);
+        ctx.error(isLogoExist, 17023, '订单涉及的logo文件不存在');
+      }
       const isUserExited = await ctx.service.user.findById(buyer);
       ctx.error(isUserExited, 17003, '商品购买者不存在');
       ctx.error(
@@ -86,20 +89,20 @@ module.exports = app => {
           needPrint: !!isCommodityExited.quata,
           status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
-          logo,
           remarks,
           ...(isUserExited.inviter
             ? {
               salesman: isUserExited.inviter,
             }
             : {}),
+          ...(logo ? { logo } : {}),
         })
       );
       ctx.jsonBody = order;
     }
 
     /**
-     * 获取 orders 的参数规则
+     * 获取orders的参数规则
      *
      * @readonly
      * @memberof OrderController
