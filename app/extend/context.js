@@ -1,6 +1,8 @@
 'use strict';
 
-const { VError } = require('verror');
+const {
+  VError,
+} = require('verror');
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -20,7 +22,9 @@ module.exports = {
   set jsonBody(obj) {
     let data = obj ? obj.data : {};
     obj = obj || {};
-    const { meta = {}, embed = {} } = obj;
+    const {
+      meta = {}, embed = {},
+    } = obj;
 
     if (
       _.isObject(obj) &&
@@ -33,15 +37,13 @@ module.exports = {
     this.body = {
       code: 0,
       msg: 'success',
-      ...(obj
-        ? {
-          data: {
-            meta,
-            embed,
-            data,
-          },
-        }
-        : {}),
+      ...(obj ? {
+        data: {
+          meta,
+          embed,
+          data,
+        },
+      } : {}),
     };
   },
 
@@ -58,14 +60,12 @@ module.exports = {
     if (stack) this.assert(stack instanceof Error, 'stack需为Error类型', 500);
 
     const err = Object.assign(
-      new VError(
-        {
-          name: 'CONTEXT_ERROR',
-          ...(stack ? stack : {}),
-        },
-        message
-      ),
-      {
+      new VError({
+        name: 'CONTEXT_ERROR',
+        ...(stack ? stack : {}),
+      },
+      message
+      ), {
         code,
         status: httpStatus || 200,
       }
@@ -76,18 +76,16 @@ module.exports = {
 
   async verify(rule, params) {
     const ret = await this.validate(rule, params).catch(function(e) {
-      throw new VError(
-        {
-          name: 'AJV_ERROR',
-          cause: e,
-          info: e.errors
-            ? e.errors.reduce((map, e) => {
-              map[e.keyword] = e.message;
-              return map;
-            })
-            : e.message,
-        },
-        '错误的请求参数'
+      throw new VError({
+        name: 'AJV_ERROR',
+        cause: e,
+        info: e.errors ?
+          e.errors.reduce((map, e) => {
+            map[e.keyword] = e.message;
+            return map;
+          }) : e.message,
+      },
+      '错误的请求参数'
       );
     });
     return ret;
@@ -101,7 +99,10 @@ module.exports = {
    */
   checkPermission(roles) {
     this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
-    const { role_type, user_id } = this.state.auth;
+    const {
+      role_type,
+      user_id,
+    } = this.state.auth;
     this.error(
       roles.includes(role_type) || roles.includes(user_id),
       10003,
@@ -118,7 +119,9 @@ module.exports = {
    */
   registerPermission() {
     this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
-    const { isRegistered } = this.state.auth;
+    const {
+      isRegistered,
+    } = this.state.auth;
     this.error(isRegistered, 10004, '该用户未注册，无权访问该接口', 403);
     return this.state.auth;
   },
@@ -131,7 +134,9 @@ module.exports = {
    */
   oneselfPermission(userId) {
     this.error(this.state.auth, 10001, 'access_token已过期，请从新登陆', 403);
-    const { user_id } = this.state.auth;
+    const {
+      user_id,
+    } = this.state.auth;
     this.error(user_id === userId, 10005, '只能操作自身权限相关的接口', 403);
     return this.state.auth;
   },
@@ -165,7 +170,9 @@ module.exports = {
    * @return {Buffer} error buffer
    */
   renderError(err) {
-    const { message = '服务器内部错误', status = 500 } = err;
+    const {
+      message = '服务器内部错误', status = 500,
+    } = err;
     const errorView = this.app.errorTemplate
       .replace(/{{ error_status }}/gi, status)
       .replace(/{{ error_message }}/gi, message);

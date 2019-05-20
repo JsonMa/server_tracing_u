@@ -50,9 +50,21 @@ module.exports = app => {
      */
     async create() {
       // 若为非注册过的用户，则先邀请注册为企业账户
-      const { createRule, ctx } = this;
-      const { user_type, user_id } = ctx.checkPermission('salesman', 'factory');
-      const { commodity, count, buyer, remarks, logo } = await ctx.verify(
+      const {
+        createRule,
+        ctx,
+      } = this;
+      const {
+        role_type,
+        user_id,
+      } = ctx.checkPermission('salesman', 'factory');
+      const {
+        commodity,
+        count,
+        buyer,
+        remarks,
+        logo,
+      } = await ctx.verify(
         createRule,
         ctx.request.body
       );
@@ -74,7 +86,7 @@ module.exports = app => {
         17017,
         '该用户类型不具备购买权限'
       );
-      if (user_type === 'salesman') {
+      if (role_type === 'salesman') {
         ctx.error(
           isUserExited.inviter === user_id,
           17022,
@@ -90,12 +102,12 @@ module.exports = app => {
           status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
           remarks,
-          ...(isUserExited.inviter
-            ? {
-              salesman: isUserExited.inviter,
-            }
-            : {}),
-          ...(logo ? { logo } : {}),
+          ...(isUserExited.inviter ? {
+            salesman: isUserExited.inviter,
+          } : {}),
+          ...(logo ? {
+            logo,
+          } : {}),
         })
       );
       ctx.jsonBody = order;
@@ -149,13 +161,21 @@ module.exports = app => {
      * @return {promise} Order List
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { user_id, user_type } = ctx.checkPermission(
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        user_id,
+        role_type,
+      } = ctx.checkPermission(
         'salesman',
         'factory',
         'platform'
       );
-      const { generateSortParam } = ctx.helper.pagination;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
         unPaid: [], // 待付款
@@ -177,12 +197,11 @@ module.exports = app => {
         if (item) query[key] = item;
       });
       // 过滤订单
-      if (user_type === 'salesman') query.salesman = user_id;
-      else if (user_type === 'factory') query.buyer = user_id;
+      if (role_type === 'salesman') query.salesman = user_id;
+      else if (role_type === 'factory') query.buyer = user_id;
       const orders = await ctx.service.order.findMany(
         query,
-        null,
-        {
+        null, {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -192,7 +211,10 @@ module.exports = app => {
       if (embed === 'category') {
         respOrders.all = orders;
         orders.forEach(order => {
-          const { status, isStagePay } = order;
+          const {
+            status,
+            isStagePay,
+          } = order;
           switch (status) {
             case 'CREATED':
               if (isStagePay) respOrders.unQuoted.push(order);
@@ -257,9 +279,17 @@ module.exports = app => {
      * @return {promise} Order
      */
     async show() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id, user_type } = ctx.checkPermission(
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+        role_type,
+      } = ctx.checkPermission(
         'salesman',
         'factory',
         'platform'
@@ -268,8 +298,8 @@ module.exports = app => {
         id,
         'commodity buyer salesman quoter'
       );
-      if (['salesman', 'factory'].includes(user_type)) {
-        if (user_type === 'factory') {
+      if (['salesman', 'factory'].includes(role_type)) {
+        if (role_type === 'factory') {
           ctx.error(
             order.buyer._id === user_id,
             17024,
@@ -385,8 +415,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async update() {
-      const { ctx, updateRule } = this;
-      const { user_id, user_type } = ctx.checkPermission('factory', 'platform');
+      const {
+        ctx,
+        updateRule,
+      } = this;
+      const {
+        role_type,
+      } = ctx.checkPermission('factory', 'platform');
       const {
         id,
         trade,
@@ -406,7 +441,7 @@ module.exports = app => {
       const isOrderExit = await ctx.service.order.findById(id, 'commodity');
       ctx.error(isOrderExit, 17000, '订单不存在');
       // 买家修改订单
-      if (user_type === 'factory') {
+      if (role_type === 'factory') {
         ctx.oneselfPermission(isOrderExit.buyer);
       }
       const modifiedData = {
@@ -571,16 +606,19 @@ module.exports = app => {
           needRemind: true,
         });
         // 修改商品已出售数量
-        const { sales, _id: commodityId, payers } = isOrderExit.commodity;
-        const { nModified } = await ctx.service.commodity.update(
-          {
-            _id: commodityId,
-          },
-          {
-            sales: sales + isOrderExit.count,
-            payers: payers + 1,
-          }
-        );
+        const {
+          sales,
+          _id: commodityId,
+          payers,
+        } = isOrderExit.commodity;
+        const {
+          nModified,
+        } = await ctx.service.commodity.update({
+          _id: commodityId,
+        }, {
+          sales: sales + isOrderExit.count,
+          payers: payers + 1,
+        });
         ctx.error(nModified === 1, 15005, '商品修改失败');
       } else {
         // 收货
@@ -607,11 +645,12 @@ module.exports = app => {
           });
         }
       }
-      const { nModified } = await ctx.service.order.update(
-        {
-          _id: id,
-        },
-        modifiedData
+      const {
+        nModified,
+      } = await ctx.service.order.update({
+        _id: id,
+      },
+      modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 
@@ -626,8 +665,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async destroy() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
       const order = await ctx.service.order.findById(id);
       ctx.error(order, 17000, '订单不存在');
@@ -636,7 +680,9 @@ module.exports = app => {
         17015,
         '订单删除失败，已支付订单款项'
       );
-      const { nModified } = await ctx.service.order.destroy({
+      const {
+        nModified,
+      } = await ctx.service.order.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 17016, '订单删除失败');
