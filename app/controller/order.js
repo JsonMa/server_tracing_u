@@ -57,7 +57,7 @@ module.exports = app => {
       const {
         role_type,
         user_id,
-      } = ctx.checkPermission('salesman', 'factory');
+      } = ctx.checkPermission(['salesman', 'factory']);
       const {
         commodity,
         count,
@@ -169,9 +169,10 @@ module.exports = app => {
         user_id,
         role_type,
       } = ctx.checkPermission(
-        'salesman',
-        'factory',
-        'platform'
+        ['salesman',
+          'factory',
+          'platform',
+        ]
       );
       const {
         generateSortParam,
@@ -290,10 +291,10 @@ module.exports = app => {
         user_id,
         role_type,
       } = ctx.checkPermission(
-        'salesman',
-        'factory',
-        'platform'
-      );
+        ['salesman',
+          'factory',
+          'platform',
+        ]);
       const order = await ctx.service.order.findById(
         id,
         'commodity buyer salesman quoter'
@@ -421,7 +422,7 @@ module.exports = app => {
       } = this;
       const {
         role_type,
-      } = ctx.checkPermission('factory', 'platform');
+      } = ctx.checkPermission(['factory', 'platform']);
       const {
         id,
         trade,
