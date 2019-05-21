@@ -416,7 +416,7 @@ module.exports = app => {
       ctx.error(isOrderExit, 17000, '订单不存在');
       // 买家修改订单
       if (role_type === 'factory') {
-        ctx.oneselfPermission(isOrderExit.buyer);
+        ctx.oneselfPermission(isOrderExit.buyer._id.toString());
       }
       const modifiedData = {
         needRemind: false
