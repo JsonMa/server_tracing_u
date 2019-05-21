@@ -422,12 +422,12 @@ module.exports = app => {
       } = this;
       const {
         role_type,
+        user_id,
       } = ctx.checkPermission(['factory', 'platform']);
       const {
         id,
         trade,
         price,
-        quoter,
         express,
         status,
         stageProportion,
@@ -451,6 +451,7 @@ module.exports = app => {
 
       // 报价
       if (status === 'QUOTED') {
+        const quoter = user_id;
         ctx.checkPermission('platform');
         ctx.error(!!price, 400, '参数错误，未上传报价信息', 400);
         ctx.error(!!stageProportion, 400, '参数错误，未上传分期比例', 400);
@@ -459,15 +460,6 @@ module.exports = app => {
           !!isOrderExit.commodity.isCustom,
           17006,
           '非订制商品，不可报价'
-        );
-        ctx.error(quoter, 400, '参数错误，报价人为必填项', 400);
-        // TODO校验当前用户是否有报价权限
-        const isQuoterExit = await ctx.service.user.findById(quoter);
-        ctx.error(isQuoterExit, 17004, '报价人不存在');
-        ctx.error(
-          ['platform'].includes(isQuoterExit.role_type),
-          17005,
-          '该用户没有报价权限'
         );
         ctx.error(
           ['CREATED', 'QUOTED'].includes(isOrderExit.status),
@@ -677,9 +669,9 @@ module.exports = app => {
       const order = await ctx.service.order.findById(id);
       ctx.error(order, 17000, '订单不存在');
       ctx.error(
-        ['CREATED', 'QUOTED'].includes(order.status),
+        ['CREATED'].includes(order.status),
         17015,
-        '订单删除失败，已支付订单款项'
+        '订单删除失败，当前状态不允许删除'
       );
       const {
         nModified,
