@@ -226,7 +226,9 @@ module.exports = app => {
         });
       } else respOrders = orders;
       const count = await ctx.service.order.count(query);
-
+      if (['salesman', 'factory'].includes(role_type)) {
+        delete respOrders.unCheck;
+      }
       ctx.jsonBody = {
         data: respOrders,
         meta: {
