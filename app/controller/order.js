@@ -209,7 +209,7 @@ module.exports = app => {
             case 'QUOTED':
               respOrders.unPaid.push(order);
               break;
-            case 'HALF_PAYED':
+            case 'FIRST_PAYED':
               respOrders.unCheck.push(order);
               break;
             case 'ALL_PAYED':
@@ -638,6 +638,7 @@ module.exports = app => {
         '溯源码打印失败，订单未核收'
       );
       // 打印并生成溯源码及溯源码压缩文件
+
       Object.assign(modifiedData, {
         status,
         print_at: new Date()
