@@ -36,7 +36,7 @@ module.exports = app => {
             $ref: 'schema.definition#/oid'
           }
         },
-        required: ['commodity', 'count', 'buyer'],
+        required: ['commodity', 'count'],
         $async: true,
         additionalProperties: false
       };
@@ -55,11 +55,12 @@ module.exports = app => {
         'salesman',
         'factory'
       ]);
-      const { commodity, count, buyer, remarks, logo } = await ctx.verify(
+      const { commodity, count, remarks, logo } = await ctx.verify(
         createRule,
         ctx.request.body
       );
-
+      let buyer = ctx.request.body.buyer;
+      if (role_type === 'factory') buyer = user_id; // 如果是厂家，则买家就是自己
       const isCommodityExited = await ctx.service.commodity.findById(commodity);
       ctx.error(isCommodityExited, 17001, '订单涉及的商品不存在');
       ctx.error(isCommodityExited.enable, 17002, '订单涉及的商品已下架');
@@ -451,7 +452,6 @@ module.exports = app => {
           quote_at: new Date()
         });
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
-        // TODO 校验当前用户是否有付款或核收权限
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
         ctx.error(
           ['QUOTED', 'FIRST_PAYED', 'ALL_PAYED'].includes(isOrderExit.status),
@@ -637,6 +637,7 @@ module.exports = app => {
         17008,
         '溯源码打印失败，订单未核收'
       );
+      // 打印并生成溯源码及溯源码压缩文件
       Object.assign(modifiedData, {
         status,
         print_at: new Date()
