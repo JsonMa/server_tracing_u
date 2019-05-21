@@ -526,7 +526,7 @@ module.exports = app => {
           '支付确认失败，当前订单未处于已支付状态'
         );
         ctx.error(
-          isOrderExit.trade.length,
+          isOrderExit.trade.length > 0,
           17018,
           '支付确认失败，当前订单未处于已支付状态'
         );
