@@ -547,26 +547,12 @@ module.exports = app => {
         }
       } else if (status === 'SHIPPED') {
         ctx.checkPermission('platform');
-        // 验证当前是否为已支付状态，是则进入发货流程
-        if (isOrderExit.isStagePay) {
-          ctx.error(
-            isOrderExit.isFirstPaymentConfirmed,
-            17019,
-            '未确认首付款信息，不能发货'
-          );
-        } else {
-          ctx.error(
-            isOrderExit.isAllPaymentConfirmed,
-            17020,
-            '未确认收款信息，不能发货'
-          );
-        }
-        ctx.error(express, 400, '未携带快递信息', 400);
         ctx.error(
-          isOrderExit.status === 'ALL_PAYED',
+          isOrderExit.status === 'PAYMENT_CONFIRMED',
           17008,
           '发货失败，订单未支付'
         );
+        ctx.error(express, 400, '未携带快递信息', 400);
         express.send_at = new Date();
         Object.assign(modifiedData, {
           express,
@@ -585,30 +571,18 @@ module.exports = app => {
           }
         );
         ctx.error(nModified === 1, 15005, '商品修改失败');
+      } else if (status === 'FINISHED') {
+        ctx.error(
+          isOrderExit.status === 'SHIPPED',
+          17008,
+          '收货失败，订单未发货'
+        );
+        Object.assign(modifiedData, {
+          status,
+          finish_at: new Date()
+        });
       } else {
-        // 收货
-        if (status === 'PRINTED') {
-          ctx.error(
-            ['FIRST_PAYED', 'ALL_PAYED'].includes(status),
-            17008,
-            '打印失败，订单未支付'
-          );
-          Object.assign(modifiedData, {
-            status,
-            print_at: new Date()
-          });
-        }
-        if (status === 'FINISHED') {
-          ctx.error(
-            isOrderExit.status === 'SHIPPED',
-            17008,
-            '收货失败，订单未发货'
-          );
-          Object.assign(modifiedData, {
-            status,
-            finish_at: new Date()
-          });
-        }
+        ctx.error(false, 17025, '错误的订单状态');
       }
       const { nModified } = await ctx.service.order.update(
         {
@@ -644,6 +618,36 @@ module.exports = app => {
       });
       ctx.error(nModified === 1, 17016, '订单删除失败');
       ctx.jsonBody = order;
+    }
+
+    /**
+     * print tracing codes
+     *
+     * @memberof OrderController
+     */
+    async print() {
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const isOrderExit = await ctx.service.order.findById(id);
+      ctx.error(isOrderExit, 17000, '订单不存在');
+      const modifiedData = {};
+      ctx.error(
+        isOrderExit.status === 'PAYMENT_CONFIRMED',
+        17008,
+        '打印失败，订单未核收'
+      );
+      Object.assign(modifiedData, {
+        status,
+        print_at: new Date()
+      });
+
+      const { nModified } = await ctx.service.order.update(
+        {
+          _id: id
+        },
+        modifiedData
+      );
+      ctx.error(nModified === 1, 17026, '溯源码打印失败');
     }
   }
   return OrderController;
