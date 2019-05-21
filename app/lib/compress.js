@@ -2,6 +2,7 @@
 const fs = require('fs');
 const archiver = require('archiver');
 const qr = require('./qr');
+const path = require('path');
 /**
  *
  *
@@ -15,7 +16,7 @@ class Compress {
    */
   constructor(params) {
     this.parmas = params;
-    this.basePath = __dirname + '../../files';
+    this.basePath = path.join(__dirname, '../../files');
   }
 
   /**
@@ -28,7 +29,6 @@ class Compress {
   createDir(name) {
     fs.mkdirSync(`${this.basePath}/${name}`);
   }
-
 
   /**
    * create file
@@ -43,7 +43,7 @@ class Compress {
     const baseUrl = '';
     const qrcode = new qr({
       baseUrl,
-      qrType,
+      qrType
     });
     const writeStream = fs.createWriteStream(`${path}/${name}.${qrType}`);
     qrcode.createFile(name).pipe(writeStream);
@@ -61,8 +61,8 @@ class Compress {
     const writeStream = fs.createWriteStream(`${this.basePath}/${name}.zip`);
     const archive = archiver('zip', {
       zlib: {
-        level: 9,
-      },
+        level: 9
+      }
     });
 
     return new Promise((resolve, reject) => {
@@ -82,6 +82,5 @@ class Compress {
     });
   }
 }
-
 
 module.exports = Compress;

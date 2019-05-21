@@ -550,7 +550,7 @@ module.exports = app => {
         ctx.error(
           isOrderExit.status === 'PAYMENT_CONFIRMED',
           17008,
-          '发货失败，订单未支付'
+          '发货失败，订单未核收'
         );
         ctx.error(express, 400, '未携带快递信息', 400);
         express.send_at = new Date();
@@ -629,14 +629,17 @@ module.exports = app => {
       const { ctx, showRule } = this;
       ctx.checkPermission('platform');
       const { id } = await ctx.verify(showRule, ctx.params);
-      const isOrderExit = await ctx.service.order.findById(id);
+      const isOrderExit = await ctx.service.order.findById(id, 'commodity');
       ctx.error(isOrderExit, 17000, '订单不存在');
       const modifiedData = {};
       ctx.error(
-        isOrderExit.status === 'PAYMENT_CONFIRMED',
+        ['PAYMENT_CONFIRMED', 'SHIPPED'].includes(isOrderExit.status),
         17008,
-        '溯源码打印失败，订单未核收'
+        '溯源码生成失败，订单未核收'
       );
+      const { count, commodity } = isOrderExit;
+      const qrCount = count * commodity.quata;
+      ctx.error(qrCount > 0, 17027, '溯源码额度为零，无法生成溯源码');
       // 打印并生成溯源码及溯源码压缩文件
 
       Object.assign(modifiedData, {

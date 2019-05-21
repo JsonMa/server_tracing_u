@@ -12,8 +12,13 @@ class Qr {
    * @memberof Qr
    */
   constructor(params) {
-    this.baseUrl = params.baseUrl;
-    this.qrType = params.qrType;
+    this.params = Object.assign(
+      {
+        baseUrl: '',
+        qrType: 'png'
+      },
+      params
+    );
   }
 
   /**
@@ -24,12 +29,9 @@ class Qr {
    * @return {undefined}
    */
   create(key) {
-    const {
-      baseUrl,
-      qrType,
-    } = this;
+    const { baseUrl, qrType } = this.params;
     return qr.image(`${baseUrl}/${key}`, {
-      type: qrType,
+      type: qrType
     });
   }
 }
