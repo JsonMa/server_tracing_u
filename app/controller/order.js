@@ -217,7 +217,7 @@ module.exports = app => {
             case 'PAYMENT_CONFIRMED':
               respOrders.unSent.push(order);
               break;
-            case 'SHIPMENT':
+            case 'SHIPPED':
               respOrders.unReceived.push(order);
               break;
             default:
@@ -627,6 +627,7 @@ module.exports = app => {
      */
     async print() {
       const { ctx, showRule } = this;
+      ctx.checkPermission('platform');
       const { id } = await ctx.verify(showRule, ctx.params);
       const isOrderExit = await ctx.service.order.findById(id);
       ctx.error(isOrderExit, 17000, '订单不存在');
@@ -634,7 +635,7 @@ module.exports = app => {
       ctx.error(
         isOrderExit.status === 'PAYMENT_CONFIRMED',
         17008,
-        '打印失败，订单未核收'
+        '溯源码打印失败，订单未核收'
       );
       Object.assign(modifiedData, {
         status,
