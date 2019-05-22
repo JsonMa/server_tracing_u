@@ -32,7 +32,6 @@ module.exports = ({ mongoose }) => {
       },
       manufacturer: {
         type: String,
-        ref: 'user',
       },
       creator: {
         type: Schema.Types.ObjectId,
