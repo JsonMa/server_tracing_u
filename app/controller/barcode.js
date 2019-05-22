@@ -21,21 +21,20 @@ module.exports = app => {
             type: 'string',
           },
           name: {
-            $ref: 'schema.definition#/name',
+            type: 'string',
           },
           description: {
             type: 'string',
           },
           manufacturer: {
-            $ref: 'string',
+            type: 'string',
           },
           attributes: {
             type: 'array',
-            items: {
-              type: 'object',
+            item: {
               properties: {
                 name: {
-                  $ref: 'schema.definition#/name',
+                  type: 'string',
                 },
                 value: {
                   type: 'string',
@@ -101,7 +100,7 @@ module.exports = app => {
       const isExist = await ctx.service.barcode.findOne({
         barcode,
       });
-      ctx.error(isExist, 13000, ' 新增条形码失败，该条形码已存在');
+      ctx.error(!isExist, 13000, ' 新增条形码失败，该条形码已存在');
       const createdBar = await ctx.service.barcode.create(
         Object.assign(ctx.request.body),
         { creator: user_id }
@@ -172,7 +171,7 @@ module.exports = app => {
         true
       );
       ctx.error(result.ok === 1, 13002, '条形码删除失败');
-      ctx.jsonBody = isExit;
+      ctx.jsonBody = isExist;
     }
   }
   return barcodeController;
