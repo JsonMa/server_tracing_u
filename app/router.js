@@ -52,8 +52,14 @@ module.exports = app => {
   // barcode
   app.post(`${prefix}/barcodes`, 'barcode.create');
   app.get(`${prefix}/barcodes/:barcode`, 'barcode.show');
+  app.get(`${prefix}/barcodes`, 'barcode.index');
   app.delete(`${prefix}/barcodes/:id`, 'barcode.destroy');
   app.put(`${prefix}/barcodes/:barcode`, 'barcode.update');
+
+  // tracing
+  app.post(`${prefix}/tracings`, 'tracing.create');
+  app.get(`${prefix}/tracings/id`, 'tracing.show');
+  app.get(`${prefix}/tracings`, 'tracing.index');
 
   // miniprogram
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');

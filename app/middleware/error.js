@@ -1,8 +1,6 @@
 'use strict';
 
-const {
-  VError,
-} = require('verror');
+const { VError } = require('verror');
 
 module.exports = () =>
   function* (next) {
@@ -13,7 +11,7 @@ module.exports = () =>
         this.body = {
           code: 400,
           msg: e.jse_shortmsg,
-          errors: e.jse_info,
+          errors: e.stack,
         };
         this.status = 400;
       } else if (e instanceof VError) {

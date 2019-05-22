@@ -293,7 +293,7 @@ module.exports = app => {
       const { order } = await ctx.verify(createRule, ctx.request.body);
 
       // 验证订单是否存在
-      const isOrderExist = await service.tracing.findById(order, 'commidity');
+      const isOrderExist = await service.order.findById(order, 'commodity');
       ctx.error(isOrderExist, 18000, '生成溯源码失败，订单不存在');
       const { commodity, isStagePay, status, count, buyer } = isOrderExist;
       // 验证订单状态，非定制溯源码，验证是否付全款，定制溯源码验证是否已经付首付款

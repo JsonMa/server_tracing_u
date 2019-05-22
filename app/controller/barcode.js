@@ -102,8 +102,7 @@ module.exports = app => {
       });
       ctx.error(!isExist, 13000, ' 新增条形码失败，该条形码已存在');
       const createdBar = await ctx.service.barcode.create(
-        Object.assign(ctx.request.body),
-        { creator: user_id }
+        Object.assign(ctx.request.body, { creator: user_id })
       );
       ctx.jsonBody = createdBar;
     }
@@ -123,6 +122,61 @@ module.exports = app => {
       });
       ctx.assert(isExit, 13001, '该条形码不存在');
       ctx.jsonBody = isExit;
+    }
+
+    /**
+     *
+     *
+     * @readonly
+     * @memberof barcodeController
+     */
+    get indexRule() {
+      return {
+        properties: {
+          ...this.ctx.helper.pagination.rule,
+        },
+        $async: true,
+        additionalProperties: false,
+      };
+    }
+
+    /**
+     * list barcodes
+     *
+     * @memberof barcodeController
+     * @return {undefined}
+     */
+    async index() {
+      const { ctx, indexRule } = this;
+      const { user_id } = ctx.registerPermission();
+      const { generateSortParam } = ctx.helper.pagination;
+      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
+        indexRule,
+        ctx.request.query
+      );
+
+      const query = { creator: user_id };
+      const barcodes = await ctx.service.barcode.findMany(
+        query,
+        null,
+        {
+          limit: parseInt(limit),
+          skip: parseInt(offset),
+          sort: generateSortParam(sort),
+        },
+        'category pictures'
+      );
+      const count = await ctx.service.barcode.count(query);
+
+      ctx.jsonBody = {
+        data: barcodes,
+        meta: {
+          limit,
+          offset,
+          sort,
+          count,
+        },
+      };
     }
 
     /**
