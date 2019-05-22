@@ -34,6 +34,7 @@ module.exports = ({ mongoose }) => {
    * @property {Array}   products.attributes      - 携带的商品属性
    *
    * @property {Array}   tracing_products         - 溯源码商品
+   * @property {Array}   no                       - 溯源码编号
    * @property {String}  private_key              - 溯源码私匙
    * @property {String}  public_key               - 溯源码公匙
    * @property {Boolean} isActive                 - 是否激活
@@ -108,6 +109,7 @@ module.exports = ({ mongoose }) => {
           ref: 'tracing',
         },
       ],
+      no: String,
       private_key: String,
       public_key: String,
       isActive: {

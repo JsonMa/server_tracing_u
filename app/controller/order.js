@@ -21,24 +21,24 @@ module.exports = app => {
       return {
         properties: {
           commodity: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           count: {
-            type: 'number'
+            type: 'number',
           },
           buyer: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           remarks: {
-            type: 'string'
+            type: 'string',
           },
           logo: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['commodity', 'count'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -53,7 +53,7 @@ module.exports = app => {
       const { createRule, ctx } = this;
       const { role_type, user_id } = ctx.checkPermission([
         'salesman',
-        'factory'
+        'factory',
       ]);
       const { commodity, count, remarks, logo } = await ctx.verify(
         createRule,
@@ -96,14 +96,14 @@ module.exports = app => {
           remarks,
           ...(isUserExited.inviter
             ? {
-                salesman: isUserExited.inviter
-              }
+              salesman: isUserExited.inviter,
+            }
             : {}),
           ...(logo
             ? {
-                logo
-              }
-            : {})
+              logo,
+            }
+            : {}),
         })
       );
       ctx.jsonBody = order;
@@ -127,26 +127,26 @@ module.exports = app => {
               'ALL_PAYED',
               'PRINTED',
               'SHIPPED',
-              'FINISHED'
-            ]
+              'FINISHED',
+            ],
           },
           buyer: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           salesman: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           quoter: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           embed: {
             type: 'string',
-            enum: ['category']
+            enum: ['category'],
           },
-          ...this.ctx.helper.pagination.rule
+          ...this.ctx.helper.pagination.rule,
         },
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -161,7 +161,7 @@ module.exports = app => {
       const { user_id, role_type } = ctx.checkPermission([
         'salesman',
         'factory',
-        'platform'
+        'platform',
       ]);
       const { generateSortParam } = ctx.helper.pagination;
       let respOrders = {
@@ -170,13 +170,13 @@ module.exports = app => {
         unSent: [], // 待发货
         unCheck: [], // 待验收
         unReceived: [], // 待收货
-        all: [] // 所有订单
+        all: [], // 所有订单
       };
       const {
         limit = 10,
         offset = 0,
         sort = '-created_at',
-        embed
+        embed,
       } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
@@ -193,7 +193,7 @@ module.exports = app => {
         {
           limit: parseInt(limit),
           skip: parseInt(offset),
-          sort: generateSortParam(sort)
+          sort: generateSortParam(sort),
         },
         'commodity buyer salesman quoter'
       );
@@ -236,8 +236,8 @@ module.exports = app => {
           limit,
           offset,
           sort,
-          count
-        }
+          count,
+        },
       };
     }
 
@@ -251,12 +251,12 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -272,7 +272,7 @@ module.exports = app => {
       const { user_id, role_type } = ctx.checkPermission([
         'salesman',
         'factory',
-        'platform'
+        'platform',
       ]);
       const order = await ctx.service.order.findById(
         id,
@@ -309,33 +309,33 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           quoter: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           price: {
-            type: 'number'
+            type: 'number',
           },
           stageProportion: {
-            type: 'number'
+            type: 'number',
           },
           commisionProportion: {
-            type: 'number'
+            type: 'number',
           },
           express: {
             type: 'object',
             properties: {
               id: {
-                type: 'string'
+                type: 'string',
               },
               name: {
-                $ref: 'schema.definition#/name'
-              }
+                $ref: 'schema.definition#/name',
+              },
             },
             required: ['id', 'name'],
             additionalProperties: false,
-            $async: true
+            $async: true,
           },
           status: {
             type: 'string',
@@ -348,8 +348,8 @@ module.exports = app => {
               'SHIPPED',
               'FINISHED',
               'CLOSED',
-              'PAYMENT_CONFIRMED'
-            ]
+              'PAYMENT_CONFIRMED',
+            ],
           },
           trade: {
             type: 'array',
@@ -358,33 +358,33 @@ module.exports = app => {
               properties: {
                 type: {
                   type: 'string',
-                  enum: ['FIRST_PAYED', 'ALL_PAYED']
+                  enum: ['FIRST_PAYED', 'ALL_PAYED'],
                 },
                 sponsor: {
-                  type: 'string'
+                  type: 'string',
                 },
                 number: {
-                  type: 'string'
+                  type: 'string',
                 },
                 voucher: {
-                  $ref: 'schema.definition#/oid'
-                }
+                  $ref: 'schema.definition#/oid',
+                },
               },
               required: ['type', 'sponsor', 'number', 'voucher'],
               additionalProperties: false,
-              $async: true
-            }
+              $async: true,
+            },
           },
           isFirstPaymentConfirmed: {
-            type: 'boolean'
+            type: 'boolean',
           },
           isAllPaymentConfirmed: {
-            type: 'boolean'
-          }
+            type: 'boolean',
+          },
         },
         required: ['id', 'status'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -398,7 +398,7 @@ module.exports = app => {
       const { ctx, updateRule } = this;
       const { role_type, user_id } = ctx.checkPermission([
         'factory',
-        'platform'
+        'platform',
       ]);
       const {
         id,
@@ -409,7 +409,7 @@ module.exports = app => {
         stageProportion,
         commisionProportion,
         isFirstPaymentConfirmed,
-        isAllPaymentConfirmed
+        isAllPaymentConfirmed,
       } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
@@ -422,7 +422,7 @@ module.exports = app => {
         ctx.oneselfPermission(isOrderExit.buyer._id.toString());
       }
       const modifiedData = {
-        needRemind: false
+        needRemind: false,
       };
 
       // 报价
@@ -449,7 +449,7 @@ module.exports = app => {
           quoter,
           status,
           needRemind: true,
-          quote_at: new Date()
+          quote_at: new Date(),
         });
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
@@ -518,7 +518,7 @@ module.exports = app => {
         }
         Object.assign(modifiedData, {
           trade,
-          status
+          status,
         });
       } else if (status === 'PAYMENT_CONFIRMED') {
         ctx.checkPermission('platform');
@@ -536,13 +536,13 @@ module.exports = app => {
           Object.assign(modifiedData, {
             status,
             isFirstPaymentConfirmed,
-            firstPaymentConfirm_at: new Date()
+            firstPaymentConfirm_at: new Date(),
           });
         } else {
           Object.assign(modifiedData, {
             status,
             isAllPaymentConfirmed,
-            allPaymentConfirm_at: new Date()
+            allPaymentConfirm_at: new Date(),
           });
         }
       } else if (status === 'SHIPPED') {
@@ -557,17 +557,17 @@ module.exports = app => {
         Object.assign(modifiedData, {
           express,
           status,
-          needRemind: true
+          needRemind: true,
         });
         // 修改商品已出售数量
         const { sales, _id: commodityId, payers } = isOrderExit.commodity;
         const { nModified } = await ctx.service.commodity.update(
           {
-            _id: commodityId
+            _id: commodityId,
           },
           {
             sales: sales + isOrderExit.count,
-            payers: payers + 1
+            payers: payers + 1,
           }
         );
         ctx.error(nModified === 1, 15005, '商品修改失败');
@@ -579,14 +579,14 @@ module.exports = app => {
         );
         Object.assign(modifiedData, {
           status,
-          finish_at: new Date()
+          finish_at: new Date(),
         });
       } else {
         ctx.error(false, 17025, '错误的订单状态');
       }
       const { nModified } = await ctx.service.order.update(
         {
-          _id: id
+          _id: id,
         },
         modifiedData
       );
@@ -614,46 +614,10 @@ module.exports = app => {
         '订单删除失败，当前状态不允许删除'
       );
       const { nModified } = await ctx.service.order.destroy({
-        _id: id
+        _id: id,
       });
       ctx.error(nModified === 1, 17016, '订单删除失败');
       ctx.jsonBody = order;
-    }
-
-    /**
-     * print tracing codes
-     *
-     * @memberof OrderController
-     */
-    async print() {
-      const { ctx, showRule } = this;
-      ctx.checkPermission('platform');
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const isOrderExit = await ctx.service.order.findById(id, 'commodity');
-      ctx.error(isOrderExit, 17000, '订单不存在');
-      const modifiedData = {};
-      ctx.error(
-        ['PAYMENT_CONFIRMED', 'SHIPPED'].includes(isOrderExit.status),
-        17008,
-        '溯源码生成失败，订单未核收'
-      );
-      const { count, commodity } = isOrderExit;
-      const qrCount = count * commodity.quata;
-      ctx.error(qrCount > 0, 17027, '溯源码额度为零，无法生成溯源码');
-      // 打印并生成溯源码及溯源码压缩文件
-
-      Object.assign(modifiedData, {
-        status,
-        print_at: new Date()
-      });
-
-      const { nModified } = await ctx.service.order.update(
-        {
-          _id: id
-        },
-        modifiedData
-      );
-      ctx.error(nModified === 1, 17026, '溯源码打印失败');
     }
   }
   return OrderController;

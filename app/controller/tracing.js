@@ -282,7 +282,7 @@ module.exports = app => {
     }
 
     /**
-     * 创建溯源码
+     * 通过订单创建溯源码
      *
      * @memberof CommodityController
      * @return {object} 指定订单生成的溯源码
@@ -307,17 +307,35 @@ module.exports = app => {
         ctx.error(status === 'ALL_PAYED', 18001, '订单未支付，无法生成溯源码');
       }
 
+      // 修改订单的状态为已打印
+      const { nModified } = await ctx.service.order.update(
+        { _id: order },
+        {
+          status,
+          print_at: new Date(),
+        }
+      );
+      ctx.error(nModified === 1, 17026, '溯源码打印失败');
+
+      // 创建溯源码
       const targetTracings = [];
       for (let i = 0; i < commodity.quata * count; i++) {
+        const privateKey = uuid();
+        const publicKey = uuid();
+        const no = `${order}/${i + 1}`; // 对外编号
         targetTracings.push({
           factory: buyer,
           owner: buyer,
           order,
-          private_key: uuid(),
-          public_key: uuid(),
+          no,
+          private_key: privateKey,
+          public_key: publicKey,
         });
+        // 为溯源码生成溯源二维码并存入文件夹
       }
+      // 创建压缩文件
       const tracings = await service.tracing.insertMany(targetTracings);
+
       ctx.jsonBody = tracings;
     }
 

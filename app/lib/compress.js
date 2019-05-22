@@ -20,36 +20,6 @@ class Compress {
   }
 
   /**
-   * create dir
-   *
-   * @param {String} name - dir name
-   * @memberof Compress
-   * @return {undefined}
-   */
-  createDir(name) {
-    fs.mkdirSync(`${this.basePath}/${name}`);
-  }
-
-  /**
-   * create file
-   *
-   * @param {String} name - file name
-   * @param {String} path - file path
-   * @memberof Compress
-   * @return {undefined}
-   */
-  createFile(name, path) {
-    const qrType = 'png';
-    const baseUrl = '';
-    const qrcode = new qr({
-      baseUrl,
-      qrType
-    });
-    const writeStream = fs.createWriteStream(`${path}/${name}.${qrType}`);
-    qrcode.createFile(name).pipe(writeStream);
-  }
-
-  /**
    * create compress file
    *
    * @param {String} name     - compress file name
@@ -61,23 +31,18 @@ class Compress {
     const writeStream = fs.createWriteStream(`${this.basePath}/${name}.zip`);
     const archive = archiver('zip', {
       zlib: {
-        level: 9
-      }
+        level: 9,
+      },
     });
 
     return new Promise((resolve, reject) => {
+      // 错误处理
       archive.on('warning', function(err) {
-        if (err.code === 'ENOENT') {
-          // log warning
-        } else {
-          // throw error
-          throw err;
-        }
+        reject(err);
       });
 
-      // good practice to catch this error explicitly
       archive.on('error', function(err) {
-        throw err;
+        reject(err);
       });
     });
   }

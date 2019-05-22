@@ -45,7 +45,6 @@ module.exports = app => {
   app.post(`${prefix}/orders`, 'order.create');
   app.get(`${prefix}/orders`, 'order.index');
   app.get(`${prefix}/orders/:id`, 'order.show');
-  app.get(`${prefix}/orders/:id/print`, 'order.print');
   app.delete(`${prefix}/orders/:id`, 'order.destroy');
   app.put(`${prefix}/orders/:id`, 'order.update');
 

@@ -47,7 +47,7 @@ module.exports = app => {
             },
           },
         },
-        required: ['barcode', 'name', 'description', 'manufacturer'],
+        required: ['barcode', 'name', 'description', 'manufacturer', 'image'],
         $async: true,
         additionalProperties: false,
       };
