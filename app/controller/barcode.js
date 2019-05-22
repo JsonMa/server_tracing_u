@@ -29,6 +29,9 @@ module.exports = app => {
           manufacturer: {
             type: 'string',
           },
+          image: {
+            $ref: 'schema.definition#/oid',
+          },
           attributes: {
             type: 'array',
             item: {
@@ -96,7 +99,9 @@ module.exports = app => {
     async create() {
       const { ctx, createRule } = this;
       const { user_id } = ctx.registerPermission(); // 是否为已注册且登录的用户
-      const { barcode } = await ctx.verify(createRule, ctx.request.body);
+      const { barcode, image } = await ctx.verify(createRule, ctx.request.body);
+      const isFileExist = await ctx.service.file.findById(image);
+      ctx.error(isFileExist, 13004, ' 条形码对应的商品图片不存在');
       const isExist = await ctx.service.barcode.findOne({
         barcode,
       });

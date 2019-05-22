@@ -15,6 +15,7 @@ module.exports = ({ mongoose }) => {
    * @property {Array}  attributes   - 商品属性
    * @property {String} manufacturer - 制造商
    * @property {String} creator      - 创建人
+   * @property {String} image        - 图片
    */
   const schema = new Schema(
     {
@@ -36,6 +37,10 @@ module.exports = ({ mongoose }) => {
       creator: {
         type: Schema.Types.ObjectId,
         ref: 'user',
+      },
+      image: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
       },
       attributes: [
         {
