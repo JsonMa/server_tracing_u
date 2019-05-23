@@ -1,49 +1,12 @@
-'use strict';
-const fs = require('fs');
-const archiver = require('archiver');
-const path = require('path');
-/**
- *
- *
- * @class Compress
- */
-class Compress {
-  /**
-   *Creates an instance of Compress.
-   * @param {String} order - params
-   * @memberof Compress
-   */
-  constructor(order) {
-    this.order = order;
-    this.basePath = path.join(__dirname, '../../files');
-  }
-
-  /**
-   * create compress file
-   *
-   * @param {Object} options  - compress options
-   * @memberof Compress
-   * @return {undefined}
-   */
-  createCompressFile(options) {
-    const writeStream = fs.createWriteStream(`${this.basePath}/${this.order}.zip`);
-    const archive = archiver('zip', {
-      zlib: {
-        level: 9,
-      },
-    });
-
-    return new Promise((resolve, reject) => {
-      // 错误处理
-      archive.on('warning', function(err) {
-        reject(err);
-      });
-
-      archive.on('error', function(err) {
-        reject(err);
-      });
-    });
-  }
-}
-
-module.exports = Compress;
+// 'use strict';
+// const compressing = require('compressing');
+// const path = require('path');
+// const eliminate = require('eliminate');
+// const fs = require('fs');
+// const basePath = path.join(__dirname, '../../files');
+// compressing.tar.compressDir(`${basePath}/test2`, `${basePath}/test2.tar`).then(async () => {
+//   console.log('success');
+//   await eliminate(`${basePath}/test2`);
+//   const fileStat = fs.statSync(`${basePath}/test2.tar`);
+//   console.log(fileStat);
+// }); // 创建压缩文件

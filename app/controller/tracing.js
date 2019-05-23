@@ -1,7 +1,10 @@
 'use strict';
 const uuid = require('uuid/v4');
 const Qr = require('../lib/qr');
-const Compress = require('../lib/compress');
+const compressing = require('compressing');
+const path = require('path');
+const fs = require('fs');
+const eliminate = require('eliminate');
 
 module.exports = app => {
   /**
@@ -309,6 +312,7 @@ module.exports = app => {
         service,
         createRule,
       } = this;
+      const basePath = path.join(__dirname, '../../files');
       ctx.checkPermission('platform'); // 是否是平台用户权限
       const {
         order,
@@ -335,22 +339,10 @@ module.exports = app => {
         ctx.error(status === 'ALL_PAYED', 18001, '订单未支付，无法生成溯源码');
       }
 
-      // 修改订单的状态为已打印
-      const {
-        nModified,
-      } = await ctx.service.order.update({
-        _id: order,
-      }, {
-        status,
-        print_at: new Date(),
-      });
-      ctx.error(nModified === 1, 17026, '溯源码打印失败');
-
       // 创建溯源码
       const qrInstance = new Qr({
         order,
       });
-      const compressInstance = new Compress(order);
       const targetTracings = [];
       for (let i = 0; i < commodity.quata * count; i++) {
         const privateKey = uuid();
@@ -368,8 +360,29 @@ module.exports = app => {
         qrInstance.createFiles(no, publicKey, privateKey);
       }
 
-      // 创建压缩文件
-      await compressInstance.createCompressFile();
+      await compressing.tar.compressDir(`${basePath}/${order}`, `${basePath}/${order}.tar`); // 创建压缩文件
+      await eliminate(`${basePath}/${order}`); // 删除文件夹
+      // 将附件添加至文件系统中
+      const fileStat = fs.statSync(`${basePath}/${order}.tar`);
+      const file = await ctx.service.file.create({
+        name: `${order}.tar`,
+        type: 'application/x-tar',
+        path: `files/${order}.tar`,
+        size: fileStat.size,
+      });
+      ctx.error(file, 17027, '订单附件创建失败');
+
+      // 修改订单的状态，添加附件地址
+      const {
+        nModified,
+      } = await ctx.service.order.update({
+        _id: order,
+      }, {
+        status,
+        attachment: file._id,
+        print_at: new Date(),
+      });
+      ctx.error(nModified === 1, 17026, '溯源码打印失败');
       const tracings = await service.tracing.insertMany(targetTracings);
 
       ctx.jsonBody = tracings;
