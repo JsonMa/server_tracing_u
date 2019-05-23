@@ -1,6 +1,5 @@
 'use strict';
 const Service = require('../lib/DBService');
-const compress = require('../lib/compress');
 /**
  * Tracing Service
  *
@@ -16,13 +15,6 @@ class TracingService extends Service {
   constructor(ctx) {
     super(ctx, 'Tracing');
   }
-
-  /**
-   * 压缩
-   *
-   * @memberof TracingService
-   */
-  compress() {}
 }
 
 module.exports = TracingService;
