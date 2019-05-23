@@ -1,7 +1,6 @@
 'use strict';
 const fs = require('fs');
 const archiver = require('archiver');
-const qr = require('./qr');
 const path = require('path');
 /**
  *
@@ -11,24 +10,23 @@ const path = require('path');
 class Compress {
   /**
    *Creates an instance of Compress.
-   * @param {Object} params - params
+   * @param {String} order - params
    * @memberof Compress
    */
-  constructor(params) {
-    this.parmas = params;
+  constructor(order) {
+    this.order = order;
     this.basePath = path.join(__dirname, '../../files');
   }
 
   /**
    * create compress file
    *
-   * @param {String} name     - compress file name
    * @param {Object} options  - compress options
    * @memberof Compress
    * @return {undefined}
    */
-  createCompressFile(name, options) {
-    const writeStream = fs.createWriteStream(`${this.basePath}/${name}.zip`);
+  createCompressFile(options) {
+    const writeStream = fs.createWriteStream(`${this.basePath}/${this.order}.zip`);
     const archive = archiver('zip', {
       zlib: {
         level: 9,

@@ -16,12 +16,11 @@ class Qr {
    * @memberof Qr
    */
   constructor(params) {
-    this.params = Object.assign(
-      {
-        baseUrl: 'http://www.baidu.com',
-        qrType: 'png',
-      },
-      params
+    this.params = Object.assign({
+      baseUrl: 'http://www.baidu.com',
+      qrType: 'png',
+    },
+    params
     );
     this.basePath = path.join(__dirname, '../../files');
     this.createOrderDir(); // 创建order dir
@@ -35,9 +34,14 @@ class Qr {
    * @return {undefined}
    */
   create(key) {
-    const { baseUrl, qrType } = this.params;
-    return qr.image(`${baseUrl}/${key}`, {
+    const {
+      baseUrl,
+      qrType,
+    } = this.params;
+    return qr.imageSync(`${baseUrl}/${key}`, {
       type: qrType,
+      margin: 1,
+      size: 10,
     });
   }
 
@@ -48,7 +52,13 @@ class Qr {
    * @return {undefined}
    */
   createOrderDir() {
-    return fs.mkdirSync(`${this.basePath}/${this.params.order}`);
+    try {
+      const dirStat = fs.statSync(`${this.basePath}/${this.params.order}`);
+      assert(dirStat.isDirectory(), `目录名：${this.params.order}在files下不存在`);
+      return;
+    } catch (error) {
+      return fs.mkdirSync(`${this.basePath}/${this.params.order}`);
+    }
   }
 
   /**
@@ -59,7 +69,15 @@ class Qr {
    * @return {undefined}
    */
   createQrDir(no) {
-    return fs.mkdirSync(`${this.basePath}/${this.params.order}/${no}`);
+    try {
+      const dirStat = fs.statSync(
+        `${this.basePath}/${this.params.order}/${no}`
+      );
+      assert(dirStat.isDirectory(), `目录名：${no}在files下不存在`); // 为true的话那么存在，如果为false不存在
+      return;
+    } catch (error) {
+      return fs.mkdirSync(`${this.basePath}/${this.params.order}/${no}`);
+    }
   }
 
   /**
@@ -72,14 +90,7 @@ class Qr {
    * @return {undefined}
    */
   createFiles(no, publicKey, privateKey) {
-    try {
-      const dirStat = fs.statSync(
-        `${this.basePath}/${this.params.order}/${no}`
-      );
-      assert(dirStat.isDirectory(), `目录名：${no}在files下不存在`); // 为true的话那么存在，如果为false不存在
-    } catch (error) {
-      this.createQrDir(no);
-    }
+    this.createQrDir(no);
     ['public', 'private'].forEach(fileName => {
       const key = fileName === 'public' ? publicKey : privateKey;
       const writeStream = fs.createWriteStream(
@@ -91,9 +102,5 @@ class Qr {
     });
   }
 }
-
-const qrInstance = new Qr({ order: '112212112' });
-qrInstance.createFiles('haha', 'public', 'private');
-qrInstance.createFiles('haha1', 'publisssc', 'prcccivate');
 
 module.exports = Qr;
