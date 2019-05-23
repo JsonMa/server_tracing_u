@@ -1,4 +1,5 @@
-// @ts-nocheck
+const path = require('path')
+
 module.exports = () => {
   const exports = {};
 
@@ -63,6 +64,10 @@ module.exports = () => {
 
   exports.siteFile = {
     '/favicon.ico': '/static/favicon.ico'
+  };
+
+  exports.static = {
+    prefix: '/page/tracing',
   };
 
   exports.onerror = {

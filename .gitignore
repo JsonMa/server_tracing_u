@@ -15,4 +15,3 @@ config/config.unittest.js
 jsdoc
 .nyc_output
 files/
-app/public
