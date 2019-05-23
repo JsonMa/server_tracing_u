@@ -226,11 +226,11 @@ module.exports = app => {
       const {
         barcode,
       } = await ctx.verify(createRule, Object.assign(ctx.request.body, ctx.params));
-      const isExit = await service.barcode.findOne({
+      const isExist = await service.barcode.findOne({
         barcode,
       });
-      ctx.assert(isExit, 13001, '该条形码不存在');
-      ctx.oneselfPermission(isExit.creator._id.toString()); // 被修改的条形码是否是自己创建的
+      ctx.assert(isExist, 13001, '该条形码不存在');
+      ctx.oneselfPermission(isExist.creator._id.toString()); // 被修改的条形码是否是自己创建的
 
       const {
         nModified,
@@ -240,6 +240,7 @@ module.exports = app => {
       ctx.request.body
       );
       ctx.error(nModified === 1, 13003, '修改条形码失败');
+      ctx.jsonBody = Object.assign(isExist, ctx.request.body);
     }
 
     /**
