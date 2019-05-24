@@ -98,10 +98,7 @@ module.exports = app => {
             type: 'string',
             enum: ['send', 'receive', 'express', 'bind'],
           },
-          private_key: {
-            type: 'string',
-          },
-          public_key: {
+          key: {
             type: 'string',
           },
           record: {
@@ -237,7 +234,7 @@ module.exports = app => {
      */
     async show() {
       const { ctx, service, showRule } = this;
-      ctx.loginPermission(); // 是否已登录
+      // ctx.loginPermission(); // 是否已登录
       const { key } = await ctx.verify(showRule, ctx.params);
       const query = {
         $or: [{ private_key: key }, { public_key: key }],
@@ -368,8 +365,7 @@ module.exports = app => {
     async update() {
       const { ctx, service, updateRule } = this;
       const {
-        private_key,
-        public_key,
+        key,
         record,
         products,
         tracing_products,
@@ -380,10 +376,10 @@ module.exports = app => {
         Object.assign(ctx.request.body, ctx.params)
       );
 
-      ctx.error(public_key || private_key, 18004, '溯源密匙为必填项', 400);
-      const isTracingExist = await service.tracing.findById(
-        private_key || public_key
-      );
+      ctx.error(key, 18004, '溯源密匙为必填项', 400);
+      const isTracingExist = await service.tracing.findOne({
+        $or: [{ private_key: key }, { public_key: key }],
+      });
       ctx.error(
         !isTracingExist.isEnd,
         18005,
@@ -395,6 +391,12 @@ module.exports = app => {
 
       // 绑定溯源码商品
       if (operation === 'bind') {
+        ctx.error(
+          (products && products.length > 0) ||
+            (tracing_products && tracing_products.length > 0),
+          18015,
+          '绑定商品为必填'
+        );
         if (isFactoryTracing) {
           const tracing_count = tracing_products.length;
           ctx.error(
@@ -515,16 +517,7 @@ module.exports = app => {
       Object.assign(isTracingExist, targetData);
       const { nModified } = await ctx.service.tracing.update(
         {
-          ...(private_key
-            ? {
-              private_key,
-            }
-            : {}),
-          ...(public_key
-            ? {
-              public_key,
-            }
-            : {}),
+          $or: [{ private_key: key }, { public_key: key }],
         },
         targetData
       );

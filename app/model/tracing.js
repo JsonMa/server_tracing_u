@@ -86,24 +86,8 @@ module.exports = ({ mongoose }) => {
       },
       products: [
         {
-          name: {
-            type: String,
-            required: true,
-          },
-          description: {
-            type: String,
-            required: true,
-          },
-          manufacturer: {
-            type: Schema.Types.ObjectId,
-            ref: 'user',
-          },
-          attributes: [
-            {
-              name: String,
-              value: String,
-            },
-          ],
+          type: Schema.Types.ObjectId,
+          ref: 'barcode',
         },
       ],
       tracing_products: [

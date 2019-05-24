@@ -11,7 +11,7 @@ module.exports = () =>
         this.body = {
           code: 400,
           msg: e.jse_shortmsg,
-          errors: e.stack,
+          errors: e.jse_info,
         };
         this.status = 400;
       } else if (e instanceof VError) {
