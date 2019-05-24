@@ -20,8 +20,8 @@ module.exports = app => {
           enable: {
             type: 'boolean',
           },
-          role_type: {
-            $ref: 'schema.definition#/role_type',
+          sub_level: {
+            type: 'boolean',
           },
           ...this.ctx.helper.pagination.rule,
         },
@@ -121,11 +121,11 @@ module.exports = app => {
     async index() {
       const { ctx, indexRule } = this;
       const { generateSortParam } = ctx.helper.pagination;
-      ctx.checkPermission(['platform']);
+      const { user_id } = ctx.registerPermission();
 
       const {
         enable,
-        role_type,
+        sub_level,
         limit = 10,
         offset = 0,
         sort = '-created_at',
@@ -133,7 +133,7 @@ module.exports = app => {
 
       const query = {};
       if (enable) query.enable = enable;
-      if (role_type) query.role_type = role_type;
+      if (sub_level) query.inviter = user_id;
       const users = await ctx.service.user.findMany(query, null, {
         limit: parseInt(limit),
         skip: parseInt(offset),
@@ -148,6 +148,37 @@ module.exports = app => {
           offset,
           sort,
           count,
+        },
+      };
+    }
+
+    /**
+     * 用户统计信息
+     *
+     * @memberof UserController
+     * @return {undefined}
+     */
+    async statistics() {
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const { user_id } = ctx.oneselfPermission(id);
+      const totalTracings = await ctx.service.tracing.count({
+        owner: user_id,
+      });
+      const unUsedTracings = await ctx.service.tracing.count({
+        owner: user_id,
+        isActive: false,
+      });
+      const barcodes = await ctx.service.barcode.count({
+        creator: user_id,
+      });
+      const userInfo = await ctx.service.user.findById(user_id);
+      ctx.jsonBody = {
+        data: {
+          totalTracings,
+          unUsedTracings,
+          barcodes,
+          userInfo,
         },
       };
     }
@@ -214,7 +245,7 @@ module.exports = app => {
           `token:${token}`,
           JSON.stringify(sessionData),
           'EX',
-          7200
+          72000
         );
       }
       ctx.jsonBody = createdUser;

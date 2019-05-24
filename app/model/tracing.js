@@ -72,7 +72,10 @@ module.exports = ({ mongoose }) => {
           express_at: Date,
         },
       ],
-      owner: String,
+      owner: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
       factory: {
         type: Schema.Types.ObjectId,
         ref: 'user',
