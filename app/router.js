@@ -1,7 +1,10 @@
 'use strict';
 
 module.exports = app => {
-  const { formidable, compress } = app.middleware;
+  const {
+    formidable,
+    compress,
+  } = app.middleware;
 
   /* istanbul ignore next */
   const prefix = '/api';
@@ -57,8 +60,9 @@ module.exports = app => {
 
   // tracing
   app.post(`${prefix}/tracings`, 'tracing.create');
-  app.get(`${prefix}/tracings/id`, 'tracing.show');
+  app.get(`${prefix}/tracings/:id`, 'tracing.show');
   app.get(`${prefix}/tracings`, 'tracing.index');
+  app.put(`${prefix}/tracings/:key`, 'tracing.update');
 
   // miniprogram
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');
