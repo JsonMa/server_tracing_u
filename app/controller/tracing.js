@@ -1,10 +1,9 @@
 'use strict';
 const uuid = require('uuid/v4');
-const Qr = require('../lib/qr');
-const compressing = require('compressing');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const excel = require('excel4node');
 
 module.exports = app => {
   /**
@@ -143,36 +142,7 @@ module.exports = app => {
           products: {
             type: 'array',
             items: {
-              properties: {
-                name: {
-                  type: 'string',
-                },
-                description: {
-                  type: 'string',
-                },
-                manufacturer: {
-                  type: 'string',
-                },
-                attributes: {
-                  type: 'array',
-                  items: {
-                    properties: {
-                      name: {
-                        type: 'string',
-                      },
-                      value: {
-                        type: 'string',
-                      },
-                    },
-                    required: ['name', 'value'],
-                    $async: true,
-                    additionalProperties: false,
-                  },
-                },
-              },
-              required: ['name', 'description', 'manufacturer', 'attributes'],
-              $async: true,
-              additionalProperties: false,
+              $ref: 'schema.definition#/oid',
             },
           },
           tracing_products: {
@@ -286,8 +256,19 @@ module.exports = app => {
     async create() {
       const { ctx, service, createRule } = this;
       const basePath = path.join(__dirname, '../../files');
-      ctx.checkPermission('platform'); // 是否是平台用户权限
+      // ctx.checkPermission('platform'); // 是否是平台用户权限
       const { order } = await ctx.verify(createRule, ctx.request.body);
+
+      // 配置excel
+      const workBook = new excel.Workbook();
+      const style = workBook.createStyle({
+        font: {
+          color: '#000000',
+          size: 14,
+        },
+        numberFormat: '$#,##0.00; ($#,##0.00); -',
+      });
+      const workSheet = workBook.addWorksheet('Sheet 1');
 
       // 验证订单是否存在
       const isOrderExist = await service.order.findById(order, 'commodity');
@@ -304,12 +285,8 @@ module.exports = app => {
         ctx.error(status === 'ALL_PAYED', 18001, '订单未支付，无法生成溯源码');
       }
 
-      // 创建溯源码
-      const qrInstance = new Qr({
-        order,
-      });
       const targetTracings = [];
-      // const baseUrl = 'https://buildupstep.cn/page/tracing/key?';
+      const baseUrl = 'https://buildupstep.cn/page/tracing/code?';
       for (let i = 0; i < commodity.quata * count; i++) {
         // 密匙加密
         const privateHash = crypto.createHash('sha512');
@@ -318,9 +295,19 @@ module.exports = app => {
         publicHash.update(uuid());
         const privateKey = `01${privateHash.digest('hex')}`;
         const publicKey = `01${publicHash.digest('hex')}`;
-        // const privateTracing = `${baseUrl}private_key=${privateKey}`;
-        // const publicTracing = `${baseUrl}public_key=${privateKey}`;
+        const privateTracing = `${baseUrl}inner_code=${privateKey}`;
+        const publicTracing = `${baseUrl}outer_code=${publicKey}`;
         const no = i + 1; // 对外编号
+        // 数据写入excel
+        [privateTracing, publicTracing, publicTracing].forEach(
+          (item, index) => {
+            workSheet
+              .cell(i, index + 1)
+              .string(item)
+              .style(style);
+          }
+        );
+
         targetTracings.push({
           factory: buyer,
           owner: buyer,
@@ -329,21 +316,28 @@ module.exports = app => {
           private_key: privateKey,
           public_key: publicKey,
         });
-        // 为溯源码生成溯源二维码并存入文件夹
-        qrInstance.createFiles(no, publicKey, privateKey);
       }
+      /**
+       * writeExcel
+       *
+       * @return {Promise} - write promise
+       */
+      const writeExcel = () => {
+        return new Promise((resolve, reject) => {
+          workBook.write(`${basePath}/${order}.xlsx`, err => {
+            if (err) reject(err);
+            resolve();
+          });
+        });
+      };
+      await writeExcel();
 
-      await compressing.tar.compressDir(
-        `${basePath}/${order}`,
-        `${basePath}/${order}.tar`
-      ); // 创建压缩文件
-      // await eliminate(`${basePath}/${order}`); // 删除文件夹
       // 将附件添加至文件系统中
-      const fileStat = fs.statSync(`${basePath}/${order}.tar`);
+      const fileStat = fs.statSync(`${basePath}/${order}.xlsx`);
       const file = await ctx.service.file.create({
-        name: `${order}.tar`,
-        type: 'application/x-tar',
-        path: `files/${order}.tar`,
+        name: `${order}.xlsx`,
+        type: 'application/vnd.ms-excel',
+        path: `files/${order}.xlsx`,
         size: fileStat.size,
       });
       ctx.error(file, 17027, '订单附件创建失败');
@@ -354,7 +348,7 @@ module.exports = app => {
           _id: order,
         },
         {
-          status,
+          status: 'PRINTED',
           attachment: file._id,
           print_at: new Date(),
         }
@@ -422,6 +416,16 @@ module.exports = app => {
           );
           targetData.tracing_products = tracing_products;
         } else if (products && products.length) {
+          const productsCount = await ctx.service.barcode.count({
+            _id: {
+              $in: products,
+            },
+          });
+          ctx.error(
+            productsCount === products.length,
+            18007,
+            '条形码列表中存在错误的码'
+          );
           // 绑定普通商品
           targetData.products = products;
         }
