@@ -4,7 +4,7 @@ const Qr = require('../lib/qr');
 const compressing = require('compressing');
 const path = require('path');
 const fs = require('fs');
-const eliminate = require('eliminate');
+// const eliminate = require('eliminate');
 
 module.exports = app => {
   /**
@@ -221,17 +221,10 @@ module.exports = app => {
      * @return {array} 溯源码列表
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
+      const { ctx, indexRule } = this;
       ctx.checkPermission('platform'); // 是否是平台用户权限
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
-      const {
-        limit = 10, offset = 0, sort = '-created_at',
-      } = await ctx.verify(
+      const { generateSortParam } = ctx.helper.pagination;
+      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
         indexRule,
         ctx.request.query
       );
@@ -250,7 +243,8 @@ module.exports = app => {
       });
       const tracings = await ctx.service.tracing.findMany(
         query,
-        null, {
+        null,
+        {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -277,17 +271,9 @@ module.exports = app => {
      * @return {object} 溯源码详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
+      const { ctx, service, showRule } = this;
       ctx.loginPermission(); // 是否已登录
-      const {
-        id,
-        public_key,
-        private_key,
-      } = await ctx.verify(
+      const { id, public_key, private_key } = await ctx.verify(
         showRule,
         ctx.params
       );
@@ -307,27 +293,15 @@ module.exports = app => {
      * @return {object} 指定订单生成的溯源码
      */
     async create() {
-      const {
-        ctx,
-        service,
-        createRule,
-      } = this;
+      const { ctx, service, createRule } = this;
       const basePath = path.join(__dirname, '../../files');
       ctx.checkPermission('platform'); // 是否是平台用户权限
-      const {
-        order,
-      } = await ctx.verify(createRule, ctx.request.body);
+      const { order } = await ctx.verify(createRule, ctx.request.body);
 
       // 验证订单是否存在
       const isOrderExist = await service.order.findById(order, 'commodity');
       ctx.error(isOrderExist, 18000, '生成溯源码失败，订单不存在');
-      const {
-        commodity,
-        isStagePay,
-        status,
-        count,
-        buyer,
-      } = isOrderExist;
+      const { commodity, isStagePay, status, count, buyer } = isOrderExist;
       // 验证订单状态，非定制溯源码，验证是否付全款，定制溯源码验证是否已经付首付款
       if (isStagePay) {
         ctx.error(
@@ -360,8 +334,11 @@ module.exports = app => {
         qrInstance.createFiles(no, publicKey, privateKey);
       }
 
-      await compressing.tar.compressDir(`${basePath}/${order}`, `${basePath}/${order}.tar`); // 创建压缩文件
-      await eliminate(`${basePath}/${order}`); // 删除文件夹
+      await compressing.tar.compressDir(
+        `${basePath}/${order}`,
+        `${basePath}/${order}.tar`
+      ); // 创建压缩文件
+      // await eliminate(`${basePath}/${order}`); // 删除文件夹
       // 将附件添加至文件系统中
       const fileStat = fs.statSync(`${basePath}/${order}.tar`);
       const file = await ctx.service.file.create({
@@ -373,15 +350,16 @@ module.exports = app => {
       ctx.error(file, 17027, '订单附件创建失败');
 
       // 修改订单的状态，添加附件地址
-      const {
-        nModified,
-      } = await ctx.service.order.update({
-        _id: order,
-      }, {
-        status,
-        attachment: file._id,
-        print_at: new Date(),
-      });
+      const { nModified } = await ctx.service.order.update(
+        {
+          _id: order,
+        },
+        {
+          status,
+          attachment: file._id,
+          print_at: new Date(),
+        }
+      );
       ctx.error(nModified === 1, 17026, '溯源码打印失败');
       const tracings = await service.tracing.insertMany(targetTracings);
 
@@ -395,11 +373,7 @@ module.exports = app => {
      * @return {promise} 被修改溯源码
      */
     async update() {
-      const {
-        ctx,
-        service,
-        updateRule,
-      } = this;
+      const { ctx, service, updateRule } = this;
       const {
         private_key,
         public_key,
@@ -454,9 +428,7 @@ module.exports = app => {
         }
       } else {
         ctx.error(record, 18011, '溯源记录为必填项', 400);
-        const {
-          records: currentRecords,
-        } = isTracingExist;
+        const { records: currentRecords } = isTracingExist;
         const recordCount = currentRecords.length;
         const latestRecord = currentRecords.unshift();
         // 设置溯源记录
@@ -520,12 +492,7 @@ module.exports = app => {
           targetData.records = currentRecords;
         } else if (operation === 'receive') {
           // 验货
-          const {
-            reciver_type,
-            sender,
-            express_no,
-            reciver,
-          } = latestRecord;
+          const { reciver_type, sender, express_no, reciver } = latestRecord;
           ctx.error(
             express_no && reciver && sender,
             18014,
@@ -543,17 +510,20 @@ module.exports = app => {
       }
       // 溯源码更新
       Object.assign(isTracingExist, targetData);
-      const {
-        nModified,
-      } = await ctx.service.tracing.update({
-        ...(private_key ? {
-          private_key,
-        } : {}),
-        ...(public_key ? {
-          public_key,
-        } : {}),
-      },
-      targetData
+      const { nModified } = await ctx.service.tracing.update(
+        {
+          ...(private_key
+            ? {
+              private_key,
+            }
+            : {}),
+          ...(public_key
+            ? {
+              public_key,
+            }
+            : {}),
+        },
+        targetData
       );
       ctx.error(nModified === 1, 18006, '溯源码修改失败');
 
@@ -567,21 +537,13 @@ module.exports = app => {
      * @return {array} 删除的溯源码
      */
     async destroy() {
-      const {
-        ctx,
-        service,
-        destroyRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(destroyRule, ctx.params);
+      const { ctx, service, destroyRule } = this;
+      const { id } = await ctx.verify(destroyRule, ctx.params);
 
       // 查询并删除溯源码
       const tracing = await service.tracing.findById(id);
       ctx.error(tracing, '溯源码不存在', 18002);
-      const {
-        nModified,
-      } = await service.tracing.destroy({
+      const { nModified } = await service.tracing.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 18003, '溯源码删除失败');

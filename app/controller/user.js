@@ -159,8 +159,9 @@ module.exports = app => {
      * @return {undefined}
      */
     async statistics() {
-      const { ctx } = this;
-      const { user_id } = ctx.registerPermission();
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const { user_id } = ctx.oneselfPermission(id);
       const totalTracings = await ctx.service.tracing.count({
         owner: user_id,
       });
@@ -244,7 +245,7 @@ module.exports = app => {
           `token:${token}`,
           JSON.stringify(sessionData),
           'EX',
-          7200
+          72000
         );
       }
       ctx.jsonBody = createdUser;
