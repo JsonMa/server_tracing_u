@@ -32,13 +32,12 @@ module.exports = ({ mongoose }) => {
    * @property {String}  products.description     - 携带的商品描述
    * @property {String}  products.manufacturer    - 携带的商品制造商
    * @property {Array}   products.attributes      - 携带的商品属性
-   *
    * @property {Array}   tracing_products         - 溯源码商品
    * @property {Array}   no                       - 溯源码编号
    * @property {String}  private_key              - 溯源码私匙
    * @property {String}  public_key               - 溯源码公匙
    * @property {Boolean} isActive                 - 是否激活
-   * @property {Boolean} isReceived               - 目标客户是否已签收
+   * @property {Boolean} state                    - ['UNBIND-未绑定商品','BIND-已绑定商品','SEND-经销商已发货','EXPRESSED-快递已绑定快递信息','RECEIVED-客户已收货']
    * @property {Boolean} isEnd                    - 溯源流程结束
    * @property {Boolean} isFactoryTracing         - 是否为厂家溯源码
    */
@@ -97,15 +96,18 @@ module.exports = ({ mongoose }) => {
         },
       ],
       no: String,
+      private_uuid: String,
+      public_uuid: String,
       private_key: String,
       public_key: String,
       isActive: {
         type: Boolean,
         default: false,
       },
-      isReceived: {
-        type: Boolean,
-        default: false,
+      state: {
+        type: String,
+        enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED'],
+        default: 'UNBIND',
       },
       isEnd: {
         type: Boolean,

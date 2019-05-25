@@ -82,20 +82,12 @@ module.exports = app => {
           id: {
             $ref: 'schema.definition#/oid',
           },
-          role_type: {
-            $ref: 'schema.definition#/role_type',
-          },
-          enable: {
-            type: 'boolean',
-          },
-          inviter: {
+          banner: {
             $ref: 'schema.definition#/oid',
           },
-          name: {
-            $ref: 'schema.definition#/name',
-          },
-          phone: {
-            $ref: 'schema.definition#/mobile',
+          operation: {
+            type: 'string',
+            enum: ['banner', 'state'],
           },
           state: {
             type: 'string',
@@ -108,6 +100,7 @@ module.exports = app => {
           },
         },
         $async: true,
+        required: ['id', 'operation'],
         additionalProperties: false,
       };
     }
@@ -272,23 +265,51 @@ module.exports = app => {
      * @return {promise} 被修改用户信息
      */
     async update() {
+      // 商户上传banner或平台管理员审核用户
       const { ctx, service, updateRule } = this;
-      const { id } = await ctx.verify(
+      const { id, operation, banner, state, rejectReason } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
-      ctx.checkPermission(['platform']);
+      const isUserExist = await ctx.service.user.findById(id);
+      ctx.error(isUserExist, 11008, '未找到该用户');
+      const targetParams = {};
+      if (operation === 'banner') {
+        ctx.oneselfPermission(id);
+        ctx.error(
+          isUserExist.role_type === 'business',
+          11009,
+          '非商户类型用户不能上传banner图'
+        );
+        // 验证banner是否存在
+        const isBannerExist = await ctx.service.file.findById(banner);
+        ctx.error(isBannerExist, 11010, '上传的banner图不存在');
+        targetParams.business = isUserExist.business;
+        targetParams.business.banner = banner;
+      } else {
+        // 修改用户审核状态
+        ctx.checkPermission(['platform']);
+        ctx.error(state, 11011, 'state参数为必填项');
+        ctx.error(
+          ['passed', 'rejected'].includes(state),
+          11012,
+          'state参数为passed或rejected'
+        );
+        targetParams.state = state;
+        if (state === 'rejected') {
+          ctx.error(rejectReason, 11012, 'rejectReason为必填项');
+          targetParams.rejectReason = rejectReason;
+        }
+      }
 
-      const user = await service.user.findById(id);
-      ctx.assert(user, '不存在该用户', 404);
       await service.user.update(
         {
           _id: id,
         },
-        ctx.request.body
+        targetParams
       );
 
-      ctx.jsonBody = Object.assign(user, ctx.request.body);
+      ctx.jsonBody = Object.assign(isUserExist, targetParams);
     }
   }
   return UserController;

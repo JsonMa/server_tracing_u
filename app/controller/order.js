@@ -94,6 +94,7 @@ module.exports = app => {
           status: isCommodityExited.isCustom ? 'CREATED' : 'QUOTED',
           isStagePay: isCommodityExited.isCustom,
           remarks,
+          buyer,
           ...(isUserExited.inviter
             ? {
               salesman: isUserExited.inviter,
@@ -454,9 +455,9 @@ module.exports = app => {
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
         ctx.error(
-          ['QUOTED', 'FIRST_PAYED', 'ALL_PAYED'].includes(isOrderExit.status),
+          ['QUOTED', 'FIRST_PAYED'].includes(isOrderExit.status),
           17008,
-          '上传支付凭据失败，订单已生成鉴权码或已发货'
+          '当前订单状态无法上传支付凭据'
         );
         if (isOrderExit.status === 'ALL_PAYED') {
           ctx.error(

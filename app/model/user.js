@@ -47,7 +47,9 @@ module.exports = ({ mongoose }) => {
    * @param {Boolean}  enable                          - 是否启用该账户
    * @param {Date}     last_login                      - 上次登录时间
    * @param {Object}   inviter                         - 邀请者
-   * @param {Object}   state                           - 用户状态[passed, rejected, unreview]
+   * @param {String}   state                           - 用户状态[passed, rejected, unreview]rejectReason
+   * @param {String}   rejectReason                    - 审核驳回原因last_login
+   * @param {Date}     last_login                      - 最近登录时间
    */
 
   const schema = new Schema(

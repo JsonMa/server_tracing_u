@@ -239,7 +239,10 @@ module.exports = app => {
       const query = {
         $or: [{ private_key: key }, { public_key: key }],
       };
-      const tracing = await service.tracing.findOne(query, 'owner order');
+      const tracing = await service.tracing.findOne(
+        query,
+        'owner order products'
+      );
       ctx.error(tracing, 18002, '获取溯源码信息失败，该溯源码不存在');
       ctx.jsonBody = tracing;
     }
@@ -288,28 +291,30 @@ module.exports = app => {
         // 密匙加密
         const privateHash = crypto.createHash('sha512');
         const publicHash = crypto.createHash('sha512');
-        privateHash.update(uuid());
-        publicHash.update(uuid());
+        const privateUUID = uuid();
+        const publicUUID = uuid();
+        privateHash.update(privateUUID);
+        publicHash.update(publicUUID);
         const privateKey = `01${privateHash.digest('hex')}`;
         const publicKey = `01${publicHash.digest('hex')}`;
-        const privateTracing = `${baseUrl}inner_code=${privateKey}`;
-        const publicTracing = `${baseUrl}outer_code=${publicKey}`;
+        const privateTracing = `${baseUrl}type=inner_code&id=${privateKey}`;
+        const publicTracing = `${baseUrl}type=outer_code&id=${publicKey}`;
         const no = i + 1; // 对外编号
-        // 数据写入excel
-        [privateTracing, publicTracing, publicTracing].forEach(
-          (item, index) => {
-            workSheet
-              .cell(i, index + 1)
-              .string(item)
-              .style(style);
-          }
-        );
+        // 数据写入excel[内码、外码、快递发货码]
+        [privateTracing, publicTracing, publicKey].forEach((item, index) => {
+          workSheet
+            .cell(i + 1, index + 1)
+            .string(item)
+            .style(style);
+        });
 
         targetTracings.push({
           factory: buyer,
           owner: buyer,
           order,
           no,
+          private_uuid: privateUUID,
+          public_uuid: publicUUID,
           private_key: privateKey,
           public_key: publicKey,
         });
@@ -352,8 +357,8 @@ module.exports = app => {
       );
       ctx.error(nModified === 1, 17026, '溯源码打印失败');
       const tracings = await service.tracing.insertMany(targetTracings);
-
-      ctx.jsonBody = tracings;
+      ctx.error(tracings, 17028, '生成内外码失败');
+      ctx.jsonBody = null;
     }
 
     /**
@@ -391,6 +396,11 @@ module.exports = app => {
 
       // 绑定溯源码商品
       if (operation === 'bind') {
+        ctx.error(
+          isTracingExist.state === 'UNBIND',
+          18016,
+          '当前状态不能绑定商品信息'
+        );
         ctx.error(
           (products && products.length > 0) ||
             (tracing_products && tracing_products.length > 0),
@@ -430,6 +440,7 @@ module.exports = app => {
           );
           // 绑定普通商品
           targetData.products = products;
+          targetData.state = 'BIND';
         }
       } else {
         ctx.error(record, 18011, '溯源记录为必填项', 400);
