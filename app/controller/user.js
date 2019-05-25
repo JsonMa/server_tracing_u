@@ -177,6 +177,23 @@ module.exports = app => {
     }
 
     /**
+     * 获取该用户下的经销商信息
+     *
+     * @memberof UserController
+     * @return{undefined}
+     */
+    async business() {
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const { user_id } = ctx.oneselfPermission(id);
+      const userInfo = await ctx.service.user.findMany({
+        inviter: user_id,
+        role_type: 'business',
+      });
+      ctx.jsonBody = userInfo;
+    }
+
+    /**
      * 创建用户
      *
      * @memberof UserController

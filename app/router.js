@@ -16,6 +16,7 @@ module.exports = app => {
   app.post(`${prefix}/users`, 'user.create');
   app.put(`${prefix}/users/:id`, 'user.update');
   app.get(`${prefix}/users/:id/statistics`, 'user.statistics');
+  app.get(`${prefix}/users/:id/businesses`, 'user.business');
 
   // commodity
   app.get(`${prefix}/commodities`, 'commodity.index');
