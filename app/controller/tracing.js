@@ -380,6 +380,7 @@ module.exports = app => {
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
+      const { role_type, user_id } = ctx.registerPermission();
 
       ctx.error(key, 18004, '溯源密匙为必填项', 400);
       const isTracingExist = await service.tracing.findOne({
@@ -450,7 +451,6 @@ module.exports = app => {
         // 设置溯源记录
         const {
           courier,
-          sender,
           express_no,
           express_name,
           reciver,
@@ -460,29 +460,42 @@ module.exports = app => {
           reciver_address,
         } = record;
         if (operation === 'send') {
-          // 经销商或厂家发货
+          // 验证溯源码状态
           ctx.error(
-            isTracingExist.isReceived,
+            isTracingExist.state === 'BIND',
             18012,
-            '上次溯源记录未处于完结状态，不能新增发货记录'
+            '当前状态不能进行发货操作'
           );
-          const isSenderExist = await ctx.service.user.findById(sender);
-          ctx.error(isSenderExist, 18009, '溯源记录包含的发货人不存在');
+          ctx.error(
+            ['business', 'consumer'].includes(reciver_type),
+            18019,
+            'reciver_type必须为business或consumer'
+          );
           if (reciver_type === 'business') {
             const isReciverExist = await ctx.service.user.findById(reciver);
             ctx.error(isReciverExist, 18009, '溯源记录包含的收货人不存在');
+            currentRecords.push({
+              sender: user_id,
+              send_at: new Date(),
+              reciver_type,
+              reciver,
+            });
           } else {
             ctx.error(
               reciver_name && reciver_phone && reciver_address,
               18010,
               '溯源记录包含的收货人信息缺失'
             );
+            currentRecords.push({
+              sender: user_id,
+              send_at: new Date(),
+              reciver_type,
+              reciver_name,
+              reciver_phone,
+              reciver_address,
+            });
           }
-          currentRecords.push({
-            sender,
-            send_at: new Date(),
-            reciver,
-          });
+
           targetData.records = currentRecords;
         } else if (operation === 'express') {
           // 绑定快递信息

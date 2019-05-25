@@ -15,8 +15,8 @@ module.exports = ({ mongoose }) => {
    * @property {String}  record.express_no        - 快递单号
    * @property {Date}    record.express_at        - 快递时间
    *
-   * @property {String}  record.reciver           - 收货人
    * @property {String}  record.reciver_type      - 目标客户类型['consumer'、'business']
+   * @property {String}  record.reciver           - 收货人
    * @property {Boolean} record.reciver_name      - 客户名称
    * @property {Boolean} record.reciver_phone     - 客户电话
    * @property {Boolean} record.reciver_address   - 客户地址
