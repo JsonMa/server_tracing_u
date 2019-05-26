@@ -240,7 +240,7 @@ module.exports = app => {
       };
       const tracing = await service.tracing.findOne(
         query,
-        'owner order products'
+        'factory owner order products tracing_products'
       );
       ctx.error(tracing, 18002, '获取溯源码信息失败，该溯源码不存在');
       ctx.jsonBody = tracing;
