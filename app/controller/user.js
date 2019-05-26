@@ -294,9 +294,9 @@ module.exports = app => {
       if (operation === 'banner') {
         ctx.oneselfPermission(id);
         ctx.error(
-          isUserExist.role_type === 'business',
+          ['business', 'factory'].includes(isUserExist.role_type),
           11009,
-          '非商户类型用户不能上传banner图'
+          '非商户或厂家类型用户不能上传banner图'
         );
         // 验证banner是否存在
         const isBannerExist = await ctx.service.file.findById(banner);

@@ -242,6 +242,13 @@ module.exports = app => {
         query,
         'factory owner order products tracing_products'
       );
+      if (tracing) {
+        const { records } = tracing;
+        for (let i = 0; i < records.length; i++) {
+          const sender = await ctx.service.user.findById(records[i].sender);
+          records[i].sender = sender;
+        }
+      }
       ctx.error(tracing, 18002, '获取溯源码信息失败，该溯源码不存在');
       ctx.jsonBody = tracing;
     }
