@@ -482,7 +482,6 @@ module.exports = app => {
             const isReciverExist = await ctx.service.user.findById(reciver);
             ctx.error(isReciverExist, 18009, '溯源记录包含的收货人不存在');
             currentRecords.push({
-              state: 'SEND',
               sender: user_id,
               send_at: new Date(),
               reciver_type,
@@ -495,7 +494,6 @@ module.exports = app => {
               '溯源记录包含的收货人信息缺失'
             );
             currentRecords.push({
-              state: 'SEND',
               sender: user_id,
               send_at: new Date(),
               reciver_type,
@@ -504,6 +502,7 @@ module.exports = app => {
               reciver_address,
             });
           }
+          targetData.state = 'SEND';
           targetData.records = currentRecords;
         } else if (operation === 'express') {
           // 暂时不涉及快递员及快递信息
@@ -547,7 +546,7 @@ module.exports = app => {
           currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
           targetData.owner = owner;
-          targetData.sate = 'RECEIVED';
+          targetData.state = 'RECEIVED';
         }
       }
       // 溯源码更新
