@@ -123,7 +123,7 @@ module.exports = app => {
                 $ref: 'schema.definition#/name',
               },
               reciver_phone: {
-                $ref: 'schema.definition#/name',
+                $ref: 'schema.definition#/phone',
               },
               reciver_address: {
                 type: 'string',
