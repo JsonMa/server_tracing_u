@@ -123,7 +123,7 @@ module.exports = app => {
                 $ref: 'schema.definition#/name',
               },
               reciver_phone: {
-                $ref: 'schema.definition#/phone',
+                $ref: 'schema.definition#/mobile',
               },
               reciver_address: {
                 type: 'string',
@@ -469,7 +469,7 @@ module.exports = app => {
             'reciver_type必须为business或consumer'
           ); // 验证当前用户类型是否具有发货权限-厂家或经销商
           ctx.error(
-            isTracingExist.owner === user_id,
+            isTracingExist.owner._id.toString() === user_id,
             18020,
             '发货失败，非溯源码拥有者不能进行发货操作'
           ); // 验证当前用户是否为溯源码的拥有者
