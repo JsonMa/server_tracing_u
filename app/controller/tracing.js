@@ -132,7 +132,6 @@ module.exports = app => {
                 $ref: 'schema.definition#/oid',
               },
             },
-            required: ['id'],
             $async: true,
             additionalProperties: false,
           },
@@ -381,7 +380,6 @@ module.exports = app => {
         Object.assign(ctx.request.body, ctx.params)
       );
       const { role_type, user_id } = ctx.registerPermission();
-
       ctx.error(key, 18004, '溯源密匙为必填项', 400);
       const isTracingExist = await service.tracing.findOne({
         $or: [{ private_key: key }, { public_key: key }],
@@ -397,17 +395,23 @@ module.exports = app => {
 
       // 绑定溯源码商品
       if (operation === 'bind') {
+        ctx.error(role_type === 'factory', 18018, '非厂家类型，不能绑定商品'); // 验证当前用户类型是否为厂家
+        ctx.error(
+          user_id === isTracingExist.factory,
+          18019,
+          '非自己的溯源码不能进行绑定商品操作'
+        ); // 验证溯源码是否是自己的
         ctx.error(
           isTracingExist.state === 'UNBIND',
           18016,
           '当前状态不能绑定商品信息'
-        );
+        ); // 是自己的，则验证溯源码当前状态能否绑定商品
         ctx.error(
           (products && products.length > 0) ||
             (tracing_products && tracing_products.length > 0),
           18015,
           '绑定商品为必填'
-        );
+        ); // 当前状态能绑定商品，则验证上传的商品信息是否正确
         if (isFactoryTracing) {
           const tracing_count = tracing_products.length;
           ctx.error(
@@ -444,13 +448,12 @@ module.exports = app => {
           targetData.state = 'BIND';
         }
       } else {
-        ctx.error(record, 18011, '溯源记录为必填项', 400);
+        ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
         const { records: currentRecords } = isTracingExist;
         const recordCount = currentRecords.length;
         const latestRecord = currentRecords.unshift();
         // 设置溯源记录
         const {
-          courier,
           express_no,
           express_name,
           reciver,
@@ -460,21 +463,26 @@ module.exports = app => {
           reciver_address,
         } = record;
         if (operation === 'send') {
-          // 验证溯源码状态
-          ctx.error(
-            isTracingExist.state === 'BIND',
-            18012,
-            '当前状态不能进行发货操作'
-          );
           ctx.error(
             ['business', 'consumer'].includes(reciver_type),
             18019,
             'reciver_type必须为business或consumer'
-          );
+          ); // 验证当前用户类型是否具有发货权限-厂家或经销商
+          ctx.error(
+            isTracingExist.owner === user_id,
+            18020,
+            '发货失败，非溯源码拥有者不能进行发货操作'
+          ); // 验证当前用户是否为溯源码的拥有者
+          ctx.error(
+            isTracingExist.state === 'BIND',
+            18012,
+            '当前状态不能进行发货操作'
+          ); // 验证溯源码状态能否进行发货操作
           if (reciver_type === 'business') {
             const isReciverExist = await ctx.service.user.findById(reciver);
             ctx.error(isReciverExist, 18009, '溯源记录包含的收货人不存在');
             currentRecords.push({
+              state: 'SEND',
               sender: user_id,
               send_at: new Date(),
               reciver_type,
@@ -487,6 +495,7 @@ module.exports = app => {
               '溯源记录包含的收货人信息缺失'
             );
             currentRecords.push({
+              state: 'SEND',
               sender: user_id,
               send_at: new Date(),
               reciver_type,
@@ -495,46 +504,50 @@ module.exports = app => {
               reciver_address,
             });
           }
-
           targetData.records = currentRecords;
         } else if (operation === 'express') {
-          // 绑定快递信息
+          // 暂时不涉及快递员及快递信息
           ctx.error(
-            !latestRecord.courier,
-            18013,
-            '溯源记录已存在快递信息，不能重复添加'
-          );
-          const isCourierExist = await ctx.service.user.findById(courier);
-          ctx.error(isCourierExist, 18008, '溯源记录包含的快递员不存在');
+            role_type === 'courier',
+            18017,
+            '非快递员类型不能绑定快递信息'
+          ); // 验证当前用户类型是否具有发货权限
+          ctx.error(
+            isTracingExist.state === 'SEND',
+            18012,
+            '当前状态不能进行绑定快递信息操作'
+          ); // 验证溯源码状态能否进行发货操作
           ctx.error(
             express_no && express_name,
             18010,
             '溯源记录包含的快递信息缺失'
           );
-          // 默认修改最后一条溯源记录
           Object.assign(latestRecord, {
-            courier,
+            courier: user_id,
             express_no,
             express_name,
-          });
-          currentRecords.splice(recordCount - 1, 1, latestRecord);
+            express_at: new Date(),
+          }); // 修改溯源记录
+          currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
+          targetData.state = 'EXPRESSED';
         } else if (operation === 'receive') {
-          // 验货
-          const { reciver_type, sender, express_no, reciver } = latestRecord;
+          // 验货,receiver_type为business时，验货时必须为其自己。若type为consumer则不进行校验
           ctx.error(
-            express_no && reciver && sender,
+            isTracingExist.state === 'SEND',
             18014,
             '验货失败，该溯源记录未到达验货阶段'
-          );
-          if (reciver_type === 'consumer') {
-            // 修改owner为receive
-            Object.assign(targetData, {
-              owner: reciver,
-              isEnd: true,
-              isReceived: true,
-            });
-          }
+          ); // 验证当前状态能否进行收货操作
+          const { reciver_type, reciver } = latestRecord;
+          const owner = user_id;
+          latestRecord.reciver_at = new Date(); // 统一添加收货时间
+          if (reciver_type === 'business') {
+            ctx.error(reciver === user_id, 18021, '非收货人无权进行收货操作');
+          } else targetData.isEnd = true;
+          currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
+          targetData.records = currentRecords;
+          targetData.owner = owner;
+          targetData.sate = 'RECEIVED';
         }
       }
       // 溯源码更新
