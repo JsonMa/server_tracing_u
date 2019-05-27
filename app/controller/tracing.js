@@ -456,8 +456,7 @@ module.exports = app => {
         }
       } else {
         const { records: currentRecords } = isTracingExist;
-        const recordCount = currentRecords.length;
-        const latestRecord = currentRecords.unshift();
+        const latestRecord = currentRecords.pop();
         // 设置溯源记录
         const {
           express_no,
@@ -536,7 +535,7 @@ module.exports = app => {
             express_name,
             express_at: new Date(),
           }); // 修改溯源记录
-          currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
+          currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
           targetData.state = 'EXPRESSED';
         } else if (operation === 'receive') {
@@ -550,9 +549,13 @@ module.exports = app => {
           const owner = user_id;
           latestRecord.reciver_at = new Date(); // 统一添加收货时间
           if (reciver_type === 'business') {
-            ctx.error(reciver === user_id, 18021, '非收货人无权进行收货操作');
+            ctx.error(
+              reciver._id.toString() === user_id,
+              18021,
+              '非收货人无权进行收货操作'
+            );
           } else targetData.isEnd = true;
-          currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
+          currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
           targetData.owner = owner;
           targetData.state = 'RECEIVED';
