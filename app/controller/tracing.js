@@ -455,7 +455,6 @@ module.exports = app => {
           targetData.state = 'BIND';
         }
       } else {
-        ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
         const { records: currentRecords } = isTracingExist;
         const recordCount = currentRecords.length;
         const latestRecord = currentRecords.unshift();
@@ -470,6 +469,7 @@ module.exports = app => {
           reciver_address,
         } = record;
         if (operation === 'send') {
+          ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
           ctx.error(
             ['business', 'consumer'].includes(reciver_type),
             18019,
@@ -512,6 +512,7 @@ module.exports = app => {
           targetData.state = 'SEND';
           targetData.records = currentRecords;
         } else if (operation === 'express') {
+          ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
           // 暂时不涉及快递员及快递信息
           ctx.error(
             role_type === 'courier',
