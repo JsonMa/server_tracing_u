@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const excel = require('excel4node');
-
+const _ = require('lodash');
 module.exports = app => {
   /**
    * 溯源码相关路由
@@ -467,9 +467,10 @@ module.exports = app => {
           reciver_name,
           reciver_phone,
           reciver_address,
-        } = record;
+        } = record || {};
         if (operation === 'send') {
-          ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
+          ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
+          // 已绑定商品信息，则进入溯源流程
           ctx.error(
             ['business', 'consumer'].includes(reciver_type),
             18019,
@@ -512,7 +513,7 @@ module.exports = app => {
           targetData.state = 'SEND';
           targetData.records = currentRecords;
         } else if (operation === 'express') {
-          ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
+          ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
           // 暂时不涉及快递员及快递信息
           ctx.error(
             role_type === 'courier',
