@@ -20,8 +20,13 @@ module.exports = app => {
           enable: {
             type: 'boolean',
           },
-          sub_level: {
-            type: 'boolean',
+          role_type: {
+            type: 'string',
+            enum: ['factory', 'business', 'courier', 'salesman', 'unauthed'],
+          },
+          state: {
+            type: 'string',
+            enum: ['passed', 'rejected', 'unreview'],
           },
           ...this.ctx.helper.pagination.rule,
         },
@@ -114,11 +119,12 @@ module.exports = app => {
     async index() {
       const { ctx, indexRule } = this;
       const { generateSortParam } = ctx.helper.pagination;
-      const { user_id } = ctx.registerPermission();
+      ctx.checkPermission('platform');
 
       const {
         enable,
-        sub_level,
+        role_type,
+        state = 'unreview',
         limit = 10,
         offset = 0,
         sort = '-created_at',
@@ -126,7 +132,14 @@ module.exports = app => {
 
       const query = {};
       if (enable) query.enable = enable;
-      if (sub_level) query.inviter = user_id;
+      if (role_type) {
+        query.role_type = role_type;
+      } else {
+        query.role_type = {
+          $in: ['factory', 'business', 'courier', 'salesman'],
+        };
+      }
+      if (state) query.state = state;
       const users = await ctx.service.user.findMany(query, null, {
         limit: parseInt(limit),
         skip: parseInt(offset),
