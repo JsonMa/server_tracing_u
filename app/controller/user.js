@@ -239,6 +239,7 @@ module.exports = app => {
       const {
         role_type,
         role_id,
+        inviter,
       } = ctx.request.body;
       switch (role_type) {
         case 'salesman':
@@ -267,6 +268,7 @@ module.exports = app => {
       const user = await service.user.findOne(query); // 验证用户是否存在
       ctx.error(!user, 10003, '创建失败，该用户名已存在', 400);
       let targetData = {};
+      if (inviter) targetData.inviter = inviter;
       targetData[role_type] = userData;
       targetData = Object.assign(targetData, {
         role_type,
