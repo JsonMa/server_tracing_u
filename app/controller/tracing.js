@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const excel = require('excel4node');
-
+const _ = require('lodash');
 module.exports = app => {
   /**
    * 溯源码相关路由
@@ -455,10 +455,8 @@ module.exports = app => {
           targetData.state = 'BIND';
         }
       } else {
-        ctx.error(record, 18011, '溯源记录为必填项', 400); // 已绑定商品信息，则进入溯源流程
         const { records: currentRecords } = isTracingExist;
-        const recordCount = currentRecords.length;
-        const latestRecord = currentRecords.unshift();
+        const latestRecord = currentRecords.pop();
         // 设置溯源记录
         const {
           express_no,
@@ -468,8 +466,10 @@ module.exports = app => {
           reciver_name,
           reciver_phone,
           reciver_address,
-        } = record;
+        } = record || {};
         if (operation === 'send') {
+          ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
+          // 已绑定商品信息，则进入溯源流程
           ctx.error(
             ['business', 'consumer'].includes(reciver_type),
             18019,
@@ -512,6 +512,7 @@ module.exports = app => {
           targetData.state = 'SEND';
           targetData.records = currentRecords;
         } else if (operation === 'express') {
+          ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
           // 暂时不涉及快递员及快递信息
           ctx.error(
             role_type === 'courier',
@@ -534,7 +535,7 @@ module.exports = app => {
             express_name,
             express_at: new Date(),
           }); // 修改溯源记录
-          currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
+          currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
           targetData.state = 'EXPRESSED';
         } else if (operation === 'receive') {
@@ -548,9 +549,13 @@ module.exports = app => {
           const owner = user_id;
           latestRecord.reciver_at = new Date(); // 统一添加收货时间
           if (reciver_type === 'business') {
-            ctx.error(reciver === user_id, 18021, '非收货人无权进行收货操作');
+            ctx.error(
+              reciver._id.toString() === user_id,
+              18021,
+              '非收货人无权进行收货操作'
+            );
           } else targetData.isEnd = true;
-          currentRecords.splice(recordCount - 1, 1, latestRecord); // 替换最后一条溯源记录
+          currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
           targetData.owner = owner;
           targetData.state = 'RECEIVED';
