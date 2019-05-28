@@ -231,7 +231,7 @@ module.exports = app => {
         token,
       } = ctx.loginPermission();
       await ctx.verify(createRule, ctx.request.body);
-      const isUserExist = await ctx.service.user.find(openid);
+      const isUserExist = await ctx.service.user.findOne(openid);
       ctx.error(isUserExist.role_type === 'unauthed', 10004, '注册失败，该用户已注册');
       const {
         role_type,
