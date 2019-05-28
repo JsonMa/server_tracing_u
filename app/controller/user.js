@@ -112,9 +112,16 @@ module.exports = app => {
      * @return {promise} 用户列表
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { generateSortParam } = ctx.helper.pagination;
-      const { user_id } = ctx.registerPermission();
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
+      const {
+        user_id,
+      } = ctx.registerPermission();
 
       const {
         enable,
@@ -152,9 +159,16 @@ module.exports = app => {
      * @return {undefined}
      */
     async statistics() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id } = ctx.oneselfPermission(id);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+      } = ctx.oneselfPermission(id);
       const totalTracings = await ctx.service.tracing.count({
         owner: user_id,
       });
@@ -180,12 +194,19 @@ module.exports = app => {
      * 获取该用户下的经销商信息
      *
      * @memberof UserController
-     * @return{undefined}
+     * @return {undefined}
      */
     async business() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id } = ctx.oneselfPermission(id);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+      } = ctx.oneselfPermission(id);
       const userInfo = await ctx.service.user.findMany({
         inviter: user_id,
         role_type: 'business',
@@ -200,11 +221,22 @@ module.exports = app => {
      * @return {promise} 新建的用户
      */
     async create() {
-      const { ctx, service, createRule } = this;
-      const { openid, token } = ctx.loginPermission();
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
+      const {
+        openid,
+        token,
+      } = ctx.loginPermission();
       await ctx.verify(createRule, ctx.request.body);
-
-      const { role_type, role_id } = ctx.request.body;
+      const isUserExist = await ctx.service.user.find(openid);
+      ctx.error(isUserExist.role_type === 'unauthed', 10004, '注册失败，该用户已注册');
+      const {
+        role_type,
+        role_id,
+      } = ctx.request.body;
       switch (role_type) {
         case 'salesman':
           ctx.error(role_id >= 40 && role_id < 50, 11006, '用户类型与id不匹配');
@@ -225,12 +257,11 @@ module.exports = app => {
           ctx.error(role_id === 60, 11006, '用户类型与id不匹配');
           break;
       }
-      // 验证用户是否存在
       const userData = ctx.request.body[role_type];
       ctx.error(userData, 11007, '未找到属于该用户类型的数据');
       const query = {};
       query[`${role_type}.name`] = userData.name;
-      const user = await service.user.findOne(query);
+      const user = await service.user.findOne(query); // 验证用户是否存在
       ctx.error(!user, 10003, '创建失败，该用户名已存在', 400);
       let targetData = {};
       targetData[role_type] = userData;
@@ -240,25 +271,27 @@ module.exports = app => {
         openid,
       });
 
-      // 创建用户
-      const createdUser = await service.user.create(targetData);
-      if (createdUser) {
-        const { role_type, _id, role_id } = createdUser;
-        const isRegistered = true;
-        const sessionData = Object.assign(ctx.state.auth, {
-          isRegistered,
-          role_type,
-          role_id,
-          user_id: _id,
-        });
-        await ctx.app.redis.set(
-          `token:${token}`,
-          JSON.stringify(sessionData),
-          'EX',
-          72000
-        );
-      }
-      ctx.jsonBody = createdUser;
+      // 用户注册
+      const {
+        nModified,
+      } = await service.user.update({
+        openid,
+      },
+      targetData);
+      ctx.error(nModified === 1, 11008, '用户注册失败');
+      const isRegistered = true;
+      const sessionData = Object.assign(ctx.state.auth, {
+        isRegistered,
+        role_type,
+        role_id,
+      });
+      await ctx.app.redis.set(
+        `token:${token}`,
+        JSON.stringify(sessionData),
+        'EX',
+        72000
+      );
+      ctx.jsonBody = targetData;
     }
 
     /**
@@ -268,8 +301,14 @@ module.exports = app => {
      * @return {promise} 用户详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
       ctx.checkPermission(['platform', id]);
       const user = await service.user.findById(id);
       ctx.jsonBody = user;
@@ -283,8 +322,18 @@ module.exports = app => {
      */
     async update() {
       // 商户上传banner或平台管理员审核用户
-      const { ctx, service, updateRule } = this;
-      const { id, operation, banner, state, rejectReason } = await ctx.verify(
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
+      const {
+        id,
+        operation,
+        banner,
+        state,
+        rejectReason,
+      } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
@@ -319,11 +368,10 @@ module.exports = app => {
         }
       }
 
-      await service.user.update(
-        {
-          _id: id,
-        },
-        targetParams
+      await service.user.update({
+        _id: id,
+      },
+      targetParams
       );
 
       ctx.jsonBody = Object.assign(isUserExist, targetParams);

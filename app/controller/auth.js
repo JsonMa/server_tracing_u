@@ -65,29 +65,40 @@ module.exports = app => {
         errcode,
         errmsg,
       } = await this.code2Session(code);
-      ctx.error(!errcode, 10002, errmsg);
-      const user = await ctx.service.user.findOne({
+      ctx.error(!errcode, 10002, errmsg); // 获取openid
+      const isUserExist = await ctx.service.user.findOne({
         openid,
-      });
+      }); // 验证该openid下的用户是否存在
       let isRegistered = false;
+      let user;
       const sessionData = {
         openid,
         isRegistered,
       };
-      if (user) {
-        isRegistered = true;
-        sessionData.role_type = user.role_type;
-        sessionData.role_id = user.role_id;
-        sessionData.user_id = user._id;
-        sessionData.isRegistered = true;
+      if (isUserExist) {
+        user = isUserExist;
+        isRegistered = isUserExist.role_type !== 'unauthed';
+        sessionData.role_type = isUserExist.role_type;
+        sessionData.role_id = isUserExist.role_id;
+        sessionData.user_id = isUserExist._id;
+        sessionData.isRegistered = isRegistered;
         const {
           nModified,
         } = await ctx.service.user.update({
-          _id: user._id,
+          _id: isUserExist._id,
         }, {
           last_login: new Date(),
         });
         ctx.error(nModified === 1, 11008, '修改登录时间失败');
+      } else {
+        const createdUser = await ctx.service.user.create({
+          openid,
+        });
+        user = createdUser;
+        sessionData.user_id = createdUser._id;
+        sessionData.role_type = createdUser.role_type;
+        sessionData.role_id = createdUser.role_id;
+        sessionData.isRegistered = false;
       }
       await ctx.app.redis.set(
         `token:${session_key}`,
@@ -146,18 +157,16 @@ module.exports = app => {
       ctx.assert(typeof code === 'string', 'code需为字符串', 400);
       const {
         data,
-      } = await ctx.curl(
-        'https://api.weixin.qq.com/sns/jscode2session', {
-          method: 'GET',
-          data: {
-            appid: config.appid,
-            secret: config.secret,
-            js_code: code,
-            grant_type: config.grant_type,
-          },
-          dataType: 'json',
-        }
-      );
+      } = await ctx.curl('https://api.weixin.qq.com/sns/jscode2session', {
+        method: 'GET',
+        data: {
+          appid: config.appid,
+          secret: config.secret,
+          js_code: code,
+          grant_type: config.grant_type,
+        },
+        dataType: 'json',
+      });
       const {
         errcode,
         errmsg,
