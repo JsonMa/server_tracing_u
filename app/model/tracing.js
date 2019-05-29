@@ -1,9 +1,15 @@
 'use strict';
 
-const { timestamps } = require('../lib/model_common');
+const {
+  timestamps,
+} = require('../lib/model_common');
 
-module.exports = ({ mongoose }) => {
-  const { Schema } = mongoose;
+module.exports = ({
+  mongoose,
+}) => {
+  const {
+    Schema,
+  } = mongoose;
   /**
    * Tracing
    *
@@ -34,97 +40,87 @@ module.exports = ({ mongoose }) => {
    * @property {Array}   products.attributes      - 携带的商品属性
    * @property {Array}   tracing_products         - 溯源码商品
    * @property {Array}   no                       - 溯源码编号
-   * @property {String}  private_key              - 溯源码私匙
-   * @property {String}  public_key               - 溯源码公匙
+   * @property {String}  inner_code              - 溯源码私匙
+   * @property {String}  outer_code               - 溯源码公匙
    * @property {Boolean} isActive                 - 是否激活
    * @property {Boolean} state                    - ['UNBIND-未绑定商品','BIND-已绑定商品','SEND-经销商已发货','EXPRESSED-快递已绑定快递信息','RECEIVED-客户已收货']
    * @property {Boolean} isEnd                    - 溯源流程结束
    * @property {Boolean} isFactoryTracing         - 是否为厂家溯源码
    */
-  const schema = new Schema(
-    {
-      records: [
-        {
-          sender: {
-            type: Schema.Types.ObjectId,
-            ref: 'user',
-          },
-          send_at: Date,
-          reciver: {
-            type: Schema.Types.ObjectId,
-            ref: 'user',
-          },
-          reciver_type: {
-            type: String,
-            enum: ['consumer', 'business'],
-          },
-          reciver_name: String,
-          reciver_phone: String,
-          reciver_address: String,
-          reciver_at: Date,
-          courier: {
-            type: Schema.Types.ObjectId,
-            ref: 'user',
-          },
-          express_name: String,
-          express_no: String,
-          express_at: Date,
-        },
-      ],
-      owner: {
+  const schema = new Schema({
+    records: [{
+      sender: {
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
-      factory: {
+      send_at: Date,
+      reciver: {
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
-      order: {
-        type: Schema.Types.ObjectId,
-        ref: 'order',
-      },
-      products: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: 'barcode',
-        },
-      ],
-      tracing_products: [
-        {
-          type: Schema.Types.ObjectId,
-          ref: 'tracing',
-        },
-      ],
-      no: String,
-      private_uuid: String,
-      public_uuid: String,
-      private_key: String,
-      public_key: String,
-      isActive: {
-        type: Boolean,
-        default: false,
-      },
-      state: {
+      reciver_type: {
         type: String,
-        enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED'],
-        default: 'UNBIND',
+        enum: ['consumer', 'business'],
       },
-      isEnd: {
-        type: Boolean,
-        default: false,
+      reciver_name: String,
+      reciver_phone: String,
+      reciver_address: String,
+      reciver_at: Date,
+      courier: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
       },
-      isFactoryTracing: {
-        type: Boolean,
-        default: false,
-      },
-      deleted_at: Date,
+      express_name: String,
+      express_no: String,
+      express_at: Date,
+    }],
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
     },
-    Object.assign(
-      {},
-      {
-        timestamps,
-      }
-    )
+    factory: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    order: {
+      type: Schema.Types.ObjectId,
+      ref: 'order',
+    },
+    products: [{
+      type: Schema.Types.ObjectId,
+      ref: 'barcode',
+    }],
+    tracing_products: [{
+      type: Schema.Types.ObjectId,
+      ref: 'tracing',
+    }],
+    no: String,
+    private_uuid: String,
+    public_uuid: String,
+    inner_code: String,
+    outer_code: String,
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
+    state: {
+      type: String,
+      enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED'],
+      default: 'UNBIND',
+    },
+    isEnd: {
+      type: Boolean,
+      default: false,
+    },
+    isFactoryTracing: {
+      type: Boolean,
+      default: false,
+    },
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('tracing', schema);

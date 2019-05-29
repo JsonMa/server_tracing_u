@@ -249,9 +249,9 @@ module.exports = app => {
       } = await ctx.verify(showRule, ctx.params);
       const query = {
         $or: [{
-          private_key: key,
+          inner_token: key,
         }, {
-          public_key: key,
+          outer_token: key,
         }],
       };
       const tracing = await service.tracing.findOne(
@@ -332,13 +332,13 @@ module.exports = app => {
         const publicUUID = UUID + 2;
         privateHash.update(privateUUID);
         publicHash.update(publicUUID);
-        const privateKey = `01${privateHash.digest('hex')}`;
-        const publicKey = `01${publicHash.digest('hex')}`;
-        const privateTracing = `${baseUrl}type=inner_code&id=${privateKey}`;
-        const publicTracing = `${baseUrl}type=outer_code&id=${publicKey}`;
+        const innerCode = `01${privateHash.digest('hex')}`;
+        const outerCode = `01${publicHash.digest('hex')}`;
+        const innerTracing = `${baseUrl}type=inner_code&id=${innerCode}`;
+        const outerTracing = `${baseUrl}type=outer_code&id=${outerCode}`;
         const no = i + 1; // 对外编号
         // 数据写入excel[内码、外码、快递发货码]
-        [privateTracing, publicTracing, publicKey].forEach((item, index) => {
+        [innerTracing, outerTracing, outerCode].forEach((item, index) => {
           workSheet
             .cell(i + 1, index + 1)
             .string(item)
@@ -352,8 +352,8 @@ module.exports = app => {
           no,
           private_uuid: privateUUID,
           public_uuid: publicUUID,
-          private_key: privateKey,
-          public_key: publicKey,
+          inner_code: innerCode,
+          outer_code: outerCode,
         });
       }
       /**
@@ -427,9 +427,9 @@ module.exports = app => {
       ctx.error(key, 18004, '溯源密匙为必填项', 400);
       const isTracingExist = await service.tracing.findOne({
         $or: [{
-          private_key: key,
+          inner_token: key,
         }, {
-          public_key: key,
+          outer_token: key,
         }],
       });
       ctx.error(
@@ -613,9 +613,9 @@ module.exports = app => {
         nModified,
       } = await ctx.service.tracing.update({
         $or: [{
-          private_key: key,
+          inner_token: key,
         }, {
-          public_key: key,
+          outer_token: key,
         }],
       },
       targetData
