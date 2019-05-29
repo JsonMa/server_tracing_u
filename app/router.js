@@ -63,6 +63,12 @@ module.exports = app => {
   app.get(`${prefix}/tracings`, 'tracing.index');
   app.put(`${prefix}/tracings/:key`, 'tracing.update');
 
+  // counterfeit
+  app.post(`${prefix}/counterfeits`, 'counterfeit.create');
+  app.get(`${prefix}/counterfeits/:id`, 'counterfeit.show');
+  app.get(`${prefix}/counterfeits`, 'counterfeit.index');
+  app.put(`${prefix}/counterfeits/:id`, 'counterfeit.update');
+
   // miniprogram
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');
 };
