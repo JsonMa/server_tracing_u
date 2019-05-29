@@ -182,17 +182,10 @@ module.exports = app => {
      * @return {array} 溯源码列表
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
+      const { ctx, indexRule } = this;
       ctx.checkPermission('platform'); // 是否是平台用户权限
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
-      const {
-        limit = 10, offset = 0, sort = '-created_at',
-      } = await ctx.verify(
+      const { generateSortParam } = ctx.helper.pagination;
+      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
         indexRule,
         ctx.request.query
       );
@@ -211,7 +204,8 @@ module.exports = app => {
       });
       const tracings = await ctx.service.tracing.findMany(
         query,
-        null, {
+        null,
+        {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -238,32 +232,32 @@ module.exports = app => {
      * @return {object} 溯源码详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
+      const { ctx, service, showRule } = this;
       // ctx.loginPermission(); // 是否已登录
-      const {
-        key,
-      } = await ctx.verify(showRule, ctx.params);
+      const { key } = await ctx.verify(showRule, ctx.params);
       const query = {
-        $or: [{
-          inner_token: key,
-        }, {
-          outer_token: key,
-        }],
+        $or: [
+          {
+            inner_token: key,
+          },
+          {
+            outer_token: key,
+          },
+        ],
       };
       const tracing = await service.tracing.findOne(
         query,
         'factory owner order products tracing_products'
       );
       if (tracing) {
-        const {
-          records,
-        } = tracing;
+        const { records } = tracing;
         for (let i = 0; i < records.length; i++) {
           const sender = await ctx.service.user.findById(records[i].sender);
+          ctx.error(
+            sender && sender.state === 'passed',
+            18022,
+            '溯源码发送者不存在'
+          );
           records[i].sender = sender;
         }
       }
@@ -278,16 +272,10 @@ module.exports = app => {
      * @return {object} 指定订单生成的溯源码
      */
     async create() {
-      const {
-        ctx,
-        service,
-        createRule,
-      } = this;
+      const { ctx, service, createRule } = this;
       const basePath = path.join(__dirname, '../../files');
       // ctx.checkPermission('platform'); // 是否是平台用户权限
-      const {
-        order,
-      } = await ctx.verify(createRule, ctx.request.body);
+      const { order } = await ctx.verify(createRule, ctx.request.body);
 
       // 配置excel
       const workBook = new excel.Workbook();
@@ -303,13 +291,7 @@ module.exports = app => {
       // 验证订单是否存在
       const isOrderExist = await service.order.findById(order, 'commodity');
       ctx.error(isOrderExist, 18000, '生成溯源码失败，订单不存在');
-      const {
-        commodity,
-        isStagePay,
-        status,
-        count,
-        buyer,
-      } = isOrderExist;
+      const { commodity, isStagePay, status, count, buyer } = isOrderExist;
       // 验证订单状态，非定制溯源码，验证是否付全款，定制溯源码验证是否已经付首付款
       if (isStagePay) {
         ctx.error(
@@ -382,15 +364,16 @@ module.exports = app => {
       ctx.error(file, 17027, '订单附件创建失败');
 
       // 修改订单的状态，添加附件地址
-      const {
-        nModified,
-      } = await ctx.service.order.update({
-        _id: order,
-      }, {
-        status: 'PRINTED',
-        attachment: file._id,
-        print_at: new Date(),
-      });
+      const { nModified } = await ctx.service.order.update(
+        {
+          _id: order,
+        },
+        {
+          status: 'PRINTED',
+          attachment: file._id,
+          print_at: new Date(),
+        }
+      );
       ctx.error(nModified === 1, 17026, '溯源码打印失败');
       const tracings = await service.tracing.insertMany(targetTracings);
       ctx.error(tracings, 17028, '生成内外码失败');
@@ -404,11 +387,7 @@ module.exports = app => {
      * @return {promise} 被修改溯源码
      */
     async update() {
-      const {
-        ctx,
-        service,
-        updateRule,
-      } = this;
+      const { ctx, service, updateRule } = this;
       const {
         key,
         record,
@@ -420,17 +399,17 @@ module.exports = app => {
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
-      const {
-        role_type,
-        user_id,
-      } = ctx.registerPermission();
+      const { role_type, user_id } = ctx.registerPermission();
       ctx.error(key, 18004, '溯源密匙为必填项', 400);
       const isTracingExist = await service.tracing.findOne({
-        $or: [{
-          inner_token: key,
-        }, {
-          outer_token: key,
-        }],
+        $or: [
+          {
+            inner_token: key,
+          },
+          {
+            outer_token: key,
+          },
+        ],
       });
       ctx.error(
         !isTracingExist.isEnd,
@@ -456,7 +435,7 @@ module.exports = app => {
         ); // 是自己的，则验证溯源码当前状态能否绑定商品
         ctx.error(
           (products && products.length > 0) ||
-          (tracing_products && tracing_products.length > 0),
+            (tracing_products && tracing_products.length > 0),
           18015,
           '绑定商品为必填'
         ); // 当前状态能绑定商品，则验证上传的商品信息是否正确
@@ -496,9 +475,7 @@ module.exports = app => {
           targetData.state = 'BIND';
         }
       } else {
-        const {
-          records: currentRecords,
-        } = isTracingExist;
+        const { records: currentRecords } = isTracingExist;
         const latestRecord = currentRecords.pop();
         // 设置溯源记录
         const {
@@ -588,10 +565,7 @@ module.exports = app => {
             18014,
             '验货失败，该溯源记录未到达验货阶段'
           ); // 验证当前状态能否进行收货操作
-          const {
-            reciver_type,
-            reciver,
-          } = latestRecord;
+          const { reciver_type, reciver } = latestRecord;
           const owner = user_id;
           latestRecord.reciver_at = new Date(); // 统一添加收货时间
           if (reciver_type === 'business') {
@@ -609,16 +583,18 @@ module.exports = app => {
       }
       // 溯源码更新
       Object.assign(isTracingExist, targetData);
-      const {
-        nModified,
-      } = await ctx.service.tracing.update({
-        $or: [{
-          inner_token: key,
-        }, {
-          outer_token: key,
-        }],
-      },
-      targetData
+      const { nModified } = await ctx.service.tracing.update(
+        {
+          $or: [
+            {
+              inner_token: key,
+            },
+            {
+              outer_token: key,
+            },
+          ],
+        },
+        targetData
       );
       ctx.error(nModified === 1, 18006, '溯源码修改失败');
 
@@ -632,21 +608,13 @@ module.exports = app => {
      * @return {array} 删除的溯源码
      */
     async destroy() {
-      const {
-        ctx,
-        service,
-        destroyRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(destroyRule, ctx.params);
+      const { ctx, service, destroyRule } = this;
+      const { id } = await ctx.verify(destroyRule, ctx.params);
 
       // 查询并删除溯源码
       const tracing = await service.tracing.findById(id);
       ctx.error(tracing, '溯源码不存在', 18002);
-      const {
-        nModified,
-      } = await service.tracing.destroy({
+      const { nModified } = await service.tracing.destroy({
         _id: id,
       });
       ctx.error(nModified === 1, 18003, '溯源码删除失败');

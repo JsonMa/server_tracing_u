@@ -179,6 +179,7 @@ module.exports = app => {
         creator: user_id,
       });
       const userInfo = await ctx.service.user.findById(user_id);
+      ctx.error(userInfo && userInfo.state === 'passed', 10001, '找不到该用户');
       ctx.jsonBody = {
         data: {
           totalTracings,
@@ -202,6 +203,7 @@ module.exports = app => {
       const userInfo = await ctx.service.user.findMany({
         inviter: user_id,
         role_type: 'business',
+        state: 'passed',
       });
       ctx.jsonBody = userInfo;
     }
@@ -308,7 +310,7 @@ module.exports = app => {
     async update() {
       // 商户上传banner或平台管理员审核用户
       const { ctx, service, updateRule } = this;
-      const { id, operation, banner, state, rejectReason } = await ctx.verify(
+      const { id, operation, banner, state } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );

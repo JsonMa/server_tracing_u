@@ -51,13 +51,8 @@ module.exports = app => {
      * @return {Object} user & token
      */
     async login() {
-      const {
-        ctx,
-        loginRule,
-      } = this;
-      const {
-        code,
-      } = await ctx.verify(loginRule, ctx.request.body);
+      const { ctx, loginRule } = this;
+      const { code } = await ctx.verify(loginRule, ctx.request.body);
       const {
         openid,
         session_key,
@@ -77,18 +72,21 @@ module.exports = app => {
       };
       if (isUserExist) {
         user = isUserExist;
-        isRegistered = isUserExist.role_type !== 'unauthed';
+        isRegistered =
+          isUserExist.role_type !== 'unauthed' &&
+          isUserExist.state === 'passed';
         sessionData.role_type = isUserExist.role_type;
         sessionData.role_id = isUserExist.role_id;
         sessionData.user_id = isUserExist._id;
         sessionData.isRegistered = isRegistered;
-        const {
-          nModified,
-        } = await ctx.service.user.update({
-          _id: isUserExist._id,
-        }, {
-          last_login: new Date(),
-        });
+        const { nModified } = await ctx.service.user.update(
+          {
+            _id: isUserExist._id,
+          },
+          {
+            last_login: new Date(),
+          }
+        );
         ctx.error(nModified === 1, 11008, '修改登录时间失败');
       } else {
         const createdUser = await ctx.service.user.create({
@@ -126,12 +124,8 @@ module.exports = app => {
      * @return {object} 返回登出结果
      */
     async logout() {
-      const {
-        ctx,
-      } = this;
-      const {
-        access_token: token,
-      } = ctx.header;
+      const { ctx } = this;
+      const { access_token: token } = ctx.header;
 
       const ret = await ctx.app.redis.del(`token:${token}`);
       ctx.error(ret === 1, 11009, '退出登录失败');
@@ -150,27 +144,23 @@ module.exports = app => {
      * @memberof AuthController
      */
     async code2Session(code) {
-      const {
-        ctx,
-      } = this;
+      const { ctx } = this;
       const config = ctx.app.config.wechat;
       ctx.assert(typeof code === 'string', 'code需为字符串', 400);
-      const {
-        data,
-      } = await ctx.curl('https://api.weixin.qq.com/sns/jscode2session', {
-        method: 'GET',
-        data: {
-          appid: config.appid,
-          secret: config.secret,
-          js_code: code,
-          grant_type: config.grant_type,
-        },
-        dataType: 'json',
-      });
-      const {
-        errcode,
-        errmsg,
-      } = data;
+      const { data } = await ctx.curl(
+        'https://api.weixin.qq.com/sns/jscode2session',
+        {
+          method: 'GET',
+          data: {
+            appid: config.appid,
+            secret: config.secret,
+            js_code: code,
+            grant_type: config.grant_type,
+          },
+          dataType: 'json',
+        }
+      );
+      const { errcode, errmsg } = data;
       if (errcode) {
         this.logger.error(`[code2Session] - code: ${errcode}, msg: ${errmsg}`);
       }

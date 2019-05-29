@@ -72,7 +72,11 @@ module.exports = app => {
         ctx.error(isLogoExist, 17023, '订单涉及的logo文件不存在');
       }
       const isUserExited = await ctx.service.user.findById(buyer);
-      ctx.error(isUserExited, 17003, '商品购买者不存在');
+      ctx.error(
+        isUserExited && isUserExited.state === 'passed',
+        17003,
+        '商品购买者不存在'
+      );
       ctx.error(
         isUserExited.role_type === 'factory',
         17017,
