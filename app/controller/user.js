@@ -96,7 +96,7 @@ module.exports = app => {
           },
           state: {
             type: 'string',
-            enum: ['passed', 'rejected', 'unreview'],
+            enum: ['passed', 'rejected'],
           },
           rejectReason: {
             type: 'string',
@@ -333,15 +333,16 @@ module.exports = app => {
         ctx.checkPermission(['platform']);
         ctx.error(state, 11011, 'state参数为必填项');
         ctx.error(
+          isUserExist.state === 'unreview',
+          11013,
+          '审核失败，该用户不处于待审核状态'
+        );
+        ctx.error(
           ['passed', 'rejected'].includes(state),
           11012,
           'state参数为passed或rejected'
         );
         targetParams.state = state;
-        if (state === 'rejected') {
-          ctx.error(rejectReason, 11012, 'rejectReason为必填项');
-          targetParams.rejectReason = rejectReason;
-        }
       }
 
       await service.user.update(
