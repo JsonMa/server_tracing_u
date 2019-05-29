@@ -90,6 +90,10 @@ module.exports = ({ mongoose }) => {
         public_account: {
           type: String,
         },
+        banner: {
+          type: Schema.Types.ObjectId,
+          ref: 'file',
+        },
         email: {
           type: String,
         },
