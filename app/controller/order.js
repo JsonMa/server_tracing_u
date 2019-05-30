@@ -582,6 +582,11 @@ module.exports = app => {
           17008,
           '收货失败，订单未发货'
         );
+        if (isOrderExit.isStagePay) {
+          ctx.error(trade && trade.length === 2, 17008, '交易信息不完整');
+          modifiedData.isLastPayed = true;
+          modifiedData.trade = trade;
+        }
         Object.assign(modifiedData, {
           status,
           finish_at: new Date(),

@@ -48,39 +48,40 @@ module.exports = ({ mongoose }) => {
    * @property {String}   reason                 - 删除原因
    * @property {String}   remarks                - 订单备注[定制商品需要备注长宽高及厚度]
    * @property {String}   attachment             - 附件id
+   * @property {String}   isLastPayed            - 是否已经支付了尾款
    */
   const schema = new Schema(
     {
       buyer: {
         type: Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
       },
       logo: {
         type: Schema.Types.ObjectId,
-        ref: 'file'
+        ref: 'file',
       },
       remarks: String,
       salesman: {
         type: Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
       },
       quoter: {
         type: Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
       },
       quote_at: Date,
       commodity: {
         type: Schema.Types.ObjectId,
-        ref: 'commodity'
+        ref: 'commodity',
       },
       count: {
         type: Number,
         required: true,
-        default: 1
+        default: 1,
       },
       price: {
         type: Number,
-        required: true
+        required: true,
       },
       status: {
         type: String,
@@ -92,77 +93,81 @@ module.exports = ({ mongoose }) => {
           'PAYMENT_CONFIRMED',
           'PRINTED',
           'SHIPPED',
-          'FINISHED'
+          'FINISHED',
         ],
-        default: 'CREATED'
+        default: 'CREATED',
       },
       no: String,
       express: {
         id: String,
         name: String,
-        send_at: Date
+        send_at: Date,
       },
       needPrint: {
         type: Boolean,
-        default: false
+        default: false,
       },
       isStagePay: {
         type: Boolean,
-        default: false
+        default: false,
       },
       stageProportion: {
         type: Number,
-        default: 0.5
+        default: 0.5,
       },
       commisionProportion: {
         type: Number,
-        default: 0
+        default: 0,
       },
       payee: {
         account: {
           type: String,
-          default: '755942248610701'
+          default: '755942248610701',
         },
         bank: {
           type: String,
-          default: '招商银行'
+          default: '招商银行',
         },
         name: {
           type: String,
-          default: '溯源科技'
-        }
+          default: '溯源科技',
+        },
       },
       needRemind: {
         type: Boolean,
-        default: false
+        default: false,
       },
       trade: [
         {
           type: {
             type: String,
-            values: ['FIRST_PAYED', 'ALL_PAYED']
+            values: ['FIRST_PAYED', 'ALL_PAYED'],
           },
           sponsor: {
-            type: String
+            type: String,
           },
           number: {
-            type: String
+            type: String,
           },
           voucher: {
             type: Schema.Types.ObjectId,
-            ref: 'file'
+            ref: 'file',
           },
-          pay_at: Date
-        }
+          pay_at: Date,
+        },
       ],
       isFirstPaymentConfirmed: {
         type: Boolean,
-        default: false
+        default: false,
       },
       firstPaymentConfirm_at: Date,
       isAllPaymentConfirmed: {
         type: Boolean,
-        default: false
+        default: false,
+      },
+      isLastPayed: {
+        type: Boolean,
+        default: false,
       },
       allPaymentConfirm_at: Date,
       print_at: Date,
@@ -171,13 +176,13 @@ module.exports = ({ mongoose }) => {
       reason: String,
       attachment: {
         type: Schema.Types.ObjectId,
-        ref: 'file'
-      }
+        ref: 'file',
+      },
     },
     Object.assign(
       {},
       {
-        timestamps
+        timestamps,
       }
     )
   );
