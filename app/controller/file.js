@@ -59,67 +59,27 @@ module.exports = app => {
      * @return {promise} 上传的文件
      */
     async upload() {
-      const {
-        ctx,
-        uploadRule,
-      } = this;
-      const [files] = ctx.request.files;
+      const { ctx, uploadRule } = this;
       await ctx.verify(uploadRule, ctx.request.files);
+      const { files } = ctx.request;
 
-      let cosResult = null;
-      if (files.type.includes('mp4')) {
-        const config = app.config.tencent;
-        const {
-          fileType,
-          notifyUrl,
-          secretId,
-          secretKey,
-        } = config;
-        const VodUploadApi = ctx.helper.vodUploadApi;
-        const filePath = path.join(`${app.baseDir}`, files.path);
-        const slicePage = 512 * 1024;
-        const api = new VodUploadApi(config);
-
-        // 安全凭证
-        api.SetSecretId(secretId);
-        api.SetSecretKey(secretKey);
-        api.SetRegion('cd');
-        cosResult = await new Promise((resolve, reject) => {
-          api.UploadVideo(
-            filePath,
-            files.name,
-            fileType,
-            slicePage,
-            notifyUrl,
-            (err, data) => {
-              if (err) reject(err);
-              resolve(data);
-            }
-          );
-        });
-        fs.unlinkSync(filePath);
-        ctx.error(cosResult.url, '视频上传失败', 16004);
-
-        ctx.jsonBody = {
-          url: cosResult.url,
+      const targetFiles = files.map(item => {
+        return {
+          name: item.name,
+          size: item.size,
+          type: item.type,
+          path: item.path,
         };
-        return;
-      }
-
-      // 非视频文件
-      const file = await ctx.service.file.create({
-        name: files.name,
-        size: files.size,
-        type: files.type,
-        path: files.path,
       });
-
-      ctx.jsonBody = {
-        id: file.id,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      };
+      const results = await ctx.service.file.insertMany(targetFiles);
+      ctx.jsonBody = results.map(item => {
+        return {
+          id: item.id,
+          name: item.name,
+          size: item.size,
+          type: item.type,
+        };
+      });
     }
 
     /**
@@ -129,31 +89,18 @@ module.exports = app => {
      * @return {promise} 文件详情
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(id);
       ctx.assert(file, '未找到相关资源', 404);
-      const {
-        range: requestRange,
-      } = ctx.headers;
-      const {
-        size,
-      } = fs.statSync(file.path);
+      const { range: requestRange } = ctx.headers;
+      const { size } = fs.statSync(file.path);
       const fileSize = !!~file.type.indexOf('image') ? size : file.size; // eslint-disable-line
 
       if (requestRange && file.type.includes('video')) {
         const range = ctx.helper.video.range(ctx.headers.range, fileSize);
         if (range) {
-          const {
-            start,
-            end,
-          } = range;
+          const { start, end } = range;
           ctx.set({
             'Content-Range': `bytes ${start}-${end}/${fileSize}`,
             'Content-Type': file.type,
@@ -183,14 +130,8 @@ module.exports = app => {
      * @return {promise} 缩略图
      */
     async thumbnail() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(id);
 
       ctx.assert(file, '未找到相关资源', 404);
@@ -221,20 +162,18 @@ module.exports = app => {
      * @memberof fileController
      */
     async delete() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
-      const {
-        id,
-      } = await ctx.verify(showRule, ctx.params);
+      const { ctx, service, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
       const file = await service.file.findById(id);
       ctx.assert(file, '未找到相关资源', 404);
 
-      const result = await service.file.destroy({
-        _id: id,
-      }, false, true);
+      const result = await service.file.destroy(
+        {
+          _id: id,
+        },
+        false,
+        true
+      );
       ctx.assert(result.ok === 1, '删除失败', 500);
       fs.unlinkSync(file.path);
       ctx.jsonBody = file;
