@@ -161,6 +161,11 @@ module.exports = ({ mongoose }) => {
         default: false,
       },
       firstPaymentConfirm_at: Date,
+      isLastPaymentConfirmed: {
+        type: Boolean,
+        default: false,
+      },
+      lastPaymentConfirm_at: Date,
       isAllPaymentConfirmed: {
         type: Boolean,
         default: false,

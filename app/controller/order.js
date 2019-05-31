@@ -218,7 +218,9 @@ module.exports = app => {
               respOrders.unCheck.push(order);
               break;
             case 'FINISHED':
-              if (order.isLastPayed) respOrders.unCheck.push(order);
+              if (order.isLastPayed && !order.isLastPaymentConfirmed) {
+                respOrders.unCheck.push(order);
+              }
               break;
             case 'ALL_PAYED':
               respOrders.unCheck.push(order);
@@ -389,6 +391,9 @@ module.exports = app => {
           isAllPaymentConfirmed: {
             type: 'boolean',
           },
+          isLastPaymentConfirmed: {
+            type: 'boolean',
+          },
         },
         required: ['id', 'status'],
         $async: true,
@@ -418,6 +423,7 @@ module.exports = app => {
         commisionProportion,
         isFirstPaymentConfirmed,
         isAllPaymentConfirmed,
+        isLastPaymentConfirmed,
       } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
@@ -545,6 +551,11 @@ module.exports = app => {
             status,
             isFirstPaymentConfirmed,
             firstPaymentConfirm_at: new Date(),
+          });
+        } else if (isOrderExit.isLastPayed) {
+          Object.assign(modifiedData, {
+            isLastPaymentConfirmed,
+            lastPaymentConfirm_at: new Date(),
           });
         } else {
           Object.assign(modifiedData, {
