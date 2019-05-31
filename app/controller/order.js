@@ -540,7 +540,7 @@ module.exports = app => {
       } else if (status === 'PAYMENT_CONFIRMED') {
         ctx.checkPermission('platform');
         ctx.error(
-          ['FIRST_PAYED', 'ALL_PAYED'].includes(isOrderExit.status),
+          ['FIRST_PAYED', 'ALL_PAYED', 'FINISHED'].includes(isOrderExit.status),
           17018,
           '支付确认失败，当前订单未处于已支付状态'
         );
