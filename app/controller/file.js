@@ -71,8 +71,13 @@ module.exports = app => {
           path: item.path,
         };
       });
-      const result = await ctx.service.file.create(targetFiles[0]);
-      ctx.jsonBody = result;
+      const file = await ctx.service.file.create(targetFiles[0]);
+      ctx.jsonBody = {
+        id: file.id,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+      };
     }
 
     /**
