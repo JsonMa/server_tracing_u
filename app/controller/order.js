@@ -222,6 +222,9 @@ module.exports = app => {
                 respOrders.unCheck.push(order);
               }
               break;
+            case 'PRINTED':
+              respOrders.unSent.push(order);
+              break;
             case 'ALL_PAYED':
               respOrders.unCheck.push(order);
               break;
