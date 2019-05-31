@@ -217,6 +217,9 @@ module.exports = app => {
             case 'FIRST_PAYED':
               respOrders.unCheck.push(order);
               break;
+            case 'FINISHED':
+              if (order.isLastPayed) respOrders.unCheck.push(order);
+              break;
             case 'ALL_PAYED':
               respOrders.unCheck.push(order);
               break;
