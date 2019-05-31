@@ -60,37 +60,6 @@ module.exports = app => {
     }
 
     /**
-     * 参数验证-新增报警
-     *
-     * @readonly
-     * @memberof UserController
-     */
-    get createRule() {
-      return {
-        properties: {
-          tracing: {
-            type: 'string',
-          },
-          barcode: {
-            $ref: 'schema.definition#/oid',
-          },
-          image: {
-            $ref: 'schema.definition#/oid',
-          },
-          description: {
-            $ref: 'schema.definition#/oid',
-          },
-          phone: {
-            $ref: 'schema.definition#/mobile',
-          },
-        },
-        $async: true,
-        required: ['tracing', 'barcode', 'image', 'description', 'phone'],
-        additionalProperties: false,
-      };
-    }
-
-    /**
      *  参数规则-修改报警
      *
      * @readonly
@@ -197,82 +166,89 @@ module.exports = app => {
     }
 
     /**
-     * 创建用户
+     * 参数验证-新增报警
+     *
+     * @readonly
+     * @memberof UserController
+     */
+    get createRule() {
+      return {
+        properties: {
+          key: {
+            type: 'string',
+          },
+          barcode: {
+            $ref: 'schema.definition#/oid',
+          },
+          images: {
+            type: 'array',
+            item: {
+              $ref: 'schema.definition#/oid',
+            },
+          },
+          description: {
+            $ref: 'schema.definition#/oid',
+          },
+          phone: {
+            $ref: 'schema.definition#/mobile',
+          },
+        },
+        $async: true,
+        required: ['key', 'barcode', 'image', 'description', 'phone'],
+        additionalProperties: false,
+      };
+    }
+
+    /**
+     * 创建报警
      *
      * @memberof UserController
      * @return {promise} 新建的用户
      */
     async create() {
-      const { ctx, service, createRule } = this;
-      const { openid, token } = ctx.loginPermission();
-      await ctx.verify(createRule, ctx.request.body);
-      const isUserExist = await ctx.service.user.findOne({
-        openid,
-      });
-      ctx.error(isUserExist, 10001, '注册失败，找不到该用户');
-      ctx.error(
-        isUserExist.role_type === 'unauthed',
-        10004,
-        '注册失败，该用户已注册'
+      const { ctx, createRule } = this;
+      const { user_id } = ctx.registerPermission();
+      const { key, barcode, images, description, phone } = await ctx.verify(
+        createRule,
+        Object.assign(ctx.request.body, ctx.query)
       );
-      const { role_type, role_id, inviter } = ctx.request.body;
-      switch (role_type) {
-        case 'salesman':
-          ctx.error(role_id >= 40 && role_id < 50, 11006, '用户类型与id不匹配');
-          break;
-        case 'courier':
-          ctx.error(role_id >= 50 && role_id < 60, 11006, '用户类型与id不匹配');
-          break;
-        case 'factory':
-          ctx.error(role_id >= 20 && role_id < 30, 11006, '用户类型与id不匹配');
-          break;
-        case 'business':
-          ctx.error(role_id >= 30 && role_id < 40, 11006, '用户类型与id不匹配');
-          break;
-        case 'platform':
-          ctx.error(role_id > 0 && role_id < 10, 11006, '用户类型与id不匹配');
-          break;
-        default:
-          ctx.error(role_id === 60, 11006, '用户类型与id不匹配');
-          break;
-      }
-      const userData = ctx.request.body[role_type];
-      ctx.error(userData, 11007, '未找到属于该用户类型的数据');
-      const query = {};
-      query[`${role_type}.name`] = userData.name;
-      const user = await service.user.findOne(query); // 验证用户是否存在
-      ctx.error(!user, 10003, '创建失败，该用户名已存在', 400);
-      let targetData = {};
-      if (inviter) targetData.inviter = inviter;
-      targetData[role_type] = userData;
-      targetData = Object.assign(targetData, {
-        role_type,
-        role_id,
-        openid,
-        last_login: new Date(),
+      const isTracingExist = await ctx.service.user.findOne({
+        $or: [
+          {
+            inner_token: key,
+          },
+          {
+            outer_token: key,
+          },
+        ],
       });
-
-      // 用户注册
-      const { nModified } = await service.user.update(
-        {
-          openid,
+      ctx.error(isTracingExist, 19001, '错误反馈对应的溯源码不存在');
+      const { factory, records } = isTracingExist;
+      const { sender } = records.pop();
+      const isBarcodeExist = await ctx.service.barcode.findById(barcode);
+      ctx.error(isBarcodeExist, 19002, '错误反馈对应的商品条形码不存在');
+      const imagesCount = await ctx.service.file.count({
+        _id: {
+          $in: images,
         },
-        targetData
-      );
-      ctx.error(nModified === 1, 11008, '用户注册失败');
-      const isRegistered = true;
-      const sessionData = Object.assign(ctx.state.auth, {
-        isRegistered,
-        role_type,
-        role_id,
       });
-      await ctx.app.redis.set(
-        `token:${token}`,
-        JSON.stringify(sessionData),
-        'EX',
-        72000
+      ctx.error(
+        imagesCount.length === images.length,
+        19002,
+        '图片缺失或上传的ID信息有误'
       );
-      ctx.jsonBody = targetData;
+
+      const counterfeit = await ctx.service.counterfeit.create({
+        creator: user_id,
+        tracing: key,
+        barcode,
+        factory,
+        sender,
+        images,
+        description,
+        phone,
+      });
+      ctx.jsonBody = counterfeit;
     }
 
     /**

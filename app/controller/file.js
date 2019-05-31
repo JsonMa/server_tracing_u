@@ -71,15 +71,8 @@ module.exports = app => {
           path: item.path,
         };
       });
-      const results = await ctx.service.file.insertMany(targetFiles);
-      ctx.jsonBody = results.map(item => {
-        return {
-          id: item.id,
-          name: item.name,
-          size: item.size,
-          type: item.type,
-        };
-      });
+      const result = await ctx.service.file.create(targetFiles[0]);
+      ctx.jsonBody = result;
     }
 
     /**

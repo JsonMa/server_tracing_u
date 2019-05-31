@@ -9,6 +9,7 @@ module.exports = ({ mongoose }) => {
    *
    * @model Counterfeit
    * @namespace Model
+   * @property {String}  creator         - 创建者
    * @property {String}  tracing         - 溯源码
    * @property {String}  barcode         - 条形码
    * @property {String}  sender          - 发货人
@@ -23,6 +24,10 @@ module.exports = ({ mongoose }) => {
    */
   const schema = new Schema(
     {
+      creator: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
       tracing: {
         type: Schema.Types.ObjectId,
         ref: 'tracing',
@@ -39,10 +44,12 @@ module.exports = ({ mongoose }) => {
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
-      image: {
-        type: Schema.Types.ObjectId,
-        ref: 'file',
-      },
+      images: [
+        {
+          type: Schema.Types.ObjectId,
+          ref: 'file',
+        },
+      ],
       description: String,
       phone: String,
       state: {

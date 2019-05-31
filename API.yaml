@@ -157,6 +157,8 @@ info:
     | 18002 | tracing error       | 获取溯源码信息失败，该溯源码不存在 |
     | 18003 | tracing error       | 溯源码删除失败|
 
+    | 19001 | counterfeit error       | 错误反馈对应的溯源码不存在|
+
     | 21001 | trade error       | openid获取失败 |
     | 22001 | tencent api error       | 腾讯API认证失败 |
     | 23001 | miniProgram api error       | 小程序token获取失败 |
