@@ -215,10 +215,10 @@ module.exports = app => {
       const isTracingExist = await ctx.service.user.findOne({
         $or: [
           {
-            inner_token: key,
+            inner_code: key,
           },
           {
-            outer_token: key,
+            outer_code: key,
           },
         ],
       });

@@ -238,10 +238,10 @@ module.exports = app => {
       const query = {
         $or: [
           {
-            inner_token: key,
+            inner_code: key,
           },
           {
-            outer_token: key,
+            outer_code: key,
           },
         ],
       };
@@ -404,10 +404,10 @@ module.exports = app => {
       const isTracingExist = await service.tracing.findOne({
         $or: [
           {
-            inner_token: key,
+            inner_code: key,
           },
           {
-            outer_token: key,
+            outer_code: key,
           },
         ],
       });
@@ -587,10 +587,10 @@ module.exports = app => {
         {
           $or: [
             {
-              inner_token: key,
+              inner_code: key,
             },
             {
-              outer_token: key,
+              outer_code: key,
             },
           ],
         },
