@@ -5,7 +5,12 @@ const TOKEN = 'access_token';
 module.exports = () =>
   function* (next) {
     // 接口白名单
-    const whiteUrlLists = ['/api/auth', '/api/files', '/page/tracing'];
+    const whiteUrlLists = [
+      '/api/auth',
+      '/api/files',
+      '/page/tracing',
+      '/api/tracings',
+    ];
     for (let i = 0; i < whiteUrlLists.length; i++) {
       if (this.request.url.includes(whiteUrlLists[i])) {
         yield next;

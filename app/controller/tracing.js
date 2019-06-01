@@ -233,7 +233,6 @@ module.exports = app => {
      */
     async show() {
       const { ctx, service, showRule } = this;
-      // ctx.loginPermission(); // 是否已登录
       const { key } = await ctx.verify(showRule, ctx.params);
       const query = {
         $or: [
