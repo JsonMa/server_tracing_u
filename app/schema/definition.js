@@ -23,24 +23,25 @@ module.exports = {
   },
   email: {
     type: 'string',
-    pattern: '^([a-zA-Z0-9_\\.\\-])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$',
+    pattern:
+      '^([a-zA-Z0-9_\\.\\-])+\\@(([a-zA-Z0-9\\-])+\\.)+([a-zA-Z0-9]{2,4})+$',
   },
   password: {
     type: 'string',
   },
   name: {
     type: 'string',
-    maxLength: 10,
+    maxLength: 30,
     minLength: 1,
   },
   company: {
     type: 'string',
-    maxLength: 20,
+    maxLength: 30,
     minLength: 2,
   },
   address: {
     type: 'string',
-    maxLength: 30,
+    maxLength: 60,
     minLength: 2,
   },
   role_id: {
@@ -48,10 +49,12 @@ module.exports = {
     minimum: 1,
     maximum: 60,
   },
-  uuidRegrex: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  uuidRegrex:
+    '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
   uuid: {
     type: 'string',
-    pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    pattern:
+      '^[0-9a-f]{8}-[0-9a-f]{4}-[1-4][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$',
   },
   date: {
     type: 'string',
@@ -59,16 +62,11 @@ module.exports = {
   },
   url: {
     type: 'string',
-    pattern: '(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]',
+    pattern:
+      '(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]',
   },
   role_type: {
     type: 'string',
-    enum: [
-      'platform',
-      'factory',
-      'business',
-      'courier',
-      'salesman',
-    ],
+    enum: ['platform', 'factory', 'business', 'courier', 'salesman'],
   },
 };
