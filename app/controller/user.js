@@ -209,6 +209,70 @@ module.exports = app => {
     }
 
     /**
+     * 获取该用户所邀请的用户
+     *
+     * @memberof UserController
+     * @return {undefined}
+     */
+    async factory() {
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const { user_id, role_type } = ctx.oneselfPermission(id);
+      ctx.error(
+        ['platform', 'salesman'].includes(role_type),
+        10005,
+        '该用户类型无邀请用户注册权限'
+      );
+      const users = await ctx.service.user.findMany({
+        inviter: user_id,
+      });
+      const count = await ctx.service.user.count({
+        inviter: user_id,
+      });
+      ctx.jsonBody = {
+        count,
+        users,
+      };
+    }
+
+    /**
+     * 销售人员统计销售信息
+     *
+     * @memberof UserController
+     * @return {undefined}
+     */
+    async sales() {
+      const { ctx, showRule } = this;
+      const { id } = await ctx.verify(showRule, ctx.params);
+      const { user_id, role_type } = ctx.oneselfPermission(id);
+      ctx.error(
+        role_type === 'salesman',
+        10006,
+        '非销售类型用户无法查看销售信息'
+      );
+      const factory = await ctx.service.user.count({
+        inviter: user_id,
+      });
+      let totalCommission = 0;
+      let totalPrice = 0;
+      const orders = await ctx.service.order.findMany({
+        salesman: user_id,
+      });
+      if (orders) {
+        orders.forEach(order => {
+          const { price, commisionProportion } = order;
+          totalPrice += price;
+          totalCommission += price * commisionProportion;
+        });
+      }
+      ctx.jsonBody = {
+        factory,
+        totalCommission,
+        totalPrice,
+      };
+    }
+
+    /**
      * 创建用户
      *
      * @memberof UserController

@@ -17,6 +17,8 @@ module.exports = app => {
   app.put(`${prefix}/users/:id`, 'user.update');
   app.get(`${prefix}/users/:id/statistics`, 'user.statistics');
   app.get(`${prefix}/users/:id/businesses`, 'user.business');
+  app.get(`${prefix}/users/:id/factories`, 'user.factory'); // 由指定用户邀请的用户列表
+  app.get(`${prefix}/users/:id/sales`, 'user.sales'); // 销售员的销售统计
 
   // commodity
   app.get(`${prefix}/commodities`, 'commodity.index');
