@@ -30,7 +30,26 @@ module.exports = app => {
             $ref: 'schema.definition#/oid',
           },
           remarks: {
-            type: 'string',
+            properties: {
+              product: {
+                type: 'string',
+              },
+              width: {
+                type: 'string',
+              },
+              height: {
+                type: 'string',
+              },
+              length: {
+                type: 'string',
+              },
+              thick: {
+                type: 'string',
+              },
+            },
+            required: ['product', 'width', 'height', 'length', 'thick'],
+            $async: true,
+            additionalProperties: false,
           },
           logo: {
             $ref: 'schema.definition#/oid',

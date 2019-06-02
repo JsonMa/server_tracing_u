@@ -46,7 +46,7 @@ module.exports = ({ mongoose }) => {
    * @property {Boolean}  print_at               - 溯源码打印时间
    * @property {Date}     finish_at              - 订单结束时间
    * @property {String}   reason                 - 删除原因
-   * @property {String}   remarks                - 订单备注[定制商品需要备注长宽高及厚度]
+   * @property {Object}   remarks                - 订单备注[定制商品需要备注长宽高及厚度以及所装的商品]
    * @property {String}   attachment             - 附件id
    * @property {String}   isLastPayed            - 是否已经支付了尾款
    */
@@ -60,7 +60,13 @@ module.exports = ({ mongoose }) => {
         type: Schema.Types.ObjectId,
         ref: 'file',
       },
-      remarks: String,
+      remarks: {
+        product: String,
+        width: String,
+        height: String,
+        length: String,
+        thick: String,
+      },
       salesman: {
         type: Schema.Types.ObjectId,
         ref: 'user',
