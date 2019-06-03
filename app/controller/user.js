@@ -18,20 +18,20 @@ module.exports = app => {
       return {
         properties: {
           enable: {
-            type: 'boolean',
+            type: 'boolean'
           },
           role_type: {
             type: 'string',
-            enum: ['factory', 'business', 'courier', 'salesman', 'unauthed'],
+            enum: ['factory', 'business', 'courier', 'salesman', 'unauthed']
           },
           state: {
             type: 'string',
-            enum: ['passed', 'rejected', 'unreview'],
+            enum: ['passed', 'rejected', 'unreview']
           },
-          ...this.ctx.helper.pagination.rule,
+          ...this.ctx.helper.pagination.rule
         },
         $async: true,
-        additionalProperties: false,
+        additionalProperties: false
       };
     }
 
@@ -45,12 +45,12 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid',
-          },
+            $ref: 'schema.definition#/oid'
+          }
         },
         required: ['id'],
         $async: true,
-        additionalProperties: false,
+        additionalProperties: false
       };
     }
 
@@ -65,13 +65,13 @@ module.exports = app => {
         $async: true,
         $merge: {
           source: {
-            $ref: 'schema.user#',
+            $ref: 'schema.user#'
           },
           with: {
             required: ['role_type', 'role_id'],
-            additionalProperties: false,
-          },
-        },
+            additionalProperties: false
+          }
+        }
       };
     }
 
@@ -85,28 +85,28 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid',
+            $ref: 'schema.definition#/oid'
           },
           banner: {
-            $ref: 'schema.definition#/oid',
+            $ref: 'schema.definition#/oid'
           },
           operation: {
             type: 'string',
-            enum: ['banner', 'state'],
+            enum: ['banner', 'state']
           },
           state: {
             type: 'string',
-            enum: ['passed', 'rejected'],
+            enum: ['passed', 'rejected']
           },
           rejectReason: {
             type: 'string',
             maxLength: 50,
-            minLength: 1,
-          },
+            minLength: 1
+          }
         },
         $async: true,
         required: ['id', 'operation'],
-        additionalProperties: false,
+        additionalProperties: false
       };
     }
 
@@ -127,7 +127,7 @@ module.exports = app => {
         state = 'unreview',
         limit = 10,
         offset = 0,
-        sort = '-created_at',
+        sort = '-created_at'
       } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
@@ -136,14 +136,14 @@ module.exports = app => {
         query.role_type = role_type;
       } else {
         query.role_type = {
-          $in: ['factory', 'business', 'courier', 'salesman'],
+          $in: ['factory', 'business', 'courier', 'salesman']
         };
       }
       if (state) query.state = state;
       const users = await ctx.service.user.findMany(query, null, {
         limit: parseInt(limit),
         skip: parseInt(offset),
-        sort: generateSortParam(sort),
+        sort: generateSortParam(sort)
       });
       const count = await ctx.service.user.count(query);
 
@@ -153,8 +153,8 @@ module.exports = app => {
           limit,
           offset,
           sort,
-          count,
-        },
+          count
+        }
       };
     }
 
@@ -169,14 +169,14 @@ module.exports = app => {
       const { id } = await ctx.verify(showRule, ctx.params);
       const { user_id } = ctx.oneselfPermission(id);
       const totalTracings = await ctx.service.tracing.count({
-        owner: user_id,
+        owner: user_id
       });
       const unUsedTracings = await ctx.service.tracing.count({
         owner: user_id,
-        isActive: false,
+        isActive: false
       });
       const barcodes = await ctx.service.barcode.count({
-        creator: user_id,
+        creator: user_id
       });
       const userInfo = await ctx.service.user.findById(user_id);
       ctx.error(userInfo && userInfo.state === 'passed', 10001, '找不到该用户');
@@ -185,8 +185,8 @@ module.exports = app => {
           totalTracings,
           unUsedTracings,
           barcodes,
-          userInfo,
-        },
+          userInfo
+        }
       };
     }
 
@@ -203,7 +203,7 @@ module.exports = app => {
       const userInfo = await ctx.service.user.findMany({
         inviter: user_id,
         role_type: 'business',
-        state: 'passed',
+        state: 'passed'
       });
       ctx.jsonBody = userInfo;
     }
@@ -224,14 +224,14 @@ module.exports = app => {
         '该用户类型无邀请用户注册权限'
       );
       const users = await ctx.service.user.findMany({
-        inviter: user_id,
+        inviter: user_id
       });
       const count = await ctx.service.user.count({
-        inviter: user_id,
+        inviter: user_id
       });
       ctx.jsonBody = {
         count,
-        users,
+        users
       };
     }
 
@@ -251,13 +251,14 @@ module.exports = app => {
         '非销售类型用户无法查看销售信息'
       );
       const factory = await ctx.service.user.count({
-        inviter: user_id,
+        inviter: user_id
       });
       let totalCommission = 0;
       let totalPrice = 0;
       const orders = await ctx.service.order.findMany({
-        salesman: user_id,
+        salesman: user_id
       });
+      const user = await ctx.service.user.findById(user_id);
       if (orders) {
         orders.forEach(order => {
           const { price, commisionProportion } = order;
@@ -269,6 +270,7 @@ module.exports = app => {
         factory,
         totalCommission,
         totalPrice,
+        user
       };
     }
 
@@ -283,7 +285,7 @@ module.exports = app => {
       const { openid, token } = ctx.loginPermission();
       await ctx.verify(createRule, ctx.request.body);
       const isUserExist = await ctx.service.user.findOne({
-        openid,
+        openid
       });
       ctx.error(isUserExist, 10001, '注册失败，找不到该用户');
       ctx.error(
@@ -325,13 +327,13 @@ module.exports = app => {
         role_type,
         role_id,
         openid,
-        last_login: new Date(),
+        last_login: new Date()
       });
 
       // 用户注册
       const { nModified } = await service.user.update(
         {
-          openid,
+          openid
         },
         targetData
       );
@@ -340,7 +342,7 @@ module.exports = app => {
       const sessionData = Object.assign(ctx.state.auth, {
         isRegistered,
         role_type,
-        role_id,
+        role_id
       });
       await ctx.app.redis.set(
         `token:${token}`,
@@ -413,7 +415,7 @@ module.exports = app => {
 
       await service.user.update(
         {
-          _id: id,
+          _id: id
         },
         targetParams
       );
