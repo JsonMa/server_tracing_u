@@ -289,7 +289,7 @@ module.exports = app => {
       });
       ctx.error(isUserExist, 10001, '注册失败，找不到该用户');
       ctx.error(
-        isUserExist.state === 'passed',
+        isUserExist.state !== 'passed',
         10004,
         '注册失败，该用户已注册'
       );
