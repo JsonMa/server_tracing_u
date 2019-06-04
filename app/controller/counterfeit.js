@@ -233,7 +233,7 @@ module.exports = app => {
         },
       });
       ctx.error(
-        imagesCount.length === images.length,
+        imagesCount === images.length,
         19002,
         '图片缺失或上传的ID信息有误'
       );
