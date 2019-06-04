@@ -6,13 +6,29 @@ module.exports = () =>
   function* (next) {
     // 接口白名单
     const whiteUrlLists = [
-      '/api/auth',
-      '/api/files',
-      '/page/tracing',
-      '/api/tracings',
+      {
+        method: ['GET'],
+        url: '/api/auth',
+      },
+      {
+        method: ['GET'],
+        url: '/api/files',
+      },
+      {
+        method: ['GET'],
+        url: '/api/tracings',
+      },
+      {
+        method: ['GET'],
+        url: '/page/tracing',
+      },
     ];
     for (let i = 0; i < whiteUrlLists.length; i++) {
-      if (this.request.url.includes(whiteUrlLists[i])) {
+      const item = whiteUrlLists[i];
+      if (
+        this.request.url.includes(item.rul) &&
+        item.method.includes(this.method)
+      ) {
         yield next;
         return;
       }

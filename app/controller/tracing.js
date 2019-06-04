@@ -23,27 +23,27 @@ module.exports = app => {
       return {
         properties: {
           order: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           factory: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           owner: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           isActive: {
-            type: 'boolean'
+            type: 'boolean',
           },
           isConsumerReceived: {
-            type: 'boolean'
+            type: 'boolean',
           },
           isFactoryTracing: {
-            type: 'boolean'
+            type: 'boolean',
           },
-          ...this.ctx.helper.pagination.rule
+          ...this.ctx.helper.pagination.rule,
         },
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -57,12 +57,12 @@ module.exports = app => {
       return {
         properties: {
           key: {
-            type: 'string'
-          }
+            type: 'string',
+          },
         },
         required: ['key'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -76,12 +76,12 @@ module.exports = app => {
       return {
         properties: {
           order: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['order'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -96,63 +96,63 @@ module.exports = app => {
         properties: {
           operation: {
             type: 'string',
-            enum: ['send', 'receive', 'express', 'bind']
+            enum: ['send', 'receive', 'express', 'bind'],
           },
           key: {
-            type: 'string'
+            type: 'string',
           },
           record: {
             properties: {
               courier: {
-                type: 'string'
+                type: 'string',
               },
               express_name: {
-                type: 'string'
+                type: 'string',
               },
               express_no: {
-                type: 'string'
+                type: 'string',
               },
               reciver: {
-                $ref: 'schema.definition#/oid'
+                $ref: 'schema.definition#/oid',
               },
               reciver_type: {
                 type: 'string',
-                enum: ['consumer', 'business']
+                enum: ['consumer', 'business'],
               },
               reciver_name: {
-                $ref: 'schema.definition#/name'
+                $ref: 'schema.definition#/name',
               },
               reciver_phone: {
-                $ref: 'schema.definition#/mobile'
+                $ref: 'schema.definition#/mobile',
               },
               reciver_address: {
-                type: 'string'
+                type: 'string',
               },
               sender: {
-                $ref: 'schema.definition#/oid'
-              }
+                $ref: 'schema.definition#/oid',
+              },
             },
             $async: true,
-            additionalProperties: false
+            additionalProperties: false,
           },
           products: {
             type: 'array',
             items: {
-              $ref: 'schema.definition#/oid'
-            }
+              $ref: 'schema.definition#/oid',
+            },
           },
           tracing_products: {
             type: 'array',
             items: {
-              $ref: 'schema.definition#/oid'
-            }
+              $ref: 'schema.definition#/oid',
+            },
           },
           isFactoryTracing: {
-            type: 'boolean'
-          }
+            type: 'boolean',
+          },
         },
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -166,12 +166,12 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -197,7 +197,7 @@ module.exports = app => {
         'factory',
         'isActive',
         'isConsumerReceived',
-        'isFactoryTracing'
+        'isFactoryTracing',
       ].forEach(key => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
@@ -208,7 +208,7 @@ module.exports = app => {
         {
           limit: parseInt(limit),
           skip: parseInt(offset),
-          sort: generateSortParam(sort)
+          sort: generateSortParam(sort),
         },
         'category pictures'
       );
@@ -220,8 +220,8 @@ module.exports = app => {
           limit,
           offset,
           sort,
-          count
-        }
+          count,
+        },
       };
     }
 
@@ -237,12 +237,12 @@ module.exports = app => {
       const query = {
         $or: [
           {
-            inner_code: key
+            inner_code: key,
           },
           {
-            outer_code: key
-          }
-        ]
+            outer_code: key,
+          },
+        ],
       };
       const tracing = await service.tracing.findOne(
         query,
@@ -273,7 +273,7 @@ module.exports = app => {
     async create() {
       const { ctx, service, createRule } = this;
       const basePath = path.join(__dirname, '../../files');
-      // ctx.checkPermission('platform'); // 是否是平台用户权限
+      ctx.checkPermission('platform'); // 是否是平台用户权限
       const { order } = await ctx.verify(createRule, ctx.request.body);
 
       // 配置excel
@@ -281,16 +281,16 @@ module.exports = app => {
       const style = workBook.createStyle({
         font: {
           color: '#000000',
-          size: 14
+          size: 14,
         },
-        numberFormat: '$#,##0.00; ($#,##0.00); -'
+        numberFormat: '$#,##0.00; ($#,##0.00); -',
       });
       const workSheet = workBook.addWorksheet('Sheet 1');
 
       // 验证订单是否存在
       const isOrderExist = await service.order.findById(order, 'commodity');
       ctx.error(isOrderExist, 18000, '生成溯源码失败，订单不存在');
-      const { commodity, isStagePay, status, count, buyer } = isOrderExist;
+      const { commodity, status, count, buyer } = isOrderExist;
       // 验证订单状态，非定制溯源码，验证是否付全款，定制溯源码验证是否已经付首付款
       ctx.error(
         status === 'PAYMENT_CONFIRMED',
@@ -330,7 +330,7 @@ module.exports = app => {
           private_uuid: privateUUID,
           public_uuid: publicUUID,
           inner_code: innerCode,
-          outer_code: outerCode
+          outer_code: outerCode,
         });
       }
       /**
@@ -354,19 +354,19 @@ module.exports = app => {
         name: `${order}.xlsx`,
         type: 'application/vnd.ms-excel',
         path: `files/${order}.xlsx`,
-        size: fileStat.size
+        size: fileStat.size,
       });
       ctx.error(file, 17027, '订单附件创建失败');
 
       // 修改订单的状态，添加附件地址
       const { nModified } = await ctx.service.order.update(
         {
-          _id: order
+          _id: order,
         },
         {
           status: 'PRINTED',
           attachment: file._id,
-          print_at: new Date()
+          print_at: new Date(),
         }
       );
       ctx.error(nModified === 1, 17026, '溯源码打印失败');
@@ -389,7 +389,7 @@ module.exports = app => {
         products,
         tracing_products,
         operation,
-        isFactoryTracing
+        isFactoryTracing,
       } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
@@ -399,12 +399,12 @@ module.exports = app => {
       const isTracingExist = await service.tracing.findOne({
         $or: [
           {
-            inner_code: key
+            inner_code: key,
           },
           {
-            outer_code: key
-          }
-        ]
+            outer_code: key,
+          },
+        ],
       });
       ctx.error(
         !isTracingExist.isEnd,
@@ -412,7 +412,7 @@ module.exports = app => {
         '溯源码已被签收，不能再进行任何修改操作'
       );
       const targetData = {
-        isActive: true
+        isActive: true,
       };
 
       // 绑定溯源码商品
@@ -445,8 +445,8 @@ module.exports = app => {
           // 验证tracing_products包含的tracing都存在
           const tracingProductsCount = await ctx.service.tracing.count({
             _id: {
-              $in: tracing_products
-            }
+              $in: tracing_products,
+            },
           });
           ctx.error(
             tracing_count === tracingProductsCount,
@@ -457,8 +457,8 @@ module.exports = app => {
         } else if (products && products.length) {
           const productsCount = await ctx.service.barcode.count({
             _id: {
-              $in: products
-            }
+              $in: products,
+            },
           });
           ctx.error(
             productsCount === products.length,
@@ -480,7 +480,7 @@ module.exports = app => {
           reciver_type,
           reciver_name,
           reciver_phone,
-          reciver_address
+          reciver_address,
         } = record || {};
         if (operation === 'send') {
           ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
@@ -507,7 +507,7 @@ module.exports = app => {
               sender: user_id,
               send_at: new Date(),
               reciver_type,
-              reciver
+              reciver,
             });
           } else {
             ctx.error(
@@ -521,7 +521,7 @@ module.exports = app => {
               reciver_type,
               reciver_name,
               reciver_phone,
-              reciver_address
+              reciver_address,
             });
           }
           targetData.state = 'SEND';
@@ -548,7 +548,7 @@ module.exports = app => {
             courier: user_id,
             express_no,
             express_name,
-            express_at: new Date()
+            express_at: new Date(),
           }); // 修改溯源记录
           currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
@@ -582,12 +582,12 @@ module.exports = app => {
         {
           $or: [
             {
-              inner_code: key
+              inner_code: key,
             },
             {
-              outer_code: key
-            }
-          ]
+              outer_code: key,
+            },
+          ],
         },
         targetData
       );
@@ -610,7 +610,7 @@ module.exports = app => {
       const tracing = await service.tracing.findById(id);
       ctx.error(tracing, '溯源码不存在', 18002);
       const { nModified } = await service.tracing.destroy({
-        _id: id
+        _id: id,
       });
       ctx.error(nModified === 1, 18003, '溯源码删除失败');
       ctx.jsonBody = tracing;
