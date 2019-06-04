@@ -26,7 +26,7 @@ module.exports = () =>
     for (let i = 0; i < whiteUrlLists.length; i++) {
       const item = whiteUrlLists[i];
       if (
-        this.request.url.includes(item.rul) &&
+        this.request.url.includes(item.url) &&
         item.method.includes(this.method)
       ) {
         yield next;
