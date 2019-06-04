@@ -212,7 +212,7 @@ module.exports = app => {
         createRule,
         Object.assign(ctx.request.body, ctx.query)
       );
-      const isTracingExist = await ctx.service.user.findOne({
+      const isTracingExist = await ctx.service.tracing.findOne({
         $or: [
           {
             inner_code: key,
