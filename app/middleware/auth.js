@@ -35,6 +35,9 @@ module.exports = () =>
         this.cookies.set(TOKEN, null);
         this.error(10002, '用户信息解析失败', 500);
       }
+    } else {
+      this.cookies.set(TOKEN, null);
+      this.error(false, 10001, `登录已过期，请重新登录,Token: ${token}`);
     }
     yield next;
   };
