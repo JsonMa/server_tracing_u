@@ -253,12 +253,13 @@ module.exports = app => {
         const { records } = tracing;
         for (let i = 0; i < records.length; i++) {
           const sender = await ctx.service.user.findById(records[i].sender);
+          const userInfo = sender[sender.role_type];
           ctx.error(
             sender && sender.state === 'passed',
             18022,
             '溯源码发送者不存在'
           );
-          records[i].sender = sender;
+          records[i].sender = Object.assign(sender, userInfo);
         }
       }
       ctx.error(tracing, 18002, '获取溯源码信息失败，该溯源码不存在');
