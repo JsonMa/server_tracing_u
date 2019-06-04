@@ -102,13 +102,11 @@ module.exports = app => {
         `token:${session_key}`,
         JSON.stringify(sessionData),
         'EX',
-        expires_in || 7200
+        expires_in || 72000
       );
       ctx.cookies.set('access_token', session_key, {
         signed: false,
         httponly: false,
-        domain: '.buildupstep.cn',
-        path: '/',
       });
       ctx.jsonBody = {
         token: session_key,
