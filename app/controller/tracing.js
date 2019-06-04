@@ -420,7 +420,7 @@ module.exports = app => {
       if (operation === 'bind') {
         ctx.error(role_type === 'factory', 18018, '非厂家类型，不能绑定商品'); // 验证当前用户类型是否为厂家
         ctx.error(
-          user_id === isTracingExist.factory,
+          user_id === isTracingExist.factory._id.toString(),
           18019,
           '非自己的溯源码不能进行绑定商品操作'
         ); // 验证溯源码是否是自己的
