@@ -175,7 +175,7 @@ module.exports = app => {
       return {
         properties: {
           key: {
-            type: 'string',
+            $ref: 'schema.definition#/oid',
           },
           barcode: {
             $ref: 'schema.definition#/oid',
@@ -212,16 +212,7 @@ module.exports = app => {
         createRule,
         Object.assign(ctx.request.body, ctx.query)
       );
-      const isTracingExist = await ctx.service.tracing.findOne({
-        $or: [
-          {
-            inner_code: key,
-          },
-          {
-            outer_code: key,
-          },
-        ],
-      });
+      const isTracingExist = await ctx.service.tracing.findById(key);
       ctx.error(isTracingExist, 19001, '错误反馈对应的溯源码不存在');
       const { factory, records } = isTracingExist;
       const { sender } = records.pop();
