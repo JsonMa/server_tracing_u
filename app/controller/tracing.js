@@ -151,6 +151,7 @@ module.exports = app => {
             type: 'boolean',
           },
         },
+        required: ['operation'],
         $async: true,
         additionalProperties: false,
       };
