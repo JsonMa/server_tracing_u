@@ -7,7 +7,7 @@ module.exports = () =>
     // 接口白名单
     const whiteUrlLists = [
       {
-        method: ['GET'],
+        method: ['POST'],
         url: '/api/auth',
       },
       {
