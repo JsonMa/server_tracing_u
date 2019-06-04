@@ -187,14 +187,14 @@ module.exports = app => {
             },
           },
           description: {
-            $ref: 'schema.definition#/oid',
+            type: 'string',
           },
           phone: {
             $ref: 'schema.definition#/mobile',
           },
         },
         $async: true,
-        required: ['key', 'barcode', 'image', 'description', 'phone'],
+        required: ['key', 'barcode', 'images', 'description', 'phone'],
         additionalProperties: false,
       };
     }
