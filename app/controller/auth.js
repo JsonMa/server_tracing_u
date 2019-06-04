@@ -107,6 +107,7 @@ module.exports = app => {
       ctx.cookies.set('access_token', session_key, {
         signed: false,
         httponly: false,
+        overwirte: true,
       });
       ctx.jsonBody = {
         token: session_key,
