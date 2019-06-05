@@ -97,33 +97,22 @@ module.exports = app => {
       ctx.checkPermission('platform');
 
       const {
-        enable,
-        role_type,
-        state = 'unreview',
         limit = 10,
         offset = 0,
         sort = '-created_at',
+        state,
       } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
-      if (enable) query.enable = enable;
-      if (role_type) {
-        query.role_type = role_type;
-      } else {
-        query.role_type = {
-          $in: ['factory', 'business', 'courier', 'salesman'],
-        };
-      }
       if (state) query.state = state;
-      const users = await ctx.service.user.findMany(query, null, {
+      const counterfeits = await ctx.service.counterfeit.findMany(query, null, {
         limit: parseInt(limit),
         skip: parseInt(offset),
         sort: generateSortParam(sort),
       });
-      const count = await ctx.service.user.count(query);
-
+      const count = await ctx.service.counterfeit.count(query);
       ctx.jsonBody = {
-        data: users,
+        data: counterfeits,
         meta: {
           limit,
           offset,
