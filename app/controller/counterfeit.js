@@ -94,7 +94,7 @@ module.exports = app => {
     async index() {
       const { ctx, indexRule } = this;
       const { generateSortParam } = ctx.helper.pagination;
-      ctx.checkPermission('platform');
+      // ctx.checkPermission('platform');
 
       const {
         limit = 10,
@@ -105,11 +105,16 @@ module.exports = app => {
 
       const query = {};
       if (state) query.state = state;
-      const counterfeits = await ctx.service.counterfeit.findMany(query, null, {
-        limit: parseInt(limit),
-        skip: parseInt(offset),
-        sort: generateSortParam(sort),
-      });
+      const counterfeits = await ctx.service.counterfeit.findMany(
+        query,
+        null,
+        {
+          limit: parseInt(limit),
+          skip: parseInt(offset),
+          sort: generateSortParam(sort),
+        },
+        'factory sender barcode tracing creator'
+      );
       const count = await ctx.service.counterfeit.count(query);
       ctx.jsonBody = {
         data: counterfeits,
