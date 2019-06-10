@@ -498,7 +498,7 @@ module.exports = app => {
             '发货失败，非溯源码拥有者不能进行发货操作'
           ); // 验证当前用户是否为溯源码的拥有者
           ctx.error(
-            isTracingExist.state === 'BIND',
+            ['BIND', 'RECEIVED'].includes(isTracingExist.state),
             18012,
             '当前状态不能进行发货操作'
           ); // 验证溯源码状态能否进行发货操作
