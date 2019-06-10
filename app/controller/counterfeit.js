@@ -60,36 +60,10 @@ module.exports = app => {
     }
 
     /**
-     *  参数规则-修改报警
-     *
-     * @readonly
-     * @memberof UserController
-     */
-    get updateRule() {
-      return {
-        properties: {
-          id: {
-            $ref: 'schema.definition#/oid',
-          },
-          result: {
-            type: 'string',
-          },
-          state: {
-            type: 'string',
-            enum: ['UNHANDLED', 'RESOLVED'],
-          },
-        },
-        $async: true,
-        required: ['id'],
-        additionalProperties: false,
-      };
-    }
-
-    /**
-     * 获取报警列表
+     * 获取告警列表
      *
      * @memberof UserController
-     * @return {promise} 用户列表
+     * @return {promise} 告警列表
      */
     async index() {
       const { ctx, indexRule } = this;
@@ -123,38 +97,6 @@ module.exports = app => {
           offset,
           sort,
           count,
-        },
-      };
-    }
-
-    /**
-     * 用户统计信息
-     *
-     * @memberof UserController
-     * @return {undefined}
-     */
-    async statistics() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id } = ctx.oneselfPermission(id);
-      const totalTracings = await ctx.service.tracing.count({
-        owner: user_id,
-      });
-      const unUsedTracings = await ctx.service.tracing.count({
-        owner: user_id,
-        isActive: false,
-      });
-      const barcodes = await ctx.service.barcode.count({
-        creator: user_id,
-      });
-      const userInfo = await ctx.service.user.findById(user_id);
-      ctx.error(userInfo && userInfo.state === 'passed', 10001, '找不到该用户');
-      ctx.jsonBody = {
-        data: {
-          totalTracings,
-          unUsedTracings,
-          barcodes,
-          userInfo,
         },
       };
     }
@@ -237,73 +179,84 @@ module.exports = app => {
     }
 
     /**
-     * 获取用户详情
+     * 获取告警详情
      *
      * @memberof UserController
-     * @return {promise} 用户详情
+     * @return {promise} 告警详情
      */
     async show() {
       const { ctx, service, showRule } = this;
       const { id } = await ctx.verify(showRule, ctx.params);
       ctx.checkPermission(['platform', id]);
-      const user = await service.user.findById(id);
-      ctx.jsonBody = user;
+      const counterfeit = await service.counterfeit.findById(id);
+      ctx.jsonBody = counterfeit;
     }
 
     /**
-     * 修改用户
+     *  参数规则-修改报警
+     *
+     * @readonly
+     * @memberof UserController
+     */
+    get updateRule() {
+      return {
+        properties: {
+          id: {
+            $ref: 'schema.definition#/oid',
+          },
+          result: {
+            type: 'string',
+          },
+          state: {
+            type: 'string',
+            enum: ['UNHANDLED', 'RESOLVED'],
+          },
+        },
+        $async: true,
+        required: ['id'],
+        additionalProperties: false,
+      };
+    }
+
+    /**
+     * 修改报警状态
      *
      * @memberof CommodityController
      * @return {promise} 被修改用户信息
      */
     async update() {
-      // 商户上传banner或平台管理员审核用户
-      const { ctx, service, updateRule } = this;
-      const { id, operation, banner, state } = await ctx.verify(
+      const { ctx, updateRule } = this;
+      const { id, result, state } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
-      const isUserExist = await ctx.service.user.findById(id);
-      ctx.error(isUserExist, 11008, '未找到该用户');
-      const targetParams = {};
-      if (operation === 'banner') {
-        const { role_type } = isUserExist;
-        ctx.oneselfPermission(id);
-        ctx.error(
-          ['business', 'factory'].includes(role_type),
-          11009,
-          '非商户或厂家类型用户不能上传banner图'
-        );
-        // 验证banner是否存在
-        const isBannerExist = await ctx.service.file.findById(banner);
-        ctx.error(isBannerExist, 11010, '上传的banner图不存在');
-        targetParams[role_type] = isUserExist[role_type];
-        targetParams[role_type].banner = banner;
-      } else {
-        // 修改用户审核状态
-        ctx.checkPermission(['platform']);
-        ctx.error(state, 11011, 'state参数为必填项');
-        ctx.error(
-          isUserExist.state === 'unreview',
-          11013,
-          '审核失败，该用户不处于待审核状态'
-        );
-        ctx.error(
-          ['passed', 'rejected'].includes(state),
-          11012,
-          'state参数为passed或rejected'
-        );
-        targetParams.state = state;
-      }
+      const { user_id } = ctx.checkPermission('platform');
 
-      await service.user.update(
+      // 验证报警记录是否存在
+      const isCounterfeitExist = await ctx.service.counterfeit.findById(id);
+      ctx.error(isCounterfeitExist, 19002, '该条错误反馈不存在');
+      // 验证当前状态能否进行结案操作
+      ctx.error(
+        isCounterfeitExist.state === 'UNHANDLED',
+        19003,
+        '已经结案的报警记录无法再次进行结案操作'
+      );
+      const modifiedData = {
+        result,
+        state,
+        handler: user_id,
+        handle_at: new Date(),
+      };
+      const { nModified } = await ctx.service.counterfeit.update(
         {
           _id: id,
         },
-        targetParams
+        modifiedData
       );
+      ctx.error(nModified === 1, 19004, '结案操作失败');
 
-      ctx.jsonBody = Object.assign(isUserExist, targetParams);
+      Object.assign(isCounterfeitExist, modifiedData);
+      ctx.jsonBody = isCounterfeitExist;
     }
   }
   return CounterfeitController;
