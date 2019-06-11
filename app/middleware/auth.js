@@ -16,7 +16,7 @@ module.exports = () =>
       },
       {
         method: ['GET'],
-        url: '/api/tracings',
+        url: '/api/tracings/',
       },
       {
         method: ['GET'],
