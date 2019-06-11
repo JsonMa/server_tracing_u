@@ -14,40 +14,6 @@ module.exports = app => {
    */
   class TracingController extends app.Controller {
     /**
-     * 参数规则-溯源列表
-     *
-     * @readonly
-     * @memberof CommodityController
-     */
-    get indexRule() {
-      return {
-        properties: {
-          order: {
-            $ref: 'schema.definition#/oid',
-          },
-          factory: {
-            $ref: 'schema.definition#/oid',
-          },
-          owner: {
-            $ref: 'schema.definition#/oid',
-          },
-          isActive: {
-            type: 'boolean',
-          },
-          isConsumerReceived: {
-            type: 'boolean',
-          },
-          isFactoryTracing: {
-            type: 'boolean',
-          },
-          ...this.ctx.helper.pagination.rule,
-        },
-        $async: true,
-        additionalProperties: false,
-      };
-    }
-
-    /**
      * 参数规则-溯源详情
      *
      * @readonly
@@ -177,6 +143,36 @@ module.exports = app => {
     }
 
     /**
+     * 参数规则-溯源列表
+     *
+     * @readonly
+     * @memberof CommodityController
+     */
+    get indexRule() {
+      return {
+        properties: {
+          order: {
+            $ref: 'schema.definition#/oid',
+          },
+          factory: {
+            $ref: 'schema.definition#/oid',
+          },
+          owner: {
+            $ref: 'schema.definition#/oid',
+          },
+          state: {
+            type: 'string',
+            enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED'],
+          },
+          ...this.ctx.helper.pagination.rule,
+        },
+        required: ['owner'],
+        $async: true,
+        additionalProperties: false,
+      };
+    }
+
+    /**
      * 获取溯源码列表
      *
      * @memberof CommodityController
@@ -184,22 +180,17 @@ module.exports = app => {
      */
     async index() {
       const { ctx, indexRule } = this;
-      ctx.checkPermission('platform'); // 是否是平台用户权限
       const { generateSortParam } = ctx.helper.pagination;
-      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
-        indexRule,
-        ctx.request.query
-      );
+      const {
+        limit = 10,
+        offset = 0,
+        sort = '-created_at',
+        owner,
+      } = await ctx.verify(indexRule, ctx.request.query);
+      ctx.oneselfPermission(owner); // 只能操作自己权限范围内的接口
 
       const query = {};
-      [
-        'order',
-        'owner',
-        'factory',
-        'isActive',
-        'isConsumerReceived',
-        'isFactoryTracing',
-      ].forEach(key => {
+      ['order', 'owner', 'factory', 'state'].forEach(key => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
       });
@@ -211,12 +202,41 @@ module.exports = app => {
           skip: parseInt(offset),
           sort: generateSortParam(sort),
         },
-        'category pictures'
+        'factory'
       );
+      const unbind = [];
+      const bind = [];
+      const send = [];
+      const expressed = [];
+      const received = [];
+      tracings.forEach(item => {
+        switch (item.state) {
+          case 'UNBIND':
+            unbind.push(item);
+            break;
+          case 'BIND':
+            bind.push(item);
+            break;
+          case 'SEND':
+            send.push(item);
+            break;
+          case 'EXPRESSED':
+            expressed.push(item);
+            break;
+          default:
+            received.push(item);
+            break;
+        }
+      });
       const count = await ctx.service.tracing.count(query);
-
       ctx.jsonBody = {
-        data: tracings,
+        data: {
+          unbind,
+          bind,
+          send,
+          expressed,
+          received,
+        },
         meta: {
           limit,
           offset,
