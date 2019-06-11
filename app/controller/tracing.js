@@ -512,11 +512,11 @@ module.exports = app => {
               reciver,
             });
           } else {
-            ctx.error(
-              reciver_name && reciver_phone && reciver_address,
-              18010,
-              '溯源记录包含的收货人信息缺失'
-            );
+            // ctx.error(
+            //   reciver_name && reciver_phone && reciver_address,
+            //   18010,
+            //   '溯源记录包含的收货人信息缺失'
+            // );
             currentRecords.push({
               sender: user_id,
               send_at: new Date(),
