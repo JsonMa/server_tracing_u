@@ -189,7 +189,11 @@ module.exports = app => {
       } = await ctx.verify(indexRule, ctx.request.query);
       ctx.oneselfPermission(owner); // 只能操作自己权限范围内的接口
 
-      const query = {};
+      const query = {
+        state: {
+          $in: ['BIND', 'SEND'],
+        },
+      };
       ['order', 'owner', 'factory', 'state'].forEach(key => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
@@ -204,38 +208,23 @@ module.exports = app => {
         },
         'factory'
       );
-      const unbind = [];
       const bind = [];
       const send = [];
-      const expressed = [];
-      const received = [];
       tracings.forEach(item => {
         switch (item.state) {
-          case 'UNBIND':
-            unbind.push(item);
-            break;
           case 'BIND':
             bind.push(item);
             break;
-          case 'SEND':
-            send.push(item);
-            break;
-          case 'EXPRESSED':
-            expressed.push(item);
-            break;
           default:
-            received.push(item);
+            send.push(item);
             break;
         }
       });
       const count = await ctx.service.tracing.count(query);
       ctx.jsonBody = {
         data: {
-          unbind,
           bind,
           send,
-          expressed,
-          received,
         },
         meta: {
           limit,
