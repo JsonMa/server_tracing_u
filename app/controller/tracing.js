@@ -191,7 +191,7 @@ module.exports = app => {
 
       const query = {
         state: {
-          $in: ['BIND', 'SEND'],
+          $in: ['BIND', 'SEND', 'EXPRESSED'],
         },
       };
       ['order', 'owner', 'factory', 'state'].forEach(key => {
@@ -210,10 +210,14 @@ module.exports = app => {
       );
       const bind = [];
       const send = [];
+      const express = [];
       tracings.forEach(item => {
         switch (item.state) {
           case 'BIND':
             bind.push(item);
+            break;
+          case 'EXPRESSED':
+            express.push(item);
             break;
           default:
             send.push(item);
@@ -225,6 +229,7 @@ module.exports = app => {
         data: {
           bind,
           send,
+          express,
         },
         meta: {
           limit,

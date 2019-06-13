@@ -97,17 +97,9 @@ module.exports = app => {
      * @return {promise} created barcode info
      */
     async create() {
-      const {
-        ctx,
-        createRule,
-      } = this;
-      const {
-        user_id,
-      } = ctx.registerPermission(); // 是否为已注册且登录的用户
-      const {
-        barcode,
-        image,
-      } = await ctx.verify(createRule, ctx.request.body);
+      const { ctx, createRule } = this;
+      const { user_id } = ctx.registerPermission(); // 是否为已注册且登录的用户
+      const { barcode, image } = await ctx.verify(createRule, ctx.request.body);
       const isFileExist = await ctx.service.file.findById(image);
       ctx.error(isFileExist, 13004, ' 条形码对应的商品图片不存在');
       const isExist = await ctx.service.barcode.findOne({
@@ -129,15 +121,9 @@ module.exports = app => {
      * @return {promise} code detail
      */
     async show() {
-      const {
-        ctx,
-        service,
-        showRule,
-      } = this;
+      const { ctx, service, showRule } = this;
       ctx.registerPermission();
-      const {
-        barcode,
-      } = await ctx.verify(showRule, ctx.params);
+      const { barcode } = await ctx.verify(showRule, ctx.params);
       const isExit = await service.barcode.findOne({
         barcode,
       });
@@ -168,19 +154,10 @@ module.exports = app => {
      * @return {undefined}
      */
     async index() {
-      const {
-        ctx,
-        indexRule,
-      } = this;
-      const {
-        user_id,
-      } = ctx.registerPermission();
-      const {
-        generateSortParam,
-      } = ctx.helper.pagination;
-      const {
-        limit = 10, offset = 0, sort = '-created_at',
-      } = await ctx.verify(
+      const { ctx, indexRule } = this;
+      const { user_id } = ctx.registerPermission();
+      const { generateSortParam } = ctx.helper.pagination;
+      const { limit = 10, offset = 0, sort = '-created_at' } = await ctx.verify(
         indexRule,
         ctx.request.query
       );
@@ -190,7 +167,8 @@ module.exports = app => {
       };
       const barcodes = await ctx.service.barcode.findMany(
         query,
-        null, {
+        null,
+        {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -217,27 +195,23 @@ module.exports = app => {
      * @return {promise} updated barcode
      */
     async update() {
-      const {
-        ctx,
-        service,
-        createRule,
-      } = this;
+      const { ctx, service, createRule } = this;
       ctx.registerPermission(); // 是否已经登录
-      const {
-        barcode,
-      } = await ctx.verify(createRule, Object.assign(ctx.request.body, ctx.params));
+      const { barcode } = await ctx.verify(
+        createRule,
+        Object.assign(ctx.request.body, ctx.params)
+      );
       const isExist = await service.barcode.findOne({
         barcode,
       });
       ctx.assert(isExist, 13001, '该条形码不存在');
       ctx.oneselfPermission(isExist.creator._id.toString()); // 被修改的条形码是否是自己创建的
 
-      const {
-        nModified,
-      } = await ctx.service.barcode.update({
-        barcode,
-      },
-      ctx.request.body
+      const { nModified } = await ctx.service.barcode.update(
+        {
+          barcode,
+        },
+        ctx.request.body
       );
       ctx.error(nModified === 1, 13003, '修改条形码失败');
       ctx.jsonBody = Object.assign(isExist, ctx.request.body);
@@ -250,23 +224,18 @@ module.exports = app => {
      * @memberof fileController
      */
     async destroy() {
-      const {
-        ctx,
-        service,
-        destroyRule,
-      } = this;
+      const { ctx, service, destroyRule } = this;
       ctx.registerPermission(); // 是否已经登录
-      const {
-        id,
-      } = await ctx.verify(destroyRule, ctx.params);
+      const { id } = await ctx.verify(destroyRule, ctx.params);
       const isExist = await service.file.findById(id);
       ctx.assert(isExist, 13001, '该条形码不存在');
       ctx.oneselfPermission(isExist.creator); // 被删除的条形码是否是自己创建的
-      const result = await service.file.destroy({
-        _id: id,
-      },
-      false,
-      true
+      const result = await service.file.destroy(
+        {
+          _id: id,
+        },
+        false,
+        true
       );
       ctx.error(result.ok === 1, 13002, '条形码删除失败');
       ctx.jsonBody = isExist;
