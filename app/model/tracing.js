@@ -95,7 +95,7 @@ module.exports = ({ mongoose }) => {
           ref: 'tracing',
         },
       ],
-      no: String,
+      no: Number,
       private_uuid: String,
       public_uuid: String,
       inner_code: String,

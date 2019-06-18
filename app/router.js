@@ -73,4 +73,5 @@ module.exports = app => {
 
   // miniprogram
   app.get(`${prefix}/mini_program/code`, 'miniProgram.code');
+  app.post(`${prefix}/mini_program/user_info/phone`, 'miniProgram.phone');
 };
