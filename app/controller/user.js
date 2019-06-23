@@ -188,8 +188,11 @@ module.exports = app => {
      */
     async statistics() {
       const { ctx, statisticRule } = this;
-      const { id, type } = await ctx.verify(statisticRule, ctx.params);
-      if (type === 'salseman') {
+      const { id, type } = await ctx.verify(
+        statisticRule,
+        Object.assign(ctx.params, ctx.query)
+      );
+      if (type === 'salesman') {
         let totalPrice = 0;
         let totalCommission = 0;
         let factoryCount = 0;
