@@ -99,13 +99,25 @@ module.exports = app => {
      */
     async phone() {
       const { ctx, phoneRule } = this;
-      const { token } = ctx.loginPermission();
+      const { token, user_id } = ctx.loginPermission();
       const { encryptedData, iv } = await ctx.verify(
         phoneRule,
         ctx.request.body
       );
 
+      const isUserExist = await ctx.service.user.findById(user_id);
+      ctx.error(isUserExist, 11004, '该用户不存在');
       const decodedData = this.decrypt(encryptedData, iv, token);
+      const { phoneNumber } = decodedData;
+      const { nModified } = await ctx.service.user.update(
+        {
+          _id: isUserExist._id,
+        },
+        {
+          wechat_phone: phoneNumber,
+        }
+      );
+      ctx.error(nModified === 1, 11008, '修改登录时间失败');
       ctx.jsonBody = {
         data: decodedData,
       };

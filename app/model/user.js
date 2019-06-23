@@ -50,6 +50,7 @@ module.exports = ({ mongoose }) => {
    * @param {String}   state                           - 用户状态[passed, rejected, unreview]rejectReason
    * @param {String}   rejectReason                    - 审核驳回原因last_login
    * @param {Date}     last_login                      - 最近登录时间
+   * @param {String}   wechat_phone                    - 用户微信电话
    */
 
   const schema = new Schema(
@@ -192,6 +193,9 @@ module.exports = ({ mongoose }) => {
         type: String,
         enum: ['passed', 'rejected', 'unreview'],
         default: 'unreview',
+      },
+      wechat_phone: {
+        type: String,
       },
       rejectReason: {
         type: String,

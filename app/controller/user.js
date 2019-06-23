@@ -159,35 +159,86 @@ module.exports = app => {
     }
 
     /**
+     * 参数规则-用户详情
+     *
+     * @readonly
+     * @memberof UserController
+     */
+    get statisticRule() {
+      return {
+        properties: {
+          id: {
+            $ref: 'schema.definition#/oid',
+          },
+          type: {
+            type: 'string',
+          },
+        },
+        required: ['id'],
+        $async: true,
+        additionalProperties: false,
+      };
+    }
+
+    /**
      * 用户统计信息
      *
      * @memberof UserController
      * @return {undefined}
      */
     async statistics() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id } = ctx.oneselfPermission(id);
-      const totalTracings = await ctx.service.tracing.count({
-        owner: user_id,
-      });
-      const unUsedTracings = await ctx.service.tracing.count({
-        owner: user_id,
-        isActive: false,
-      });
-      const barcodes = await ctx.service.barcode.count({
-        creator: user_id,
-      });
-      const userInfo = await ctx.service.user.findById(user_id);
-      ctx.error(userInfo && userInfo.state === 'passed', 10001, '找不到该用户');
-      ctx.jsonBody = {
-        data: {
-          totalTracings,
-          unUsedTracings,
-          barcodes,
-          userInfo,
-        },
-      };
+      const { ctx, statisticRule } = this;
+      const { id, type } = await ctx.verify(statisticRule, ctx.params);
+      if (type === 'salseman') {
+        let totalPrice = 0;
+        let totalCommission = 0;
+        let factoryCount = 0;
+        const orders = await ctx.service.order.findMany({
+          salesman: id,
+        });
+        if (orders) {
+          orders.forEach(order => {
+            totalPrice += order.price;
+            totalCommission += order.price * order.commisionProportion;
+          });
+        }
+        factoryCount = await ctx.service.user.count({
+          role_type: 'factory',
+          inviter: id,
+        });
+        ctx.jsonBody = {
+          data: {
+            totalPrice,
+            totalCommission,
+            factoryCount,
+          },
+        };
+      } else {
+        const totalTracings = await ctx.service.tracing.count({
+          owner: id,
+        });
+        const unUsedTracings = await ctx.service.tracing.count({
+          owner: id,
+          isActive: false,
+        });
+        const barcodes = await ctx.service.barcode.count({
+          creator: id,
+        });
+        const userInfo = await ctx.service.user.findById(id);
+        ctx.error(
+          userInfo && userInfo.state === 'passed',
+          10001,
+          '找不到该用户'
+        );
+        ctx.jsonBody = {
+          data: {
+            totalTracings,
+            unUsedTracings,
+            barcodes,
+            userInfo,
+          },
+        };
+      }
     }
 
     /**
