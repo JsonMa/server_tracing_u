@@ -526,11 +526,6 @@ module.exports = app => {
               reciver,
             });
           } else {
-            // ctx.error(
-            //   reciver_name && reciver_phone && reciver_address,
-            //   18010,
-            //   '溯源记录包含的收货人信息缺失'
-            // );
             currentRecords.push({
               sender: user_id,
               send_at: new Date(),
@@ -572,7 +567,7 @@ module.exports = app => {
         } else if (operation === 'receive') {
           // 验货,receiver_type为business时，验货时必须为其自己。若type为consumer则不进行校验
           ctx.error(
-            isTracingExist.state === 'SEND',
+            ['SEND', 'EXPRESSED'].includes(isTracingExist.state),
             18014,
             '验货失败，该溯源记录未到达验货阶段'
           ); // 验证当前状态能否进行收货操作
