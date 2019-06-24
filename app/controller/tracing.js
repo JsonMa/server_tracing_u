@@ -453,7 +453,7 @@ module.exports = app => {
         if (isFactoryTracing) {
           const tracing_count = tracing_products.length;
           ctx.error(
-            tracing_count,
+            tracing_count > 0,
             18006,
             '溯源码绑定溯源商品失败，溯源商品列表为空'
           );
@@ -470,7 +470,7 @@ module.exports = app => {
           ctx.error(
             tracing_count === tracingProductsCount,
             18007,
-            '溯源码列表中存在错误的溯源码或溯源状态'
+            '列表中存在错误的溯源码或溯源状态'
           );
           targetData.tracing_products = tracing_products;
         } else if (products && products.length) {
