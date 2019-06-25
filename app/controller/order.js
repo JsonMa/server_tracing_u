@@ -32,7 +32,7 @@ module.exports = app => {
           remarks: {
             properties: {
               product: {
-                type: 'string',
+                $ref: 'schema.definition#/oid',
               },
               width: {
                 type: 'string',
@@ -85,6 +85,11 @@ module.exports = app => {
       ctx.error(isCommodityExited.enable, 17002, '订单涉及的商品已下架');
       if (isCommodityExited.isCustom) {
         ctx.error(remarks, 17021, '定制商品需携带订单备注，注明尺寸信息');
+        ctx.error(remarks.product, 17026, '定制商品需携带产品信息');
+        const isBarcodeExist = await ctx.service.barcode.findById(
+          remarks.product
+        );
+        ctx.error(isBarcodeExist, 17027, '找不到定制商品携带产品信息');
       }
       if (logo) {
         const isLogoExist = await ctx.service.file.findById(logo);

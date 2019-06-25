@@ -61,7 +61,10 @@ module.exports = ({ mongoose }) => {
         ref: 'file',
       },
       remarks: {
-        product: String,
+        product: {
+          type: Schema.Types.ObjectId,
+          ref: 'barcode',
+        },
         width: String,
         height: String,
         length: String,
