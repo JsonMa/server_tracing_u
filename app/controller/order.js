@@ -594,7 +594,7 @@ module.exports = app => {
       } else if (status === 'SHIPPED') {
         ctx.checkPermission('platform');
         ctx.error(
-          isOrderExit.status === 'PAYMENT_CONFIRMED',
+          isOrderExit.status === 'PRINTED',
           17008,
           '发货失败，订单未核收'
         );
