@@ -164,6 +164,10 @@ module.exports = app => {
             type: 'string',
             enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED'],
           },
+          sortByState: {
+            type: 'string',
+            enum: ['true', 'false'],
+          },
           ...this.ctx.helper.pagination.rule,
         },
         required: ['owner'],
@@ -186,6 +190,7 @@ module.exports = app => {
         offset = 0,
         sort = '-created_at',
         owner,
+        sortByState = 'true',
       } = await ctx.verify(indexRule, ctx.request.query);
       ctx.oneselfPermission(owner); // 只能操作自己权限范围内的接口
 
@@ -211,33 +216,46 @@ module.exports = app => {
       const bind = [];
       const send = [];
       const express = [];
-      tracings.forEach(item => {
-        switch (item.state) {
-          case 'BIND':
-            bind.push(item);
-            break;
-          case 'EXPRESSED':
-            express.push(item);
-            break;
-          default:
-            send.push(item);
-            break;
-        }
-      });
       const count = await ctx.service.tracing.count(query);
-      ctx.jsonBody = {
-        data: {
-          bind,
-          send,
-          express,
-        },
-        meta: {
-          limit,
-          offset,
-          sort,
-          count,
-        },
-      };
+
+      if (sortByState === 'true') {
+        tracings.forEach(item => {
+          switch (item.state) {
+            case 'BIND':
+              bind.push(item);
+              break;
+            case 'EXPRESSED':
+              express.push(item);
+              break;
+            default:
+              send.push(item);
+              break;
+          }
+        });
+        ctx.jsonBody = {
+          data: {
+            bind,
+            send,
+            express,
+          },
+          meta: {
+            limit,
+            offset,
+            sort,
+            count,
+          },
+        };
+      } else {
+        ctx.jsonBody = {
+          data: tracings,
+          meta: {
+            limit,
+            offset,
+            sort,
+            count,
+          },
+        };
+      }
     }
 
     /**
