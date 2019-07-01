@@ -47,7 +47,7 @@ module.exports = app => {
                 type: 'string'
               }
             },
-            required: ['product', 'width', 'height', 'length', 'thick'],
+            required: ['width', 'height', 'length', 'thick'],
             $async: true,
             additionalProperties: false
           },
