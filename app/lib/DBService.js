@@ -111,7 +111,7 @@ class DBService extends Service {
    * @return {Array} results
    * @memberof DBService
    */
-  async findMany(conditions, fields = null, options = null, populate = '') {
+  async findMany(conditions, fields = null, options = {}, populate = '') {
     const query = Object.assign(
       {
         deleted_at: null,
@@ -120,6 +120,7 @@ class DBService extends Service {
     );
     const items = await this.ctx.model[this.type]
       .find(query, fields, options)
+      .lean()
       .populate(populate)
       .catch(error => {
         this.dbError(error, `${this.type}查询失败`, query);

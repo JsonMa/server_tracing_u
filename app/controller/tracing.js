@@ -168,6 +168,9 @@ module.exports = app => {
             type: 'string',
             enum: ['true', 'false'],
           },
+          embed: {
+            type: 'string',
+          },
           ...this.ctx.helper.pagination.rule,
         },
         required: ['owner'],
@@ -191,6 +194,7 @@ module.exports = app => {
         sort = '-created_at',
         owner,
         sortByState = 'true',
+        embed,
       } = await ctx.verify(indexRule, ctx.request.query);
       ctx.oneselfPermission(owner); // 只能操作自己权限范围内的接口
 
@@ -203,6 +207,16 @@ module.exports = app => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
       });
+      let queryAttributes = 'factory';
+      let showSenderInfo = false;
+      if (embed) {
+        if (embed.includes('product')) {
+          queryAttributes = 'factory products';
+        }
+        if (embed.includes('reciver,sender')) {
+          showSenderInfo = true;
+        }
+      }
       const tracings = await ctx.service.tracing.findMany(
         query,
         null,
@@ -211,15 +225,37 @@ module.exports = app => {
           skip: parseInt(offset),
           sort: generateSortParam(sort),
         },
-        'factory'
+        queryAttributes
       );
       const bind = [];
       const send = [];
       const express = [];
       const count = await ctx.service.tracing.count(query);
+      if (showSenderInfo) {
+        if (tracings.length > 0) {
+          for (let i = 0; i < tracings.length; i++) {
+            const { records } = tracings[i];
+            if (records.length > 0) {
+              const latestRecord = records.pop();
+              if (latestRecord && latestRecord.reciver_type) {
+                if (latestRecord.reciver_type === 'business') {
+                  latestRecord.reciver_info = await ctx.service.user.findById(
+                    latestRecord.reciver
+                  );
+                  latestRecord.sender_info = await ctx.service.user.findById(
+                    latestRecord.sender
+                  );
+                }
+              }
+              tracings[i].records.push(latestRecord);
+            }
+          }
+        }
+      }
 
       if (sortByState === 'true') {
         tracings.forEach(item => {
+          item = JSON.parse(JSON.stringify(item));
           switch (item.state) {
             case 'BIND':
               bind.push(item);
