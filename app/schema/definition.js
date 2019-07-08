@@ -19,7 +19,8 @@ module.exports = {
   },
   mobile: {
     type: 'string',
-    pattern: '(^\\d{7,11}$|^(\\w-*\\.*)+@(\\w-?)+(\\.\\w{2,})+$)',
+    pattern: '[1,+]\\d{10,20}',
+    // pattern: '(^\\d{7,11}$|^(\\w-*\\.*)+@(\\w-?)+(\\.\\w{2,})+$)',
   },
   email: {
     type: 'string',
