@@ -320,13 +320,15 @@ module.exports = app => {
       if (tracing) {
         const { records } = tracing;
         for (let i = 0; i < records.length; i++) {
+          if (records[i].reciver) {
+            const reciver = await ctx.service.user.findById(records[i].reciver);
+            const reciverInfo = reciver[reciver.role_type];
+            ctx.error(reciver, 18022, '溯源码收货人不存在');
+            records[i].reciver = Object.assign(reciver, reciverInfo);
+          }
           const sender = await ctx.service.user.findById(records[i].sender);
           const userInfo = sender[sender.role_type];
-          ctx.error(
-            sender && sender.state === 'passed',
-            18022,
-            '溯源码发送者不存在'
-          );
+          ctx.error(sender, 18022, '溯源码发送者不存在');
           records[i].sender = Object.assign(sender, userInfo);
         }
       }
