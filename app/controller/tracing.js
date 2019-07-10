@@ -464,7 +464,7 @@ module.exports = app => {
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
       );
-      const { role_type, user_id } = ctx.registerPermission();
+      const { role_type, user_id } = ctx.loginPermission();
       ctx.error(key, 18004, '溯源密匙为必填项', 400);
       const isTracingExist = await service.tracing.findOne({
         $or: [
