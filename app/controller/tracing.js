@@ -332,6 +332,33 @@ module.exports = app => {
           records[i].sender = Object.assign(sender, userInfo);
         }
       }
+
+      // 大溯源码信息过滤
+      if (tracing.isFactoryTracing) {
+        const smallTracings = tracing.tracing_products;
+        const unbindSmallTracings = [];
+        smallTracings.forEach(item => {
+          if (item.state === 'UNBIND') unbindSmallTracings.push(item);
+        });
+        const isAllUnbind = unbindSmallTracings.length === smallTracings.length;
+        tracing.isAllUnbind = isAllUnbind;
+
+        if (!isAllUnbind) {
+          const bindSmallTracings = [];
+          for (let i = 0; i < smallTracings.length; i++) {
+            if (smallTracings[i].state !== 'UNBIND') {
+              const smallTracing = await ctx.service.tracing.findOne(
+                {
+                  _id: smallTracings[i]._id,
+                },
+                'products'
+              );
+              bindSmallTracings.push(smallTracing);
+            }
+          }
+          tracing.bindSmallTracings = bindSmallTracings;
+        }
+      }
       ctx.error(tracing, 18002, '获取溯源码信息失败，该溯源码不存在');
       ctx.jsonBody = tracing;
     }

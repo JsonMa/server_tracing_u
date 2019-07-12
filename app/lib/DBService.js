@@ -94,6 +94,7 @@ class DBService extends Service {
     );
     const data = await this.ctx.model[this.type]
       .findOne(query)
+      .lean()
       .populate(populate)
       .catch(error => {
         this.dbError(error, `${this.type}查询失败`, query);
