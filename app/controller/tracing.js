@@ -666,21 +666,40 @@ module.exports = app => {
           } else targetData.isEnd = true;
           // TODO 若为大溯源码，则需要将小溯源码的拥有者切换为当前用户
           if (isTracingExist.isFactoryTracing) {
-            const { nModified } = await ctx.service.tracing.update(
-              {
-                outer_code: {
-                  $in: isTracingExist.tracing_products,
-                },
+            const smallTracings = isTracingExist.tracing_products
+              .toString()
+              .split(',');
+            // 判断其中是否包含已被签收的小溯源码，若是，则大溯源码结束
+            const smallTracingsCount = await ctx.service.tracing.count({
+              state: {
+                $in: ['BIND', 'UNBIND'],
               },
-              {
-                owner: user_id,
+              _id: {
+                $in: smallTracings,
+              },
+            });
+            if (smallTracings.length !== smallTracingsCount) {
+              targetData.isEnd = true;
+            }
+            // 修改小溯源码拥有者信息
+            for (let i = 0; i < smallTracings.length; i++) {
+              const isSmallTracingExist = await ctx.service.tracing.findById(
+                smallTracings[i]
+              );
+              if (
+                isSmallTracingExist &&
+                ['BIND', 'UNBIND'].includes(isSmallTracingExist.state)
+              ) {
+                await ctx.service.tracing.update(
+                  {
+                    _id: isSmallTracingExist._id,
+                  },
+                  {
+                    owner: user_id,
+                  }
+                );
               }
-            );
-            ctx.error(
-              nModified === isTracingExist.tracing_products.length,
-              18006,
-              '大溯源码修改失败'
-            );
+            }
           }
           currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
