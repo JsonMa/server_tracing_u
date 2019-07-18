@@ -23,12 +23,12 @@ module.exports = app => {
       return {
         properties: {
           key: {
-            type: 'string'
-          }
+            type: 'string',
+          },
         },
         required: ['key'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -42,12 +42,12 @@ module.exports = app => {
       return {
         properties: {
           order: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['order'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -62,64 +62,64 @@ module.exports = app => {
         properties: {
           operation: {
             type: 'string',
-            enum: ['send', 'receive', 'express', 'bind']
+            enum: ['send', 'receive', 'express', 'bind'],
           },
           key: {
-            type: 'string'
+            type: 'string',
           },
           record: {
             properties: {
               courier: {
-                type: 'string'
+                type: 'string',
               },
               express_name: {
-                type: 'string'
+                type: 'string',
               },
               express_no: {
-                type: 'string'
+                type: 'string',
               },
               reciver: {
-                $ref: 'schema.definition#/oid'
+                $ref: 'schema.definition#/oid',
               },
               reciver_type: {
                 type: 'string',
-                enum: ['consumer', 'business']
+                enum: ['consumer', 'business'],
               },
               reciver_name: {
-                $ref: 'schema.definition#/name'
+                $ref: 'schema.definition#/name',
               },
               reciver_phone: {
-                $ref: 'schema.definition#/mobile'
+                $ref: 'schema.definition#/mobile',
               },
               reciver_address: {
-                type: 'string'
+                type: 'string',
               },
               sender: {
-                $ref: 'schema.definition#/oid'
-              }
+                $ref: 'schema.definition#/oid',
+              },
             },
             $async: true,
-            additionalProperties: false
+            additionalProperties: false,
           },
           products: {
             type: 'array',
             items: {
-              $ref: 'schema.definition#/oid'
-            }
+              $ref: 'schema.definition#/oid',
+            },
           },
           tracing_products: {
             type: 'array',
             items: {
-              $ref: 'schema.definition#/oid'
-            }
+              $ref: 'schema.definition#/oid',
+            },
           },
           isFactoryTracing: {
-            type: 'boolean'
-          }
+            type: 'boolean',
+          },
         },
         required: ['operation'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -133,12 +133,12 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -152,30 +152,30 @@ module.exports = app => {
       return {
         properties: {
           order: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           factory: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           owner: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           state: {
             type: 'string',
-            enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED']
+            enum: ['UNBIND', 'BIND', 'SEND', 'EXPRESSED', 'RECEIVED'],
           },
           sortByState: {
             type: 'string',
-            enum: ['true', 'false']
+            enum: ['true', 'false'],
           },
           embed: {
-            type: 'string'
+            type: 'string',
           },
-          ...this.ctx.helper.pagination.rule
+          ...this.ctx.helper.pagination.rule,
         },
         required: ['owner'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -194,16 +194,16 @@ module.exports = app => {
         sort = '-created_at',
         owner,
         sortByState = 'true',
-        embed
+        embed,
       } = await ctx.verify(indexRule, ctx.request.query);
       ctx.oneselfPermission(owner); // 只能操作自己权限范围内的接口
 
       const query = {
         state: {
-          $in: ['BIND', 'SEND', 'EXPRESSED']
-        }
-      };
-      ['order', 'owner', 'factory', 'state'].forEach(key => {
+          $in: ['BIND', 'SEND', 'EXPRESSED'],
+        },
+      }
+      ;['order', 'owner', 'factory', 'state'].forEach(key => {
         const item = ctx.request.query[key];
         if (item) query[key] = item;
       });
@@ -223,7 +223,7 @@ module.exports = app => {
         {
           limit: parseInt(limit),
           skip: parseInt(offset),
-          sort: generateSortParam(sort)
+          sort: generateSortParam(sort),
         },
         queryAttributes
       );
@@ -239,12 +239,8 @@ module.exports = app => {
               const latestRecord = records.pop();
               if (latestRecord && latestRecord.reciver_type) {
                 if (latestRecord.reciver_type === 'business') {
-                  latestRecord.reciver_info = await ctx.service.user.findById(
-                    latestRecord.reciver
-                  );
-                  latestRecord.sender_info = await ctx.service.user.findById(
-                    latestRecord.sender
-                  );
+                  latestRecord.reciver_info = await ctx.service.user.findById(latestRecord.reciver);
+                  latestRecord.sender_info = await ctx.service.user.findById(latestRecord.sender);
                 }
               }
               tracings[i].records.push(latestRecord);
@@ -272,14 +268,14 @@ module.exports = app => {
           data: {
             bind,
             send,
-            express
+            express,
           },
           meta: {
             limit,
             offset,
             sort,
-            count
-          }
+            count,
+          },
         };
       } else {
         ctx.jsonBody = {
@@ -288,8 +284,8 @@ module.exports = app => {
             limit,
             offset,
             sort,
-            count
-          }
+            count,
+          },
         };
       }
     }
@@ -306,12 +302,12 @@ module.exports = app => {
       const query = {
         $or: [
           {
-            inner_code: key
+            inner_code: key,
           },
           {
-            outer_code: key
-          }
-        ]
+            outer_code: key,
+          },
+        ],
       };
       const tracing = await service.tracing.findOne(
         query,
@@ -349,7 +345,7 @@ module.exports = app => {
             if (smallTracings[i].state !== 'UNBIND') {
               const smallTracing = await ctx.service.tracing.findOne(
                 {
-                  _id: smallTracings[i]._id
+                  _id: smallTracings[i]._id,
                 },
                 'products'
               );
@@ -380,9 +376,9 @@ module.exports = app => {
       const style = workBook.createStyle({
         font: {
           color: '#000000',
-          size: 14
+          size: 14,
         },
-        numberFormat: '$#,##0.00; ($#,##0.00); -'
+        numberFormat: '$#,##0.00; ($#,##0.00); -',
       });
       const workSheet = workBook.addWorksheet('Sheet 1');
 
@@ -391,11 +387,7 @@ module.exports = app => {
       ctx.error(isOrderExist, 18000, '生成溯源码失败，订单不存在');
       const { commodity, status, count, buyer } = isOrderExist;
       // 验证订单状态，非定制溯源码，验证是否付全款，定制溯源码验证是否已经付首付款
-      ctx.error(
-        status === 'PAYMENT_CONFIRMED',
-        18001,
-        '订单未确认支付，无法生成溯源码'
-      );
+      ctx.error(status === 'PAYMENT_CONFIRMED', 18001, '订单未确认支付，无法生成溯源码');
 
       const targetTracings = [];
       const baseUrl = 'https://buildupstep.cn/page/tracing/code?';
@@ -412,9 +404,9 @@ module.exports = app => {
         const outerCode = `01${publicHash.digest('hex')}`;
         const innerTracing = `${baseUrl}type=inner_code&id=${innerCode}`;
         const outerTracing = `${baseUrl}type=outer_code&id=${outerCode}`;
-        const no = i + 1; // 对外编号
+        const no = i + 1 // 对外编号
         // 数据写入excel[内码、外码、快递发货码]
-        [innerTracing, outerTracing, outerCode].forEach((item, index) => {
+        ;[innerTracing, outerTracing, outerCode].forEach((item, index) => {
           workSheet
             .cell(i + 1, index + 1)
             .string(item)
@@ -429,7 +421,7 @@ module.exports = app => {
           private_uuid: privateUUID,
           public_uuid: publicUUID,
           inner_code: innerCode,
-          outer_code: outerCode
+          outer_code: outerCode,
         });
       }
       /**
@@ -453,19 +445,19 @@ module.exports = app => {
         name: `${order}.xlsx`,
         type: 'application/vnd.ms-excel',
         path: `files/${order}.xlsx`,
-        size: fileStat.size
+        size: fileStat.size,
       });
       ctx.error(file, 17027, '订单附件创建失败');
 
       // 修改订单的状态，添加附件地址
       const { nModified } = await ctx.service.order.update(
         {
-          _id: order
+          _id: order,
         },
         {
           status: 'PRINTED',
           attachment: file._id,
-          print_at: new Date()
+          print_at: new Date(),
         }
       );
       ctx.error(nModified === 1, 17026, '溯源码打印失败');
@@ -488,30 +480,23 @@ module.exports = app => {
         products,
         tracing_products,
         operation,
-        isFactoryTracing
-      } = await ctx.verify(
-        updateRule,
-        Object.assign(ctx.request.body, ctx.params)
-      );
+        isFactoryTracing,
+      } = await ctx.verify(updateRule, Object.assign(ctx.request.body, ctx.params));
       const { role_type, user_id } = ctx.loginPermission();
       ctx.error(key, 18004, '溯源密匙为必填项', 400);
       const isTracingExist = await service.tracing.findOne({
         $or: [
           {
-            inner_code: key
+            inner_code: key,
           },
           {
-            outer_code: key
-          }
-        ]
+            outer_code: key,
+          },
+        ],
       });
-      ctx.error(
-        !isTracingExist.isEnd,
-        18005,
-        '溯源码已被签收，不能再进行任何修改操作'
-      );
+      ctx.error(!isTracingExist.isEnd, 18005, '溯源流程已结束，不能再进行任何修改操作');
       const targetData = {
-        isActive: true
+        isActive: true,
       };
 
       // 绑定溯源码商品
@@ -522,37 +507,24 @@ module.exports = app => {
           18019,
           '非自己的溯源码不能进行绑定商品操作'
         ); // 验证溯源码是否是自己的
+        ctx.error(isTracingExist.state === 'UNBIND', 18016, '当前状态不能绑定商品信息'); // 是自己的，则验证溯源码当前状态能否绑定商品
         ctx.error(
-          isTracingExist.state === 'UNBIND',
-          18016,
-          '当前状态不能绑定商品信息'
-        ); // 是自己的，则验证溯源码当前状态能否绑定商品
-        ctx.error(
-          (products && products.length > 0) ||
-            (tracing_products && tracing_products.length > 0),
+          (products && products.length > 0) || (tracing_products && tracing_products.length > 0),
           18015,
           '绑定商品为必填'
         ); // 当前状态能绑定商品，则验证上传的商品信息是否正确
         if (isFactoryTracing) {
-          ctx.error(
-            isTracingExist.isFactoryTracing,
-            18006,
-            '非大溯源袋不能绑定小溯源码'
-          );
+          ctx.error(isTracingExist.isFactoryTracing, 18006, '非大溯源袋不能绑定小溯源码');
           const tracing_count = tracing_products.length;
-          ctx.error(
-            tracing_count > 0,
-            18006,
-            '溯源码绑定溯源商品失败，溯源商品列表为空'
-          );
+          ctx.error(tracing_count > 0, 18006, '溯源码绑定溯源商品失败，溯源商品列表为空');
           // 验证tracing_products包含的tracing都存在
           const tracingProductsCount = await ctx.service.tracing.count({
             _id: {
-              $in: tracing_products
+              $in: tracing_products,
             },
             state: {
-              $in: ['UNBIND', 'BIND']
-            }
+              $in: ['UNBIND', 'BIND'],
+            },
           });
           ctx.error(
             tracing_count === tracingProductsCount,
@@ -563,20 +535,16 @@ module.exports = app => {
         } else if (products && products.length) {
           const productsCount = await ctx.service.barcode.count({
             _id: {
-              $in: products
-            }
+              $in: products,
+            },
           });
-          ctx.error(
-            productsCount === products.length,
-            18007,
-            '条形码列表中存在错误的码'
-          );
+          ctx.error(productsCount === products.length, 18007, '条形码列表中存在错误的码');
           // 绑定普通商品
           targetData.products = products;
         }
         targetData.state = 'BIND';
       } else {
-        const { records: currentRecords } = isTracingExist;
+        const { records: currentRecords, isFactoryTracing } = isTracingExist;
         const latestRecord = currentRecords.pop();
         // 设置溯源记录
         const {
@@ -586,9 +554,28 @@ module.exports = app => {
           reciver_type,
           reciver_name,
           reciver_phone,
-          reciver_address
+          reciver_address,
         } = record || {};
         if (operation === 'send') {
+          // 如果是大溯源码，则验证包含的小码状态
+          if (isFactoryTracing) {
+            const smallTracings = isTracingExist.tracing_products.toString().split(',');
+            // 判断其中是否包含已被签收的小溯源码，若是，则大溯源码结束
+            const smallTracingsCount = await ctx.service.tracing.count({
+              state: {
+                $in: ['BIND', 'UNBIND'],
+              },
+              _id: {
+                $in: smallTracings,
+              },
+            });
+            ctx.error(
+              smallTracings.length === smallTracingsCount,
+              18023,
+              '发货失败，溯源袋中的小溯源码被发货'
+            );
+          }
+
           ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
           // 已绑定商品信息，则进入溯源流程
           ctx.error(
@@ -616,7 +603,7 @@ module.exports = app => {
               sender: user_id,
               send_at: new Date(),
               reciver_type,
-              reciver
+              reciver,
             });
           } else {
             currentRecords.push({
@@ -625,7 +612,7 @@ module.exports = app => {
               reciver_type,
               reciver_name,
               reciver_phone,
-              reciver_address
+              reciver_address,
             });
           }
           targetData.state = 'SEND';
@@ -633,26 +620,14 @@ module.exports = app => {
         } else if (operation === 'express') {
           ctx.error(!_.isEmpty(record), 18011, '溯源记录为必填项', 400);
           // 暂时不涉及快递员及快递信息
-          ctx.error(
-            role_type === 'courier',
-            18017,
-            '非快递员类型不能绑定快递信息'
-          ); // 验证当前用户类型是否具有发货权限
-          ctx.error(
-            isTracingExist.state === 'SEND',
-            18012,
-            '当前状态不能进行绑定快递信息操作'
-          ); // 验证溯源码状态能否进行发货操作
-          ctx.error(
-            express_no && express_name,
-            18010,
-            '溯源记录包含的快递信息缺失'
-          );
+          ctx.error(role_type === 'courier', 18017, '非快递员类型不能绑定快递信息'); // 验证当前用户类型是否具有发货权限
+          ctx.error(isTracingExist.state === 'SEND', 18012, '当前状态不能进行绑定快递信息操作'); // 验证溯源码状态能否进行发货操作
+          ctx.error(express_no && express_name, 18010, '溯源记录包含的快递信息缺失');
           Object.assign(latestRecord, {
             courier: user_id,
             express_no,
             express_name,
-            express_at: new Date()
+            express_at: new Date(),
           }); // 修改溯源记录
           currentRecords.push(latestRecord); // 替换最后一条溯源记录
           targetData.records = currentRecords;
@@ -668,44 +643,33 @@ module.exports = app => {
           const owner = user_id;
           latestRecord.reciver_at = new Date(); // 统一添加收货时间
           if (reciver_type === 'business') {
-            ctx.error(
-              reciver._id.toString() === user_id,
-              18021,
-              '非收货人无权进行收货操作'
-            );
+            ctx.error(reciver._id.toString() === user_id, 18021, '非收货人无权进行收货操作');
           } else targetData.isEnd = true;
           // TODO 若为大溯源码，则需要将小溯源码的拥有者切换为当前用户
           if (isTracingExist.isFactoryTracing) {
-            const smallTracings = isTracingExist.tracing_products
-              .toString()
-              .split(',');
+            const smallTracings = isTracingExist.tracing_products.toString().split(',');
             // 判断其中是否包含已被签收的小溯源码，若是，则大溯源码结束
             const smallTracingsCount = await ctx.service.tracing.count({
               state: {
-                $in: ['BIND', 'UNBIND']
+                $in: ['BIND', 'UNBIND'],
               },
               _id: {
-                $in: smallTracings
-              }
+                $in: smallTracings,
+              },
             });
             if (smallTracings.length !== smallTracingsCount) {
               targetData.isEnd = true;
             }
             // 修改小溯源码拥有者信息
             for (let i = 0; i < smallTracings.length; i++) {
-              const isSmallTracingExist = await ctx.service.tracing.findById(
-                smallTracings[i]
-              );
-              if (
-                isSmallTracingExist &&
-                ['BIND', 'UNBIND'].includes(isSmallTracingExist.state)
-              ) {
+              const isSmallTracingExist = await ctx.service.tracing.findById(smallTracings[i]);
+              if (isSmallTracingExist && ['BIND', 'UNBIND'].includes(isSmallTracingExist.state)) {
                 await ctx.service.tracing.update(
                   {
-                    _id: isSmallTracingExist._id
+                    _id: isSmallTracingExist._id,
                   },
                   {
-                    owner: user_id
+                    owner: user_id,
                   }
                 );
               }
@@ -723,12 +687,12 @@ module.exports = app => {
         {
           $or: [
             {
-              inner_code: key
+              inner_code: key,
             },
             {
-              outer_code: key
-            }
-          ]
+              outer_code: key,
+            },
+          ],
         },
         targetData
       );
@@ -751,7 +715,7 @@ module.exports = app => {
       const tracing = await service.tracing.findById(id);
       ctx.error(tracing, '溯源码不存在', 18002);
       const { nModified } = await service.tracing.destroy({
-        _id: id
+        _id: id,
       });
       ctx.error(nModified === 1, 18003, '溯源码删除失败');
       ctx.jsonBody = tracing;
