@@ -233,7 +233,7 @@ module.exports = app => {
       });
       // 过滤订单
       if (role_type === 'factory') query.buyer = user_id;
-      if (role_type === 'platfrom' && role_id === 2 || role_type === 'salesman') query.salesman = user_id;
+      if (role_type === 'platform' && role_id === 2 || role_type === 'salesman') query.salesman = user_id;
       const orders = await ctx.service.order.findMany(
         query,
         null, {
