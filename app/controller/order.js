@@ -21,43 +21,43 @@ module.exports = app => {
       return {
         properties: {
           commodity: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           count: {
-            type: 'number'
+            type: 'number',
           },
           buyer: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           remarks: {
             properties: {
               product: {
-                $ref: 'schema.definition#/oid'
+                $ref: 'schema.definition#/oid',
               },
               width: {
-                type: 'string'
+                type: 'string',
               },
               height: {
-                type: 'string'
+                type: 'string',
               },
               length: {
-                type: 'string'
+                type: 'string',
               },
               thick: {
-                type: 'string'
-              }
+                type: 'string',
+              },
             },
             required: ['width', 'height', 'length', 'thick'],
             $async: true,
-            additionalProperties: false
+            additionalProperties: false,
           },
           logo: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['commodity', 'count'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -69,12 +69,23 @@ module.exports = app => {
      */
     async create() {
       // 若为非注册过的用户，则先邀请注册为企业账户
-      const { createRule, ctx } = this;
-      const { role_type, user_id } = ctx.checkPermission([
+      const {
+        createRule,
+        ctx,
+      } = this;
+      const {
+        role_type,
+        user_id,
+      } = ctx.checkPermission([
         'salesman',
-        'factory'
+        'factory',
       ]);
-      const { commodity, count, remarks, logo } = await ctx.verify(
+      const {
+        commodity,
+        count,
+        remarks,
+        logo,
+      } = await ctx.verify(
         createRule,
         ctx.request.body
       );
@@ -125,16 +136,12 @@ module.exports = app => {
           isStagePay: isCommodityExited.isCustom,
           remarks,
           buyer,
-          ...(isUserExited.inviter
-            ? {
-                salesman: isUserExited.inviter
-              }
-            : {}),
-          ...(logo
-            ? {
-                logo
-              }
-            : {})
+          ...(isUserExited.inviter ? {
+            salesman: isUserExited.inviter,
+          } : {}),
+          ...(logo ? {
+            logo,
+          } : {}),
         })
       );
       ctx.jsonBody = order;
@@ -158,26 +165,26 @@ module.exports = app => {
               'ALL_PAYED',
               'PRINTED',
               'SHIPPED',
-              'FINISHED'
-            ]
+              'FINISHED',
+            ],
           },
           buyer: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           salesman: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           quoter: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           embed: {
             type: 'string',
-            enum: ['category']
+            enum: ['category'],
           },
-          ...this.ctx.helper.pagination.rule
+          ...this.ctx.helper.pagination.rule,
         },
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -188,26 +195,35 @@ module.exports = app => {
      * @return {promise} Order List
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { user_id, role_type } = ctx.checkPermission([
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        user_id,
+        role_type,
+        role_id,
+      } = ctx.checkPermission([
         'salesman',
         'factory',
-        'platform'
+        'platform',
       ]);
-      const { generateSortParam } = ctx.helper.pagination;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
         unPaid: [], // 待付款
         unSent: [], // 待发货
         unCheck: [], // 待验收
         unReceived: [], // 待收货
-        all: [] // 所有订单
+        all: [], // 所有订单
       };
       const {
         limit = 10,
         offset = 0,
         sort = '-created_at',
-        embed
+        embed,
       } = await ctx.verify(indexRule, ctx.request.query);
 
       const query = {};
@@ -216,22 +232,24 @@ module.exports = app => {
         if (item) query[key] = item;
       });
       // 过滤订单
-      if (role_type === 'salesman') query.salesman = user_id;
-      else if (role_type === 'factory') query.buyer = user_id;
+      if (role_type === 'factory') query.buyer = user_id;
+      if (role_type === 'platfrom' && role_id === 2 || role_type === 'salesman') query.salesman = user_id;
       const orders = await ctx.service.order.findMany(
         query,
-        null,
-        {
+        null, {
           limit: parseInt(limit),
           skip: parseInt(offset),
-          sort: generateSortParam(sort)
+          sort: generateSortParam(sort),
         },
         'commodity buyer salesman quoter'
       );
       if (embed === 'category') {
         respOrders.all = orders;
         orders.forEach(order => {
-          const { status, isStagePay } = order;
+          const {
+            status,
+            isStagePay,
+          } = order;
           switch (status) {
             case 'CREATED':
               if (isStagePay) respOrders.unQuoted.push(order);
@@ -275,8 +293,8 @@ module.exports = app => {
           limit,
           offset,
           sort,
-          count
-        }
+          count,
+        },
       };
     }
 
@@ -290,12 +308,12 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid'
-          }
+            $ref: 'schema.definition#/oid',
+          },
         },
         required: ['id'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -306,12 +324,20 @@ module.exports = app => {
      * @return {promise} Order
      */
     async show() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id, role_type } = ctx.checkPermission([
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+        role_type,
+      } = ctx.checkPermission([
         'salesman',
         'factory',
-        'platform'
+        'platform',
       ]);
       const order = await ctx.service.order.findById(
         id,
@@ -348,33 +374,33 @@ module.exports = app => {
       return {
         properties: {
           id: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           quoter: {
-            $ref: 'schema.definition#/oid'
+            $ref: 'schema.definition#/oid',
           },
           price: {
-            type: 'number'
+            type: 'number',
           },
           stageProportion: {
-            type: 'number'
+            type: 'number',
           },
           commisionProportion: {
-            type: 'number'
+            type: 'number',
           },
           express: {
             type: 'object',
             properties: {
               id: {
-                type: 'string'
+                type: 'string',
               },
               name: {
-                $ref: 'schema.definition#/name'
-              }
+                $ref: 'schema.definition#/name',
+              },
             },
             required: ['id', 'name'],
             additionalProperties: false,
-            $async: true
+            $async: true,
           },
           status: {
             type: 'string',
@@ -387,8 +413,8 @@ module.exports = app => {
               'SHIPPED',
               'FINISHED',
               'CLOSED',
-              'PAYMENT_CONFIRMED'
-            ]
+              'PAYMENT_CONFIRMED',
+            ],
           },
           trade: {
             type: 'array',
@@ -397,36 +423,36 @@ module.exports = app => {
               properties: {
                 type: {
                   type: 'string',
-                  enum: ['FIRST_PAYED', 'ALL_PAYED']
+                  enum: ['FIRST_PAYED', 'ALL_PAYED'],
                 },
                 sponsor: {
-                  type: 'string'
+                  type: 'string',
                 },
                 number: {
-                  type: 'string'
+                  type: 'string',
                 },
                 voucher: {
-                  $ref: 'schema.definition#/oid'
-                }
+                  $ref: 'schema.definition#/oid',
+                },
               },
               required: ['type', 'sponsor', 'number', 'voucher'],
               additionalProperties: false,
-              $async: true
-            }
+              $async: true,
+            },
           },
           isFirstPaymentConfirmed: {
-            type: 'boolean'
+            type: 'boolean',
           },
           isAllPaymentConfirmed: {
-            type: 'boolean'
+            type: 'boolean',
           },
           isLastPaymentConfirmed: {
-            type: 'boolean'
-          }
+            type: 'boolean',
+          },
         },
         required: ['id', 'status'],
         $async: true,
-        additionalProperties: false
+        additionalProperties: false,
       };
     }
 
@@ -437,10 +463,16 @@ module.exports = app => {
      * @return {promise} Order
      */
     async update() {
-      const { ctx, updateRule } = this;
-      const { role_type, user_id } = ctx.checkPermission([
+      const {
+        ctx,
+        updateRule,
+      } = this;
+      const {
+        role_type,
+        user_id,
+      } = ctx.checkPermission([
         'factory',
-        'platform'
+        'platform',
       ]);
       const {
         id,
@@ -452,7 +484,7 @@ module.exports = app => {
         commisionProportion,
         isFirstPaymentConfirmed,
         isAllPaymentConfirmed,
-        isLastPaymentConfirmed
+        isLastPaymentConfirmed,
       } = await ctx.verify(
         updateRule,
         Object.assign(ctx.request.body, ctx.params)
@@ -465,7 +497,7 @@ module.exports = app => {
         ctx.oneselfPermission(isOrderExit.buyer._id.toString());
       }
       const modifiedData = {
-        needRemind: false
+        needRemind: false,
       };
 
       // 报价
@@ -492,7 +524,7 @@ module.exports = app => {
           quoter,
           status,
           needRemind: true,
-          quote_at: new Date()
+          quote_at: new Date(),
         });
       } else if (['FIRST_PAYED', 'ALL_PAYED'].includes(status)) {
         ctx.error(!_.isEmpty(trade), 400, '未携带支付信息', 400);
@@ -561,7 +593,7 @@ module.exports = app => {
         }
         Object.assign(modifiedData, {
           trade,
-          status
+          status,
         });
       } else if (status === 'PAYMENT_CONFIRMED') {
         ctx.checkPermission('platform');
@@ -579,18 +611,18 @@ module.exports = app => {
           Object.assign(modifiedData, {
             status,
             isFirstPaymentConfirmed,
-            firstPaymentConfirm_at: new Date()
+            firstPaymentConfirm_at: new Date(),
           });
         } else if (isOrderExit.isLastPayed) {
           Object.assign(modifiedData, {
             isLastPaymentConfirmed,
-            lastPaymentConfirm_at: new Date()
+            lastPaymentConfirm_at: new Date(),
           });
         } else {
           Object.assign(modifiedData, {
             status,
             isAllPaymentConfirmed,
-            allPaymentConfirm_at: new Date()
+            allPaymentConfirm_at: new Date(),
           });
         }
       } else if (status === 'SHIPPED') {
@@ -605,19 +637,22 @@ module.exports = app => {
         Object.assign(modifiedData, {
           express,
           status,
-          needRemind: true
+          needRemind: true,
         });
         // 修改商品已出售数量
-        const { sales, _id: commodityId, payers } = isOrderExit.commodity;
-        const { nModified } = await ctx.service.commodity.update(
-          {
-            _id: commodityId
-          },
-          {
-            sales: sales + isOrderExit.count,
-            payers: payers + 1
-          }
-        );
+        const {
+          sales,
+          _id: commodityId,
+          payers,
+        } = isOrderExit.commodity;
+        const {
+          nModified,
+        } = await ctx.service.commodity.update({
+          _id: commodityId,
+        }, {
+          sales: sales + isOrderExit.count,
+          payers: payers + 1,
+        });
         ctx.error(nModified === 1, 15005, '商品修改失败');
       } else if (status === 'FINISHED') {
         ctx.error(
@@ -634,16 +669,17 @@ module.exports = app => {
         }
         Object.assign(modifiedData, {
           status,
-          finish_at: new Date()
+          finish_at: new Date(),
         });
       } else {
         ctx.error(false, 17025, '错误的订单状态');
       }
-      const { nModified } = await ctx.service.order.update(
-        {
-          _id: id
-        },
-        modifiedData
+      const {
+        nModified,
+      } = await ctx.service.order.update({
+        _id: id,
+      },
+      modifiedData
       );
       ctx.error(nModified === 1, 17008, '订单修改失败');
 
@@ -658,8 +694,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async destroy() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
       const order = await ctx.service.order.findById(id);
       ctx.error(order, 17000, '订单不存在');
@@ -668,8 +709,10 @@ module.exports = app => {
         17015,
         '订单删除失败，当前状态不允许删除'
       );
-      const { nModified } = await ctx.service.order.destroy({
-        _id: id
+      const {
+        nModified,
+      } = await ctx.service.order.destroy({
+        _id: id,
       });
       ctx.error(nModified === 1, 17016, '订单删除失败');
       ctx.jsonBody = order;
