@@ -117,9 +117,17 @@ module.exports = app => {
      * @return {promise} 用户列表
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { generateSortParam } = ctx.helper.pagination;
-      ctx.checkPermission('platform');
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
+      const {
+        user_id,
+        role_id,
+      } = ctx.checkPermission('platform');
 
       const {
         enable,
@@ -132,13 +140,10 @@ module.exports = app => {
 
       const query = {};
       if (enable) query.enable = enable;
-      if (role_type) {
-        query.role_type = role_type;
-      } else {
-        query.role_type = {
-          $in: ['factory', 'business', 'courier', 'salesman'],
-        };
-      }
+      query.role_type = role_type ? role_type : {
+        $in: ['factory', 'business', 'courier', 'salesman'],
+      };
+      if (role_id === 2) query.inviter = user_id;
       if (state) query.state = state;
       const users = await ctx.service.user.findMany(query, null, {
         limit: parseInt(limit),
@@ -187,8 +192,14 @@ module.exports = app => {
      * @return {undefined}
      */
     async statistics() {
-      const { ctx, statisticRule } = this;
-      const { id, type } = await ctx.verify(
+      const {
+        ctx,
+        statisticRule,
+      } = this;
+      const {
+        id,
+        type,
+      } = await ctx.verify(
         statisticRule,
         Object.assign(ctx.params, ctx.query)
       );
@@ -251,9 +262,16 @@ module.exports = app => {
      * @return {undefined}
      */
     async business() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id } = ctx.oneselfPermission(id);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+      } = ctx.oneselfPermission(id);
       const userInfo = await ctx.service.user.findMany({
         inviter: user_id,
         role_type: 'business',
@@ -269,9 +287,17 @@ module.exports = app => {
      * @return {undefined}
      */
     async factory() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id, role_type } = ctx.oneselfPermission(id);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+        role_type,
+      } = ctx.oneselfPermission(id);
       ctx.error(
         ['platform', 'salesman'].includes(role_type),
         10005,
@@ -296,9 +322,17 @@ module.exports = app => {
      * @return {undefined}
      */
     async sales() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id, role_type } = ctx.oneselfPermission(id);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+        role_type,
+      } = ctx.oneselfPermission(id);
       ctx.error(
         role_type === 'salesman',
         10006,
@@ -315,7 +349,10 @@ module.exports = app => {
       const user = await ctx.service.user.findById(user_id);
       if (orders) {
         orders.forEach(order => {
-          const { price, commisionProportion } = order;
+          const {
+            price,
+            commisionProportion,
+          } = order;
           totalPrice += price;
           totalCommission += price * commisionProportion;
         });
@@ -335,8 +372,15 @@ module.exports = app => {
      * @return {promise} 新建的用户
      */
     async create() {
-      const { ctx, service, createRule } = this;
-      const { openid, token } = ctx.loginPermission();
+      const {
+        ctx,
+        service,
+        createRule,
+      } = this;
+      const {
+        openid,
+        token,
+      } = ctx.loginPermission();
       await ctx.verify(createRule, ctx.request.body);
       const isUserExist = await ctx.service.user.findOne({
         openid,
@@ -347,7 +391,11 @@ module.exports = app => {
         10004,
         '注册失败，该用户已注册'
       );
-      const { role_type, role_id, inviter } = ctx.request.body;
+      const {
+        role_type,
+        role_id,
+        inviter,
+      } = ctx.request.body;
       switch (role_type) {
         case 'salesman':
           ctx.error(role_id >= 40 && role_id < 50, 11006, '用户类型与id不匹配');
@@ -386,11 +434,12 @@ module.exports = app => {
       });
 
       // 用户注册
-      const { nModified } = await service.user.update(
-        {
-          openid,
-        },
-        targetData
+      const {
+        nModified,
+      } = await service.user.update({
+        openid,
+      },
+      targetData
       );
       ctx.error(nModified === 1, 11008, '用户注册失败');
       const isRegistered = true;
@@ -415,8 +464,14 @@ module.exports = app => {
      * @return {promise} 用户详情
      */
     async show() {
-      const { ctx, service, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        service,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
       ctx.checkPermission(['platform', id]);
       const user = await service.user.findById(id);
       ctx.jsonBody = user;
@@ -430,8 +485,17 @@ module.exports = app => {
      */
     async update() {
       // 商户上传banner或平台管理员审核用户
-      const { ctx, service, updateRule } = this;
-      const { id, operation, banner, state } = await ctx.verify(
+      const {
+        ctx,
+        service,
+        updateRule,
+      } = this;
+      const {
+        id,
+        operation,
+        banner,
+        state,
+      } = await ctx.verify(
         updateRule,
         Object.assign(ctx.params, ctx.request.body)
       );
@@ -439,7 +503,9 @@ module.exports = app => {
       ctx.error(isUserExist, 11008, '未找到该用户');
       const targetParams = {};
       if (operation === 'banner') {
-        const { role_type } = isUserExist;
+        const {
+          role_type,
+        } = isUserExist;
         ctx.oneselfPermission(id);
         ctx.error(
           ['business', 'factory'].includes(role_type),
@@ -468,11 +534,10 @@ module.exports = app => {
         targetParams.state = state;
       }
 
-      await service.user.update(
-        {
-          _id: id,
-        },
-        targetParams
+      await service.user.update({
+        _id: id,
+      },
+      targetParams
       );
 
       ctx.jsonBody = Object.assign(isUserExist, targetParams);
