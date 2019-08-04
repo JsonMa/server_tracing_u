@@ -13,6 +13,7 @@ module.exports = ({ mongoose }) => {
    * @property {Object}   buyer                  - 购买者信息
    * @property {Object}   logo                   - 购买者logo
    * @property {Object}   salesman               - 销售信息
+   * @property {Object}   director               - 总监信息
    * @property {Object}   quoter                 - 报价人
    * @property {Date}     quote_at               - 报价时间
    * @property {Object}   commodity              - 商品信息
@@ -71,6 +72,10 @@ module.exports = ({ mongoose }) => {
         thick: String,
       },
       salesman: {
+        type: Schema.Types.ObjectId,
+        ref: 'user',
+      },
+      director: {
         type: Schema.Types.ObjectId,
         ref: 'user',
       },
