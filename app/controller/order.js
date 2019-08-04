@@ -69,12 +69,23 @@ module.exports = app => {
      */
     async create() {
       // 若为非注册过的用户，则先邀请注册为企业账户
-      const { createRule, ctx } = this;
-      const { role_type, user_id } = ctx.checkPermission([
+      const {
+        createRule,
+        ctx,
+      } = this;
+      const {
+        role_type,
+        user_id,
+      } = ctx.checkPermission([
         'salesman',
         'factory',
       ]);
-      const { commodity, count, remarks, logo } = await ctx.verify(
+      const {
+        commodity,
+        count,
+        remarks,
+        logo,
+      } = await ctx.verify(
         createRule,
         ctx.request.body
       );
@@ -199,13 +210,22 @@ module.exports = app => {
      * @return {promise} Order List
      */
     async index() {
-      const { ctx, indexRule } = this;
-      const { user_id, role_type } = ctx.checkPermission([
+      const {
+        ctx,
+        indexRule,
+      } = this;
+      const {
+        user_id,
+        role_type,
+        role_id,
+      } = ctx.checkPermission([
         'salesman',
         'factory',
         'platform',
       ]);
-      const { generateSortParam } = ctx.helper.pagination;
+      const {
+        generateSortParam,
+      } = ctx.helper.pagination;
       let respOrders = {
         unQuoted: [], // 待报价
         unPaid: [], // 待付款
@@ -227,12 +247,11 @@ module.exports = app => {
         if (item) query[key] = item;
       });
       // 过滤订单
-      if (role_type === 'salesman') query.salesman = user_id;
-      else if (role_type === 'factory') query.buyer = user_id;
+      if (role_type === 'factory') query.buyer = user_id;
+      if (role_type === 'platform' && role_id === 2 || role_type === 'salesman') query.salesman = user_id;
       const orders = await ctx.service.order.findMany(
         query,
-        null,
-        {
+        null, {
           limit: parseInt(limit),
           skip: parseInt(offset),
           sort: generateSortParam(sort),
@@ -242,7 +261,10 @@ module.exports = app => {
       if (embed === 'category') {
         respOrders.all = orders;
         orders.forEach(order => {
-          const { status, isStagePay } = order;
+          const {
+            status,
+            isStagePay,
+          } = order;
           switch (status) {
             case 'CREATED':
               if (isStagePay) respOrders.unQuoted.push(order);
@@ -317,9 +339,17 @@ module.exports = app => {
      * @return {promise} Order
      */
     async show() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
-      const { user_id, role_type } = ctx.checkPermission([
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
+      const {
+        user_id,
+        role_type,
+      } = ctx.checkPermission([
         'salesman',
         'factory',
         'platform',
@@ -448,8 +478,14 @@ module.exports = app => {
      * @return {promise} Order
      */
     async update() {
-      const { ctx, updateRule } = this;
-      const { role_type, user_id } = ctx.checkPermission([
+      const {
+        ctx,
+        updateRule,
+      } = this;
+      const {
+        role_type,
+        user_id,
+      } = ctx.checkPermission([
         'factory',
         'platform',
       ]);
@@ -669,8 +705,13 @@ module.exports = app => {
      * @return {promise} Order
      */
     async destroy() {
-      const { ctx, showRule } = this;
-      const { id } = await ctx.verify(showRule, ctx.params);
+      const {
+        ctx,
+        showRule,
+      } = this;
+      const {
+        id,
+      } = await ctx.verify(showRule, ctx.params);
 
       const order = await ctx.service.order.findById(id);
       ctx.error(order, 17000, '订单不存在');

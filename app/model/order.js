@@ -1,9 +1,15 @@
 'use strict';
 
-const { timestamps } = require('../lib/model_common');
+const {
+  timestamps,
+} = require('../lib/model_common');
 
-module.exports = ({ mongoose }) => {
-  const { Schema } = mongoose;
+module.exports = ({
+  mongoose,
+}) => {
+  const {
+    Schema,
+  } = mongoose;
   /**
    * 订单Model
    *
@@ -51,159 +57,153 @@ module.exports = ({ mongoose }) => {
    * @property {String}   attachment             - 附件id
    * @property {String}   isLastPayed            - 是否已经支付了尾款
    */
-  const schema = new Schema(
-    {
-      buyer: {
+  const schema = new Schema({
+    buyer: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    logo: {
+      type: Schema.Types.ObjectId,
+      ref: 'file',
+    },
+    remarks: {
+      product: {
         type: Schema.Types.ObjectId,
-        ref: 'user',
+        ref: 'barcode',
       },
-      logo: {
-        type: Schema.Types.ObjectId,
-        ref: 'file',
-      },
-      remarks: {
-        product: {
-          type: Schema.Types.ObjectId,
-          ref: 'barcode',
-        },
-        width: String,
-        height: String,
-        length: String,
-        thick: String,
-      },
-      salesman: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      director: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      quoter: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      quote_at: Date,
-      commodity: {
-        type: Schema.Types.ObjectId,
-        ref: 'commodity',
-      },
-      count: {
-        type: Number,
-        required: true,
-        default: 1,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
-      status: {
-        type: String,
-        values: [
-          'CREATED',
-          'QUOTED',
-          'FIRST_PAYED',
-          'ALL_PAYED',
-          'PAYMENT_CONFIRMED',
-          'PRINTED',
-          'SHIPPED',
-          'FINISHED',
-        ],
-        default: 'CREATED',
-      },
-      no: String,
-      express: {
-        id: String,
-        name: String,
-        send_at: Date,
-      },
-      needPrint: {
-        type: Boolean,
-        default: false,
-      },
-      isStagePay: {
-        type: Boolean,
-        default: false,
-      },
-      stageProportion: {
-        type: Number,
-        default: 0.5,
-      },
-      commisionProportion: {
-        type: Number,
-        default: 0,
-      },
-      payee: {
-        account: {
-          type: String,
-          default: '755942248610701',
-        },
-        bank: {
-          type: String,
-          default: '招商银行',
-        },
-        name: {
-          type: String,
-          default: '溯源科技',
-        },
-      },
-      needRemind: {
-        type: Boolean,
-        default: false,
-      },
-      trade: [
-        {
-          type: {
-            type: String,
-            values: ['FIRST_PAYED', 'ALL_PAYED'],
-          },
-          sponsor: {
-            type: String,
-          },
-          number: {
-            type: String,
-          },
-          voucher: {
-            type: Schema.Types.ObjectId,
-            ref: 'file',
-          },
-          pay_at: Date,
-        },
+      width: String,
+      height: String,
+      length: String,
+      thick: String,
+    },
+    salesman: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    director: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    quoter: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    quote_at: Date,
+    commodity: {
+      type: Schema.Types.ObjectId,
+      ref: 'commodity',
+    },
+    count: {
+      type: Number,
+      required: true,
+      default: 1,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    status: {
+      type: String,
+      values: [
+        'CREATED',
+        'QUOTED',
+        'FIRST_PAYED',
+        'ALL_PAYED',
+        'PAYMENT_CONFIRMED',
+        'PRINTED',
+        'SHIPPED',
+        'FINISHED',
       ],
-      isFirstPaymentConfirmed: {
-        type: Boolean,
-        default: false,
+      default: 'CREATED',
+    },
+    no: String,
+    express: {
+      id: String,
+      name: String,
+      send_at: Date,
+    },
+    needPrint: {
+      type: Boolean,
+      default: false,
+    },
+    isStagePay: {
+      type: Boolean,
+      default: false,
+    },
+    stageProportion: {
+      type: Number,
+      default: 0.5,
+    },
+    commisionProportion: {
+      type: Number,
+      default: 0,
+    },
+    payee: {
+      account: {
+        type: String,
+        default: '755942248610701',
       },
-      firstPaymentConfirm_at: Date,
-      isLastPaymentConfirmed: {
-        type: Boolean,
-        default: false,
+      bank: {
+        type: String,
+        default: '招商银行',
       },
-      lastPaymentConfirm_at: Date,
-      isAllPaymentConfirmed: {
-        type: Boolean,
-        default: false,
-      },
-      isLastPayed: {
-        type: Boolean,
-        default: false,
-      },
-      allPaymentConfirm_at: Date,
-      print_at: Date,
-      finish_at: Date,
-      deleted_at: Date,
-      reason: String,
-      attachment: {
-        type: Schema.Types.ObjectId,
-        ref: 'file',
+      name: {
+        type: String,
+        default: '溯源科技',
       },
     },
-    Object.assign(
-      {},
-      {
-        timestamps,
-      }
-    )
+    needRemind: {
+      type: Boolean,
+      default: false,
+    },
+    trade: [{
+      type: {
+        type: String,
+        values: ['FIRST_PAYED', 'ALL_PAYED'],
+      },
+      sponsor: {
+        type: String,
+      },
+      number: {
+        type: String,
+      },
+      voucher: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      pay_at: Date,
+    } ],
+    isFirstPaymentConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    firstPaymentConfirm_at: Date,
+    isLastPaymentConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    lastPaymentConfirm_at: Date,
+    isAllPaymentConfirmed: {
+      type: Boolean,
+      default: false,
+    },
+    isLastPayed: {
+      type: Boolean,
+      default: false,
+    },
+    allPaymentConfirm_at: Date,
+    print_at: Date,
+    finish_at: Date,
+    deleted_at: Date,
+    reason: String,
+    attachment: {
+      type: Schema.Types.ObjectId,
+      ref: 'file',
+    },
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('order', schema);
