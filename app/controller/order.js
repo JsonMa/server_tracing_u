@@ -128,9 +128,12 @@ module.exports = app => {
       }
       let director = null;
       if (isUserExited.inviter) {
-        // 获取销售信息
+        // 获取销售信息（销售/总监）
         const salesmanInfo = await ctx.service.user.findById(isUserExited.inviter);
-        if (salesmanInfo && salesmanInfo.inviter) director = salesmanInfo.inviter;
+        if (salesmanInfo) {
+          if (salesmanInfo.role_type === 'platform') director = salesmanInfo._id.toString();
+          else if (salesmanInfo.inviter) director = salesmanInfo.inviter;
+        }
       }
 
       const order = await ctx.service.order.create(
@@ -248,7 +251,8 @@ module.exports = app => {
       });
       // 过滤订单
       if (role_type === 'factory') query.buyer = user_id;
-      if (role_type === 'platform' && role_id === 2 || role_type === 'salesman') query.salesman = user_id;
+      if (role_type === 'salesman') query.salesman = user_id;
+      if (role_type === 'platform' && role_id === 2) query.director = user_id;
       const orders = await ctx.service.order.findMany(
         query,
         null, {
