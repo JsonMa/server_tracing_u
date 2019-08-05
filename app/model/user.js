@@ -1,8 +1,14 @@
 'use strict';
-const { timestamps } = require('../lib/model_common');
+const {
+  timestamps,
+} = require('../lib/model_common');
 
-module.exports = ({ mongoose }) => {
-  const { Schema } = mongoose;
+module.exports = ({
+  mongoose,
+}) => {
+  const {
+    Schema,
+  } = mongoose;
 
   /**
    * 用户Model
@@ -47,168 +53,169 @@ module.exports = ({ mongoose }) => {
    * @param {Boolean}  enable                          - 是否启用该账户
    * @param {Date}     last_login                      - 上次登录时间
    * @param {Object}   inviter                         - 邀请者
+   * @param {Object}   director                        - 总监号
    * @param {String}   state                           - 用户状态[passed, rejected, unreview]rejectReason
    * @param {String}   rejectReason                    - 审核驳回原因last_login
    * @param {Date}     last_login                      - 最近登录时间
    * @param {String}   wechat_phone                    - 用户微信电话
    */
 
-  const schema = new Schema(
-    {
-      role_type: {
-        type: String,
-        enum: [
-          'platform',
-          'factory',
-          'business',
-          'courier',
-          'salesman',
-          'unauthed',
-        ],
-        default: 'unauthed',
-      },
-      role_id: {
-        type: Number,
-        default: 60,
-      },
-      // 平台用户
-      platform: {
-        name: {
-          type: String,
-        },
-        email: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-      },
-      // 厂家
-      factory: {
-        name: {
-          type: String,
-        },
-        public_account: {
-          type: String,
-        },
-        banner: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        email: {
-          type: String,
-        },
-        contact: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        license: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        receiving_info: {
-          name: {
-            type: String,
-          },
-          phone: {
-            type: String,
-          },
-          address: {
-            type: String,
-          },
-        },
-      },
-      // 商家
-      business: {
-        name: {
-          type: String,
-        },
-        address: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        contact: {
-          type: String,
-        },
-        banner: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-        product: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-      // 快递员
-      courier: {
-        company: {
-          type: String,
-        },
-        name: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        email: String,
-        employee_card: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-
-      // 销售
-      salesman: {
-        name: {
-          type: String,
-        },
-        phone: {
-          type: String,
-        },
-        address: {
-          type: String,
-        },
-        id_card: {
-          type: Schema.Types.ObjectId,
-          ref: 'file',
-        },
-      },
-      openid: {
-        type: String,
-        required: true,
-      },
-      enable: {
-        type: Boolean,
-        default: true,
-      },
-      inviter: {
-        type: Schema.Types.ObjectId,
-        ref: 'user',
-      },
-      state: {
-        type: String,
-        enum: ['passed', 'rejected', 'unreview'],
-        default: 'unreview',
-      },
-      wechat_phone: {
-        type: String,
-      },
-      rejectReason: {
-        type: String,
-      },
-      last_login: Date,
-      deleted_at: Date,
+  const schema = new Schema({
+    role_type: {
+      type: String,
+      enum: [
+        'platform',
+        'factory',
+        'business',
+        'courier',
+        'salesman',
+        'unauthed',
+      ],
+      default: 'unauthed',
     },
-    Object.assign(
-      {},
-      {
-        timestamps,
-      }
-    )
+    role_id: {
+      type: Number,
+      default: 60,
+    },
+    // 平台用户
+    platform: {
+      name: {
+        type: String,
+      },
+      email: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+    },
+    // 厂家
+    factory: {
+      name: {
+        type: String,
+      },
+      public_account: {
+        type: String,
+      },
+      banner: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      email: {
+        type: String,
+      },
+      contact: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      license: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      receiving_info: {
+        name: {
+          type: String,
+        },
+        phone: {
+          type: String,
+        },
+        address: {
+          type: String,
+        },
+      },
+    },
+    // 商家
+    business: {
+      name: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      contact: {
+        type: String,
+      },
+      banner: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+      product: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+    // 快递员
+    courier: {
+      company: {
+        type: String,
+      },
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      email: String,
+      employee_card: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+
+    // 销售
+    salesman: {
+      name: {
+        type: String,
+      },
+      phone: {
+        type: String,
+      },
+      address: {
+        type: String,
+      },
+      id_card: {
+        type: Schema.Types.ObjectId,
+        ref: 'file',
+      },
+    },
+    openid: {
+      type: String,
+      required: true,
+    },
+    enable: {
+      type: Boolean,
+      default: true,
+    },
+    inviter: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    director: {
+      type: Schema.Types.ObjectId,
+      ref: 'user',
+    },
+    state: {
+      type: String,
+      enum: ['passed', 'rejected', 'unreview'],
+      default: 'unreview',
+    },
+    wechat_phone: {
+      type: String,
+    },
+    rejectReason: {
+      type: String,
+    },
+    last_login: Date,
+    deleted_at: Date,
+  },
+  Object.assign({}, {
+    timestamps,
+  })
   );
 
   return mongoose.model('user', schema);

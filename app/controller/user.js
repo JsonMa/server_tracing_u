@@ -143,7 +143,7 @@ module.exports = app => {
       query.role_type = role_type ? role_type : {
         $in: ['factory', 'business', 'courier', 'salesman'],
       };
-      if (role_id === 2) query.inviter = user_id;
+      if (role_id === 2) query.director = user_id; // 如果是总监用户，则注入总监信息
       if (state) query.state = state;
       const users = await ctx.service.user.findMany(query, null, {
         limit: parseInt(limit),
@@ -423,7 +423,21 @@ module.exports = app => {
       const user = await service.user.findOne(query); // 验证用户是否存在
       ctx.error(!user, 10003, '创建失败，该用户名已存在', 400);
       let targetData = {};
-      if (inviter) targetData.inviter = inviter;
+      if (inviter) {
+        targetData.inviter = inviter;
+        // 邀请者可能为销售或者总监
+        const inviterInfo = await service.user.findById(inviter);
+        if (inviterInfo) {
+          const {
+            role_type,
+            inviter: salesmanInviter,
+          } = inviterInfo;
+          if (role_type === 'salesman' && salesmanInviter) {
+            targetData.director = salesmanInviter;
+          }
+          if (role_type === 'platform') targetData.director = inviterInfo._id.toString();
+        }
+      }
       targetData.state = 'unreview';
       targetData[role_type] = userData;
       targetData = Object.assign(targetData, {
