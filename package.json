@@ -13,7 +13,7 @@
     "egg-ajv": "^1.0.1",
     "egg-mongoose": "^3.1.1",
     "egg-redis": "1.0.2",
-    "egg-scripts": "^1.2.0",
+    "egg-scripts": ">=2.8.1",
     "excel4node": "^1.7.2",
     "formidable": "^1.1.1",
     "gm": "^1.23.1",
