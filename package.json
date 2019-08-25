@@ -24,7 +24,7 @@
     "imagemin-pngquant": "^5.0.1",
     "istanbul": "0.4.5",
     "jschardet": "^1.6.0",
-    "lodash": "4.17.4",
+    "lodash": ">=4.17.13",
     "moment": "^2.19.3",
     "pg": "6.4.2",
     "pg-hstore": "2.3.2",
