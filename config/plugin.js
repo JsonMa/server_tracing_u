@@ -14,4 +14,9 @@ exports.redis = {
 exports.ajv = {
   enable: true,
   package: 'egg-ajv'
-}
+};
+
+exports.nunjucks = {
+  enable: true,
+  package: 'egg-view-nunjucks',
+};

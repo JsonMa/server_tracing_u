@@ -6,6 +6,8 @@ module.exports = app => {
   /* istanbul ignore next */
   const prefix = '/api';
 
+  // index
+  app.get('/', 'home.index');
   // auth
   app.post(`${prefix}/auth/login`, 'auth.login');
   app.get(`${prefix}/auth/logout`, 'auth.logout');

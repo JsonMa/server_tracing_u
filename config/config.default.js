@@ -83,5 +83,13 @@ module.exports = () => {
 
   exports.host = 'https://buildupstep.cn';
 
+  exports.view = {
+    defaultViewEngine: 'nunjucks',
+    mapping: {
+      '.html': 'nunjucks',
+    },
+  };
+
+
   return exports;
 };
