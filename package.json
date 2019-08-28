@@ -40,7 +40,6 @@
     "verror": "1.10.0",
     "weixin-pay": "1.1.7",
     "xlsx": "^0.11.6",
-    "egg-view-nunjucks": "^2.2.0",
     "xml-js": "^1.5.2"
   },
   "devDependencies": {

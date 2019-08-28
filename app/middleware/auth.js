@@ -21,7 +21,7 @@ module.exports = () =>
       {
         method: ['GET'],
         url: '/page/tracing',
-      },
+      }, // 静态资源请求
     ];
     for (let i = 0; i < whiteUrlLists.length; i++) {
       const item = whiteUrlLists[i];

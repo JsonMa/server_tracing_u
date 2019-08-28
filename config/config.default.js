@@ -1,5 +1,3 @@
-const path = require('path')
-
 module.exports = () => {
   const exports = {};
 
@@ -67,7 +65,7 @@ module.exports = () => {
   };
 
   exports.static = {
-    prefix: '/page/tracing',
+    prefix: '/page/tracing'
   };
 
   exports.onerror = {
@@ -82,14 +80,6 @@ module.exports = () => {
   };
 
   exports.host = 'https://buildupstep.cn';
-
-  exports.view = {
-    defaultViewEngine: 'nunjucks',
-    mapping: {
-      '.html': 'nunjucks',
-    },
-  };
-
 
   return exports;
 };
